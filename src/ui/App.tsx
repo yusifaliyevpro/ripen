@@ -27,7 +27,8 @@ type Screen =
   | "results"
   | "empty"
   | "error"
-  | "settings";
+  | "settings"
+  | "self-update-done";
 
 interface Props {
   project: ProjectInfo;
@@ -70,6 +71,16 @@ export function App({ project, global, version, installManager }: Props) {
       cancelled = true;
     };
   }, []);
+
+  // Exit after self-update completes
+  useEffect(() => {
+    if (screen !== "self-update-done") return;
+    const timer = setTimeout(() => {
+      exit();
+      process.exit(0);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [screen]);
 
   // Fetch outdated packages when entering loading screen
   const [fetchStarted, setFetchStarted] = useState(false);
@@ -149,11 +160,8 @@ export function App({ project, global, version, installManager }: Props) {
           ? ["global", "add", `ripencli@${latestVersion}`]
           : ["add", "--global", `ripencli@${latestVersion}`];
       await execa(installManager, updateArgs);
-      // Restart the process so the new version's code runs
-      const { execPath, argv } = process;
-      execa(execPath, argv.slice(1), { stdio: "inherit", detached: true }).unref();
-      exit();
-      process.exit(0);
+      setSelfUpdating(false);
+      setScreen("self-update-done");
     } catch (err: any) {
       setSelfUpdateError(err.message ?? "Unknown error");
       setSelfUpdating(false);
@@ -206,6 +214,20 @@ export function App({ project, global, version, installManager }: Props) {
         onUpdate={handleSelfUpdate}
         onSkip={() => setScreen("loading")}
       />
+    );
+  }
+
+  if (screen === "self-update-done") {
+    return (
+      <Box flexDirection="column" padding={1}>
+        <Text color="greenBright" bold>
+          {" "}
+          ripen
+        </Text>
+        <Box marginTop={1}>
+          <Text color="green">✓ Updated to v{latestVersion}. Run ripen again to use the new version.</Text>
+        </Box>
+      </Box>
     );
   }
 

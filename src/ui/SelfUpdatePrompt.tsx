@@ -50,11 +50,11 @@ export function SelfUpdatePrompt({ currentVersion, latestVersion, updating, erro
         <Box marginTop={1} flexDirection="column">
           <Text>
             {selected === 0 ? <Text color="greenBright">{"❯ "}</Text> : <Text>{"  "}</Text>}
-            <Text color={selected === 0 ? "white" : "gray"}>Update and continue</Text>
+            <Text color={selected === 0 ? "white" : "gray"}>Update</Text>
           </Text>
           <Text>
             {selected === 1 ? <Text color="greenBright">{"❯ "}</Text> : <Text>{"  "}</Text>}
-            <Text color={selected === 1 ? "white" : "gray"}>Just continue</Text>
+            <Text color={selected === 1 ? "white" : "gray"}>Skip</Text>
           </Text>
         </Box>
       )}
