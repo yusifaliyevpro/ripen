@@ -72,10 +72,9 @@ async function fetchLatestWithRetry(packageName: string): Promise<string | null>
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15_000);
-      const res = await fetch(
-        `https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`,
-        { signal: controller.signal },
-      );
+      const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`, {
+        signal: controller.signal,
+      });
       clearTimeout(timeout);
       if (!res.ok) return null;
       const data = (await res.json()) as any;

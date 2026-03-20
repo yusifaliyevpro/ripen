@@ -345,9 +345,7 @@ export function PackageList({
               <Text bold={headerFocused} color={typeColor}>
                 {group.label}
               </Text>
-              <Text color="gray">
-                ({group.allPackages.length})
-              </Text>
+              <Text color="gray">({group.allPackages.length})</Text>
               {needsScroll && focusedLocalIndex >= 0 && (
                 <Text color="gray">
                   {focusedLocalIndex + 1}/{totalItems}
@@ -364,37 +362,23 @@ export function PackageList({
             >
               {/* Column headers */}
               <Box gap={2} marginBottom={0}>
-                <Text color="gray">
-                  {"  "}
-                </Text>
+                <Text color="gray">{"  "}</Text>
                 <Box width={28}>
-                  <Text color="gray">
-                    package
-                  </Text>
+                  <Text color="gray">package</Text>
                 </Box>
                 <Box width={10}>
-                  <Text color="gray">
-                    current
-                  </Text>
+                  <Text color="gray">current</Text>
                 </Box>
                 <Box width={10}>
-                  <Text color="gray">
-                    target
-                  </Text>
+                  <Text color="gray">target</Text>
                 </Box>
                 <Box width={10}>
-                  <Text color="gray">
-                    latest
-                  </Text>
+                  <Text color="gray">latest</Text>
                 </Box>
               </Box>
 
               {/* Scroll indicator top */}
-              {needsScroll && (
-                <Text color="gray">
-                  {offset > 0 ? `  ↑ ${offset} more above` : " "}
-                </Text>
-              )}
+              {needsScroll && <Text color="gray">{offset > 0 ? `  ↑ ${offset} more above` : " "}</Text>}
 
               {/* Visible rows */}
               {visibleItems.map((item) => {
@@ -437,9 +421,7 @@ export function PackageList({
                       </Text>
                     </Box>
                     <Box width={10}>
-                      <Text color="red">
-                        {pkg.current}
-                      </Text>
+                      <Text color="red">{pkg.current}</Text>
                     </Box>
                     <Box width={10}>
                       <Text color="greenBright">{pkg.targetVersion ?? pkg.latest}</Text>
