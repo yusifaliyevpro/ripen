@@ -16,8 +16,7 @@ const SETTINGS: {
   {
     key: "groupByScope",
     label: "Group packages by scope",
-    description:
-      "Sub-group scoped packages (@org/pkg) under their scope prefix",
+    description: "Sub-group scoped packages (@org/pkg) under their scope prefix",
   },
 ];
 
@@ -42,7 +41,8 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
     <Box flexDirection="column">
       <Box marginBottom={1} flexDirection="column">
         <Text bold color="greenBright">
-          {" "}ripen <Text color="gray">-- settings</Text>
+          {" "}
+          ripen <Text color="gray">-- settings</Text>
         </Text>
       </Box>
 
@@ -54,9 +54,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
           <Box key={setting.key} flexDirection="column" marginBottom={1}>
             <Box gap={1}>
               <Text color="greenBright">{isFocused ? "❯" : " "}</Text>
-              <Text color={isEnabled ? "greenBright" : "gray"}>
-                [{isEnabled ? "✓" : " "}]
-              </Text>
+              <Text color={isEnabled ? "greenBright" : "gray"}>[{isEnabled ? "✓" : " "}]</Text>
               <Text bold={isFocused} color={isFocused ? "whiteBright" : "white"}>
                 {setting.label}
               </Text>

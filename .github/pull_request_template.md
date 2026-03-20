@@ -8,4 +8,5 @@
 
 ## Checklist
 
+- [ ] Ran `pnpm checks` locally
 - [ ] No hardcoded secrets or API keys

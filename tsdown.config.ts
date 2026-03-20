@@ -10,11 +10,6 @@ export default defineConfig({
     entryFileNames: "cli.js",
   },
   deps: {
-    neverBundle: [
-      "ink",
-      "ink-scroll-view",
-      "react",
-      "execa",
-    ],
+    neverBundle: ["ink", "ink-scroll-view", "react", "execa"],
   },
 });

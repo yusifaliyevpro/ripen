@@ -18,5 +18,10 @@ jobs:
           node-version: "22"
           cache: "pnpm"
       - run: pnpm install
+
+      - name: Prettier check
+        run: pnpm prettier --check .
+
       - run: pnpm typecheck
+
       - run: pnpm build

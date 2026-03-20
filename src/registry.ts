@@ -10,13 +10,9 @@ export interface ChangelogEntry {
   url: string;
 }
 
-export async function fetchVersions(
-  packageName: string,
-): Promise<RegistryVersion[]> {
+export async function fetchVersions(packageName: string): Promise<RegistryVersion[]> {
   try {
-    const res = await fetch(
-      `https://registry.npmjs.org/${encodeURIComponent(packageName)}`,
-    );
+    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`);
     if (!res.ok) return [];
     const data = (await res.json()) as any;
 
@@ -56,26 +52,20 @@ export async function fetchChangelog(
   toVersion: string,
 ): Promise<ChangelogEntry[]> {
   try {
-    const res = await fetch(
-      `https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`,
-    );
+    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
     if (!res.ok) return [];
     const data = (await res.json()) as any;
 
-    const repoUrl: string =
-      typeof data.repository === "string"
-        ? data.repository
-        : (data.repository?.url ?? "");
+    const repoUrl: string = typeof data.repository === "string" ? data.repository : (data.repository?.url ?? "");
 
     const match = repoUrl.match(/github\.com[/:]([^/]+\/[^/]+)/);
     if (!match) return [];
 
     const repo = match[1]!.replace(/\.git$/, "");
 
-    const ghRes = await fetch(
-      `https://api.github.com/repos/${repo}/releases?per_page=30`,
-      { headers: { Accept: "application/vnd.github+json" } },
-    );
+    const ghRes = await fetch(`https://api.github.com/repos/${repo}/releases?per_page=30`, {
+      headers: { Accept: "application/vnd.github+json" },
+    });
     if (!ghRes.ok) return [];
 
     const releases = (await ghRes.json()) as any[];
@@ -129,13 +119,9 @@ export async function fetchChangelog(
   }
 }
 
-export async function fetchLatestVersion(
-  packageName: string,
-): Promise<string | null> {
+export async function fetchLatestVersion(packageName: string): Promise<string | null> {
   try {
-    const res = await fetch(
-      `https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`,
-    );
+    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
     if (!res.ok) return null;
     const data = (await res.json()) as any;
     return data.version ?? null;
@@ -156,16 +142,11 @@ export function isNewerVersion(current: string, latest: string): boolean {
 
 export async function fetchRepoUrl(packageName: string): Promise<string> {
   try {
-    const res = await fetch(
-      `https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`,
-    );
+    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
     if (!res.ok) return "";
     const data = (await res.json()) as any;
 
-    const repoUrl: string =
-      typeof data.repository === "string"
-        ? data.repository
-        : (data.repository?.url ?? "");
+    const repoUrl: string = typeof data.repository === "string" ? data.repository : (data.repository?.url ?? "");
 
     const match = repoUrl.match(/github\.com[/:]([^/]+\/[^/]+)/);
     if (!match) return "";
