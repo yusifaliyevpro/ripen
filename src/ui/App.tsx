@@ -33,9 +33,10 @@ interface Props {
   project: ProjectInfo;
   global: boolean;
   version: string;
+  installManager: ProjectInfo["manager"];
 }
 
-export function App({ project, global, version }: Props) {
+export function App({ project, global, version, installManager }: Props) {
   const { exit } = useApp();
 
   const [screen, setScreen] = useState<Screen>("self-update-check");
@@ -155,7 +156,10 @@ export function App({ project, global, version }: Props) {
   const handleSelfUpdate = async () => {
     setSelfUpdating(true);
     try {
-      await execa("npm", ["install", "--global", `ripencli@${latestVersion}`]);
+      const updateArgs = installManager === "yarn"
+        ? ["global", "add", `ripencli@${latestVersion}`]
+        : ["add", "--global", `ripencli@${latestVersion}`];
+      await execa(installManager, updateArgs);
       setSelfUpdating(false);
       setScreen("loading");
     } catch (err: any) {

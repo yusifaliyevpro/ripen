@@ -2,7 +2,7 @@
 import React from "react";
 import { render } from "ink";
 import { createRequire } from "module";
-import { getProjectInfo, hasPackageJson } from "./detector";
+import { getProjectInfo, hasPackageJson, detectGlobalInstallManager } from "./detector";
 import { App } from "./ui/App";
 
 const require = createRequire(import.meta.url);
@@ -49,6 +49,8 @@ if (!isGlobal && !hasPackageJson(cwd)) {
 
 const project = getProjectInfo(cwd);
 
-const { waitUntilExit } = render(<App project={project} global={isGlobal} version={VERSION} />);
+const installManager = detectGlobalInstallManager();
+
+const { waitUntilExit } = render(<App project={project} global={isGlobal} version={VERSION} installManager={installManager} />);
 
 await waitUntilExit();

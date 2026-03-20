@@ -17,6 +17,17 @@ export function detectPackageManager(cwd: string): PackageManager {
   return "npm";
 }
 
+/**
+ * Detect which package manager installed ripen globally
+ * by checking the path of the running script.
+ */
+export function detectGlobalInstallManager(): PackageManager {
+  const scriptPath = (process.argv[1] ?? "").replace(/\\/g, "/").toLowerCase();
+  if (scriptPath.includes("/pnpm/") || scriptPath.includes("/pnpm-global/")) return "pnpm";
+  if (scriptPath.includes("/yarn/")) return "yarn";
+  return "npm";
+}
+
 export function hasPackageJson(cwd: string): boolean {
   return existsSync(join(cwd, "package.json"));
 }

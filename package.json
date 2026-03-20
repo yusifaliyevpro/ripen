@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Interactive dependency updater for npm, pnpm, and yarn",
   "type": "module",
   "bin": {
