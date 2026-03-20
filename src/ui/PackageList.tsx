@@ -345,11 +345,11 @@ export function PackageList({
               <Text bold={headerFocused} color={typeColor}>
                 {group.label}
               </Text>
-              <Text dimColor color="gray">
+              <Text color="gray">
                 ({group.allPackages.length})
               </Text>
               {needsScroll && focusedLocalIndex >= 0 && (
-                <Text dimColor color="gray">
+                <Text color="gray">
                   {focusedLocalIndex + 1}/{totalItems}
                 </Text>
               )}
@@ -364,26 +364,26 @@ export function PackageList({
             >
               {/* Column headers */}
               <Box gap={2} marginBottom={0}>
-                <Text dimColor color="gray">
+                <Text color="gray">
                   {"  "}
                 </Text>
                 <Box width={28}>
-                  <Text dimColor color="gray">
+                  <Text color="gray">
                     package
                   </Text>
                 </Box>
                 <Box width={10}>
-                  <Text dimColor color="gray">
+                  <Text color="gray">
                     current
                   </Text>
                 </Box>
                 <Box width={10}>
-                  <Text dimColor color="gray">
+                  <Text color="gray">
                     target
                   </Text>
                 </Box>
                 <Box width={10}>
-                  <Text dimColor color="gray">
+                  <Text color="gray">
                     latest
                   </Text>
                 </Box>
@@ -391,7 +391,7 @@ export function PackageList({
 
               {/* Scroll indicator top */}
               {needsScroll && (
-                <Text dimColor color="gray">
+                <Text color="gray">
                   {offset > 0 ? `  ↑ ${offset} more above` : " "}
                 </Text>
               )}
@@ -437,7 +437,7 @@ export function PackageList({
                       </Text>
                     </Box>
                     <Box width={10}>
-                      <Text color="red" dimColor>
+                      <Text color="red">
                         {pkg.current}
                       </Text>
                     </Box>
@@ -454,7 +454,7 @@ export function PackageList({
 
               {/* Scroll indicator bottom */}
               {needsScroll && (
-                <Text dimColor color="gray">
+                <Text color="gray">
                   {offset + maxVisible < totalItems ? `  ↓ ${totalItems - offset - maxVisible} more below` : " "}
                 </Text>
               )}

@@ -106,12 +106,7 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
           <Text color="gray"> → </Text>
           <Text color="greenBright">{targetVer}</Text>
         </Text>
-        {repoUrl && (
-          <Text color="gray" dimColor>
-            {" "}
-            {repoUrl}/releases
-          </Text>
-        )}
+        {repoUrl && <Text color="gray"> {repoUrl}/releases</Text>}
         <Text color="gray">────────────────────────────────────────────────────</Text>
       </Box>
 
@@ -120,14 +115,14 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
         <Box marginBottom={1} gap={1}>
           <Text color="gray">
             {"  "}
-            {activeEntry > 0 ? <Text color="white">←</Text> : <Text dimColor>←</Text>}{" "}
+            {activeEntry > 0 ? <Text color="white">←</Text> : <Text>←</Text>}{" "}
             <Text color="cyanBright" bold>
               {currentEntry?.version ?? ""}
             </Text>{" "}
-            <Text dimColor>
+            <Text>
               ({activeEntry + 1}/{entries.length})
             </Text>{" "}
-            {activeEntry < entries.length - 1 ? <Text color="white">→</Text> : <Text dimColor>→</Text>}
+            {activeEntry < entries.length - 1 ? <Text color="white">→</Text> : <Text>→</Text>}
           </Text>
         </Box>
       )}

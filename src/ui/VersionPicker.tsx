@@ -88,9 +88,7 @@ export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
                   </Text>
                 </Box>
                 <Box width={10}>
-                  <Text color="gray" dimColor>
-                    {v.date}
-                  </Text>
+                  <Text color="gray">{v.date}</Text>
                 </Box>
                 {isLatest && <Text color="greenBright">latest</Text>}
                 {isCurrent && <Text color="red">current</Text>}
@@ -99,7 +97,7 @@ export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
           })}
 
           {versions.length > PAGE && (
-            <Text color="gray" dimColor>
+            <Text color="gray">
               {"  "}showing {scroll + 1}–{Math.min(scroll + PAGE, versions.length)} of {versions.length}
             </Text>
           )}

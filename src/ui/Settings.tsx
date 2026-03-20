@@ -60,9 +60,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
               </Text>
             </Box>
             <Box marginLeft={6}>
-              <Text dimColor color="gray">
-                {setting.description}
-              </Text>
+              <Text color="gray">{setting.description}</Text>
             </Box>
           </Box>
         );
