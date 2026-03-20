@@ -3,17 +3,22 @@ import { Box, Text, useApp, useInput } from "ink";
 import type { ProjectInfo } from "../detector";
 import type { OutdatedPackage } from "../fetcher";
 import type { UpdateResult } from "../executor";
-import { getOutdatedPackages } from "../fetcher";
+import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
 import { updatePackages } from "../executor";
 import { loadConfig, saveConfig } from "../config";
 import type { RipenConfig } from "../config";
+import { fetchLatestVersion, isNewerVersion } from "../registry";
+import { execa } from "execa";
 import { PackageList } from "./PackageList";
 import { VersionPicker } from "./VersionPicker";
 import { ChangelogPanel } from "./ChangelogPanel";
 import { UpdateResults } from "./UpdateResults";
 import { Settings } from "./Settings";
+import { SelfUpdatePrompt } from "./SelfUpdatePrompt";
 
 type Screen =
+  | "self-update-check"
+  | "self-update"
   | "loading"
   | "list"
   | "version-picker"
@@ -27,12 +32,16 @@ type Screen =
 interface Props {
   project: ProjectInfo;
   global: boolean;
+  version: string;
 }
 
-export function App({ project, global }: Props) {
+export function App({ project, global, version }: Props) {
   const { exit } = useApp();
 
-  const [screen, setScreen] = useState<Screen>("loading");
+  const [screen, setScreen] = useState<Screen>("self-update-check");
+  const [latestVersion, setLatestVersion] = useState<string | null>(null);
+  const [selfUpdateError, setSelfUpdateError] = useState<string | null>(null);
+  const [selfUpdating, setSelfUpdating] = useState(false);
   const [config, setConfig] = useState<RipenConfig>(() => loadConfig());
   const [packages, setPackages] = useState<OutdatedPackage[]>([]);
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -45,15 +54,38 @@ export function App({ project, global }: Props) {
   const MAX_TERMINAL_LINES = 3;
   const [outputLines, setOutputLines] = useState<string[]>([]);
   const [terminalCmd, setTerminalCmd] = useState(
-    `${project.manager} outdated --json`,
+    global ? "Checking all package managers…" : `${project.manager} outdated --json`,
   );
 
+  // Self-update check on mount
   useEffect(() => {
+    let cancelled = false;
+    fetchLatestVersion("ripen").then((latest) => {
+      if (cancelled) return;
+      if (latest && isNewerVersion(version, latest)) {
+        setLatestVersion(latest);
+        setScreen("self-update");
+      } else {
+        setScreen("loading");
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Fetch outdated packages when entering loading screen
+  const [fetchStarted, setFetchStarted] = useState(false);
+  useEffect(() => {
+    if (screen !== "loading" || fetchStarted) return;
+    setFetchStarted(true);
+
     const onLine = (line: string) => {
       setOutputLines((prev) => [...prev.slice(-(MAX_TERMINAL_LINES - 1)), line]);
     };
 
-    getOutdatedPackages(project.manager, project.cwd, global, onLine).then((result) => {
+    const fetch = global
+      ? getAllGlobalOutdated(project.cwd, onLine)
+      : getOutdatedPackages(project.manager, project.cwd, false, onLine);
+    fetch.then((result) => {
       if (!result.ok) {
         setErrorMsg(result.error);
         setScreen("error");
@@ -67,7 +99,7 @@ export function App({ project, global }: Props) {
         setScreen("list");
       }
     });
-  }, []);
+  }, [screen]);
 
   const handleToggle = (index: number) => {
     setPackages((prev) =>
@@ -120,6 +152,20 @@ export function App({ project, global }: Props) {
     setScreen("list");
   };
 
+  const handleSelfUpdate = async () => {
+    setSelfUpdating(true);
+    try {
+      await execa("npm", ["install", "--global", `ripen@${latestVersion}`]);
+      setSelfUpdating(false);
+      setScreen("loading");
+    } catch (err: any) {
+      setSelfUpdateError(err.message ?? "Unknown error");
+      setSelfUpdating(false);
+      // Continue to loading after a brief delay so user can see the error
+      setTimeout(() => setScreen("loading"), 2000);
+    }
+  };
+
   const handleConfirm = async () => {
     const selected = packages.filter((p) => p.selected);
     if (selected.length === 0) return;
@@ -145,6 +191,34 @@ export function App({ project, global }: Props) {
     setResults(res);
     setScreen("results");
   };
+
+  // Self-update check screen
+  if (screen === "self-update-check") {
+    return (
+      <Box flexDirection="column" padding={1}>
+        <Text color="greenBright" bold>
+          {" "}ripen
+        </Text>
+        <Box marginTop={1}>
+          <Text color="gray">Checking for updates…</Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  // Self-update prompt screen
+  if (screen === "self-update") {
+    return (
+      <SelfUpdatePrompt
+        currentVersion={version}
+        latestVersion={latestVersion!}
+        updating={selfUpdating}
+        error={selfUpdateError}
+        onUpdate={handleSelfUpdate}
+        onSkip={() => setScreen("loading")}
+      />
+    );
+  }
 
   // Loading screen (initial fetch) — PackageList not yet needed
   if (screen === "loading") {

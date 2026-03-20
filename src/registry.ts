@@ -129,6 +129,31 @@ export async function fetchChangelog(
   }
 }
 
+export async function fetchLatestVersion(
+  packageName: string,
+): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`,
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as any;
+    return data.version ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function isNewerVersion(current: string, latest: string): boolean {
+  const a = current.split(".").map(Number);
+  const b = latest.split(".").map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((b[i] ?? 0) > (a[i] ?? 0)) return true;
+    if ((b[i] ?? 0) < (a[i] ?? 0)) return false;
+  }
+  return false;
+}
+
 export async function fetchRepoUrl(packageName: string): Promise<string> {
   try {
     const res = await fetch(

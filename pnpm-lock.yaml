@@ -23,9 +23,6 @@ importers:
       react:
         specifier: ^19.2.4
         version: 19.2.4
-      ripen:
-        specifier: link:../../../../AppData/Local/pnpm/global/5/node_modules/ripen
-        version: link:../../../../AppData/Local/pnpm/global/5/node_modules/ripen
     devDependencies:
       '@types/node':
         specifier: ^25.5.0

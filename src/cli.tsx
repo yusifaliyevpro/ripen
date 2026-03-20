@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import React from "react";
 import { render } from "ink";
-import { getProjectInfo } from "./detector";
+import { getProjectInfo, hasPackageJson } from "./detector";
 import { App } from "./ui/App";
+
+const VERSION = "0.1.0";
 
 const args = process.argv.slice(2);
 const isGlobal = args.includes("--global") || args.includes("-g");
@@ -10,7 +12,7 @@ const showHelp = args.includes("--help") || args.includes("-h");
 const showVersion = args.includes("--version") || args.includes("-V");
 
 if (showVersion) {
-  console.log("0.1.0");
+  console.log(VERSION);
   process.exit(0);
 }
 
@@ -36,8 +38,15 @@ if (showHelp) {
 }
 
 const cwd = process.cwd();
+
+if (!isGlobal && !hasPackageJson(cwd)) {
+  console.log("\n  No package.json found in this directory.\n");
+  console.log("  Run ripen inside a Node.js project, or use ripen -g for global packages.\n");
+  process.exit(1);
+}
+
 const project = getProjectInfo(cwd);
 
-const { waitUntilExit } = render(<App project={project} global={isGlobal} />);
+const { waitUntilExit } = render(<App project={project} global={isGlobal} version={VERSION} />);
 
 await waitUntilExit();

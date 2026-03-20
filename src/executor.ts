@@ -24,21 +24,37 @@ export async function updatePackages(
   const devDeps = packages.filter((p) => !global && p.type === "devDependencies");
   const globalPkgs = packages.filter((p) => global);
 
-  const batches: { pkgs: OutdatedPackage[]; flags: string[] }[] = [];
-  if (deps.length > 0) batches.push({ pkgs: deps, flags: [] });
-  if (devDeps.length > 0) batches.push({ pkgs: devDeps, flags: ["-D"] });
-  if (globalPkgs.length > 0) batches.push({ pkgs: globalPkgs, flags: ["--global"] });
+  const batches: { mgr: PackageManager; pkgs: OutdatedPackage[]; flags: string[] }[] = [];
+  if (deps.length > 0) batches.push({ mgr: manager, pkgs: deps, flags: [] });
+  if (devDeps.length > 0) batches.push({ mgr: manager, pkgs: devDeps, flags: ["-D"] });
+
+  if (globalPkgs.length > 0) {
+    // Group global packages by their owning manager
+    const byManager = new Map<PackageManager, OutdatedPackage[]>();
+    for (const pkg of globalPkgs) {
+      const mgr = pkg.manager ?? manager;
+      if (!byManager.has(mgr)) byManager.set(mgr, []);
+      byManager.get(mgr)!.push(pkg);
+    }
+    for (const [mgr, pkgs] of byManager) {
+      const globalFlags = mgr === "yarn" ? [] : ["--global"];
+      batches.push({ mgr, pkgs, flags: globalFlags });
+    }
+  }
 
   for (const batch of batches) {
     const pkgArgs = batch.pkgs.map(
       (pkg) => `${pkg.name}@${pkg.targetVersion ?? pkg.latest}`,
     );
-    const args = ["add", ...batch.flags, ...pkgArgs];
+    const isYarnGlobal = batch.mgr === "yarn" && global;
+    const args = isYarnGlobal
+      ? ["global", "add", ...pkgArgs]
+      : ["add", ...batch.flags, ...pkgArgs];
 
-    onLine?.(`$ ${manager} ${args.join(" ")}`);
+    onLine?.(`$ ${batch.mgr} ${args.join(" ")}`);
 
     try {
-      const proc = execa(manager, args, { cwd, reject: false });
+      const proc = execa(batch.mgr, args, { cwd, reject: false });
 
       if (onLine) {
         const forward = (chunk: Buffer) => {

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
-export type PackageManager = "pnpm" | "npm";
+export type PackageManager = "pnpm" | "npm" | "yarn";
 
 export interface ProjectInfo {
   manager: PackageManager;
@@ -11,10 +11,14 @@ export interface ProjectInfo {
 
 export function detectPackageManager(cwd: string): PackageManager {
   if (existsSync(join(cwd, "pnpm-lock.yaml"))) return "pnpm";
-  if (existsSync(join(cwd, "package-lock.json"))) return "npm";
-  // fallback: check if pnpm is available
   if (existsSync(join(cwd, "pnpm-workspace.yaml"))) return "pnpm";
+  if (existsSync(join(cwd, "yarn.lock"))) return "yarn";
+  if (existsSync(join(cwd, "package-lock.json"))) return "npm";
   return "npm";
+}
+
+export function hasPackageJson(cwd: string): boolean {
+  return existsSync(join(cwd, "package.json"));
 }
 
 export function getProjectInfo(cwd: string): ProjectInfo {
