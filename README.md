@@ -17,11 +17,11 @@
 ## Install
 
 ```bash
-npm install -g ripencli
+npm install -g ripencli@latest
 # or
-pnpm add -g ripencli
+pnpm add -g ripencli@latest
 # or
-yarn global add ripencli
+yarn global add ripencli@latest
 ```
 
 ## Usage
