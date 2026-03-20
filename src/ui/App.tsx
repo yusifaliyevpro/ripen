@@ -149,8 +149,11 @@ export function App({ project, global, version, installManager }: Props) {
           ? ["global", "add", `ripencli@${latestVersion}`]
           : ["add", "--global", `ripencli@${latestVersion}`];
       await execa(installManager, updateArgs);
-      setSelfUpdating(false);
-      setScreen("loading");
+      // Restart the process so the new version's code runs
+      const { execPath, argv } = process;
+      execa(execPath, argv.slice(1), { stdio: "inherit", detached: true }).unref();
+      exit();
+      process.exit(0);
     } catch (err: any) {
       setSelfUpdateError(err.message ?? "Unknown error");
       setSelfUpdating(false);
