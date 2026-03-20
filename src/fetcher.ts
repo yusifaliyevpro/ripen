@@ -1,5 +1,8 @@
+import { readFileSync } from "fs";
+import { join } from "path";
 import { execa } from "execa";
 import type { PackageManager } from "./detector";
+import { isNewerVersion } from "./registry";
 
 export interface OutdatedPackage {
   name: string;
@@ -12,9 +15,99 @@ export interface OutdatedPackage {
   manager?: PackageManager;
   selected?: boolean;
   targetVersion?: string;
+  /** Original range prefix from package.json (e.g. "^", "~") */
+  rangePrefix?: string;
 }
 
 export type FetchResult = { ok: true; packages: OutdatedPackage[] } | { ok: false; error: string };
+
+/**
+ * Strip semver range prefixes to extract the base version and prefix.
+ * e.g. "^9.3.0" → { version: "9.3.0", prefix: "^" }
+ * Returns null for unparseable ranges (*, latest, git URLs, file: paths).
+ */
+function parseBaseVersion(range: string): { version: string; prefix: string } | null {
+  // Strip workspace: protocol
+  let v = range.replace(/^workspace:/, "");
+  // Extract and strip range prefix
+  const prefixMatch = v.match(/^([~^>=<]+)/);
+  const prefix = prefixMatch ? prefixMatch[1] : "";
+  v = v.replace(/^[~^>=<]+/, "").trim();
+  // Must look like a semver version (digits.digits.digits, optionally with pre-release)
+  if (/^\d+\.\d+\.\d+/.test(v)) return { version: v, prefix };
+  return null;
+}
+
+interface DepEntry {
+  name: string;
+  current: string;
+  prefix: string;
+  type: "dependencies" | "devDependencies";
+}
+
+function readPackageJsonDeps(cwd: string): DepEntry[] {
+  const raw = readFileSync(join(cwd, "package.json"), "utf-8");
+  const pkg = JSON.parse(raw);
+  const entries: DepEntry[] = [];
+
+  for (const [depType, section] of [
+    ["dependencies", pkg.dependencies],
+    ["devDependencies", pkg.devDependencies],
+  ] as const) {
+    if (!section || typeof section !== "object") continue;
+    for (const [name, range] of Object.entries(section)) {
+      if (typeof range !== "string") continue;
+      const parsed = parseBaseVersion(range);
+      if (parsed) {
+        entries.push({ name, current: parsed.version, prefix: parsed.prefix, type: depType });
+      }
+    }
+  }
+
+  return entries;
+}
+
+async function fetchLatestWithRetry(packageName: string): Promise<string | null> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15_000);
+      const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      if (!res.ok) return null;
+      const data = (await res.json()) as any;
+      return data.version ?? null;
+    } catch {
+      if (attempt === 2) return null;
+    }
+  }
+  return null;
+}
+
+async function fetchAllLatest(
+  names: string[],
+  concurrency: number,
+  onLine?: (line: string) => void,
+): Promise<Map<string, string | null>> {
+  const results = new Map<string, string | null>();
+  let index = 0;
+  let completed = 0;
+
+  async function worker() {
+    while (index < names.length) {
+      const i = index++;
+      const name = names[i];
+      onLine?.(`Checking ${name} (${completed + 1}/${names.length})...`);
+      results.set(name, await fetchLatestWithRetry(name));
+      completed++;
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(concurrency, names.length) }, () => worker()));
+  return results;
+}
 
 export async function getOutdatedPackages(
   manager: PackageManager,
@@ -22,17 +115,71 @@ export async function getOutdatedPackages(
   global = false,
   onLine?: (line: string) => void,
 ): Promise<FetchResult> {
-  const args = global ? ["outdated", "--global", "--json"] : ["outdated", "--json"];
+  // Global mode: use manager's outdated command
+  if (global) {
+    return getGlobalOutdatedPackages(manager, cwd, onLine);
+  }
+
+  // Local mode: read package.json + check npm registry
+  let deps: DepEntry[];
+  try {
+    deps = readPackageJsonDeps(cwd);
+  } catch {
+    return { ok: false, error: "Could not read package.json" };
+  }
+
+  if (deps.length === 0) {
+    return { ok: true, packages: [] };
+  }
+
+  const latestVersions = await fetchAllLatest(
+    deps.map((d) => d.name),
+    8,
+    onLine,
+  );
+
+  // If ALL fetches failed, it's likely a network issue
+  const allFailed = [...latestVersions.values()].every((v) => v === null);
+  if (allFailed && deps.length > 0) {
+    return { ok: false, error: "Could not reach the npm registry. Check your internet connection." };
+  }
+
+  const packages: OutdatedPackage[] = [];
+  for (const dep of deps) {
+    const latest = latestVersions.get(dep.name);
+    if (!latest) continue;
+    if (!isNewerVersion(dep.current, latest)) continue;
+
+    packages.push({
+      name: dep.name,
+      current: dep.current,
+      wanted: latest,
+      latest,
+      dependent: "",
+      type: dep.type,
+      selected: false,
+      targetVersion: latest,
+      rangePrefix: dep.prefix,
+    });
+  }
+
+  return { ok: true, packages };
+}
+
+/** Global mode: shell out to manager's outdated command */
+async function getGlobalOutdatedPackages(
+  manager: PackageManager,
+  cwd: string,
+  onLine?: (line: string) => void,
+): Promise<FetchResult> {
+  const args = ["outdated", "--global", "--json"];
 
   let stdout = "";
   let stderr = "";
   let exitCode = 0;
 
   try {
-    const proc = execa(manager, args, {
-      cwd,
-      reject: false,
-    });
+    const proc = execa(manager, args, { cwd, reject: false });
 
     if (onLine) {
       const forwardWarnings = (chunk: Buffer) => {
@@ -53,37 +200,27 @@ export async function getOutdatedPackages(
     stderr = result.stderr;
     exitCode = result.exitCode!;
   } catch (err: any) {
-    return {
-      ok: false,
-      error: `Could not run ${manager}: ${err.message ?? err}`,
-    };
+    return { ok: false, error: `Could not run ${manager}: ${err.message ?? err}` };
   }
 
   const isExpectedExit = exitCode === 0 || exitCode === 1;
-
   if (!isExpectedExit) {
     const msg = stderr.trim() || `${manager} outdated exited with code ${exitCode}`;
     return { ok: false, error: msg };
   }
 
   const raw = stdout.trim();
+  if (!raw) return { ok: true, packages: [] };
 
-  if (!raw) {
-    return { ok: true, packages: [] };
-  }
-
-  // Yarn outputs ndjson (one JSON object per line) — handle separately
   if (manager === "yarn") {
     try {
-      return { ok: true, packages: parseYarnOutdated(raw, global) };
+      return { ok: true, packages: parseYarnOutdated(raw, true) };
     } catch {
       return { ok: false, error: "Failed to parse yarn outdated output. Try again." };
     }
   }
 
-  // Extract JSON object from stdout — pnpm may prepend WARN lines before the JSON
   const jsonStr = extractJson(raw);
-
   if (!jsonStr) {
     const errMsg = stderr.trim() || raw.slice(0, 120);
     return { ok: false, error: errMsg };
@@ -91,7 +228,7 @@ export async function getOutdatedPackages(
 
   try {
     const data = JSON.parse(jsonStr);
-    const packages = manager === "pnpm" ? parsePnpmOutdated(data, global) : parseNpmOutdated(data, global);
+    const packages = manager === "pnpm" ? parsePnpmOutdated(data) : parseNpmOutdated(data);
     return { ok: true, packages };
   } catch {
     return { ok: false, error: "Failed to parse outdated output. Try again." };
@@ -115,7 +252,7 @@ function extractJson(raw: string): string | null {
   return null;
 }
 
-function parsePnpmOutdated(data: any, global: boolean): OutdatedPackage[] {
+function parsePnpmOutdated(data: any): OutdatedPackage[] {
   if (Array.isArray(data) || typeof data !== "object") return [];
   return Object.entries(data).map(([name, info]: [string, any]) => ({
     name,
@@ -123,20 +260,20 @@ function parsePnpmOutdated(data: any, global: boolean): OutdatedPackage[] {
     wanted: info.wanted ?? info.latest,
     latest: info.latest,
     dependent: "",
-    type: global ? "global" : info.dependencyType === "devDependencies" ? "devDependencies" : "dependencies",
+    type: "global" as const,
     selected: false,
     targetVersion: info.latest,
   }));
 }
 
-function parseNpmOutdated(data: any, global: boolean): OutdatedPackage[] {
+function parseNpmOutdated(data: any): OutdatedPackage[] {
   return Object.entries(data).map(([name, info]: [string, any]) => ({
     name,
     current: info.current ?? "N/A",
     wanted: info.wanted ?? info.latest,
     latest: info.latest,
     dependent: info.dependent ?? "",
-    type: global ? "global" : info.type === "devDependencies" ? "devDependencies" : "dependencies",
+    type: "global" as const,
     selected: false,
     targetVersion: info.latest,
   }));
@@ -195,7 +332,7 @@ function parseYarnOutdated(raw: string, global: boolean): OutdatedPackage[] {
           wanted: row[2] ?? row[3],
           latest: row[3],
           dependent: row[4] ?? "",
-          type: global ? "global" : row[5] === "devDependencies" ? "devDependencies" : "dependencies",
+          type: "global" as const,
           selected: false,
           targetVersion: row[3],
         }));

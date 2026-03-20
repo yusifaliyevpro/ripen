@@ -12,7 +12,7 @@ importers:
   .:
     dependencies:
       execa:
-        specifier: ^9.3.0
+        specifier: ^9.6.1
         version: 9.6.1
       ink:
         specifier: ^6.8.0

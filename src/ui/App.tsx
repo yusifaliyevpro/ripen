@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Box, Text, useApp, useInput } from "ink";
+import { useState, useEffect } from "react";
+import { Box, Text, useApp } from "ink";
 import type { ProjectInfo } from "../detector";
 import type { OutdatedPackage } from "../fetcher";
 import type { UpdateResult } from "../executor";
@@ -52,9 +52,7 @@ export function App({ project, global, version, installManager }: Props) {
   const [loadingMsg, setLoadingMsg] = useState("Checking for outdated packages…");
   const MAX_TERMINAL_LINES = 3;
   const [outputLines, setOutputLines] = useState<string[]>([]);
-  const [terminalCmd, setTerminalCmd] = useState(
-    global ? "Checking all package managers…" : `${project.manager} outdated --json`,
-  );
+  const [terminalCmd, setTerminalCmd] = useState(global ? "Checking all package managers…" : "Checking npm registry…");
 
   // Self-update check on mount
   useEffect(() => {
@@ -232,18 +230,11 @@ export function App({ project, global, version, installManager }: Props) {
           {terminalCmd !== "" && (
             <Box>
               <Text color="gray">$ </Text>
-              <Text dimColor color="gray">
-                {terminalCmd}
-              </Text>
+              <Text color="gray">{terminalCmd}</Text>
             </Box>
           )}
           {outputLines.map((line, i) => (
-            <Text
-              key={i}
-              color={line.includes("WARN") || line.includes("ERR") ? "yellow" : "gray"}
-              dimColor
-              wrap="truncate"
-            >
+            <Text key={i} color={line.includes("WARN") || line.includes("ERR") ? "yellow" : "gray"} wrap="truncate">
               {line}
             </Text>
           ))}
@@ -261,9 +252,7 @@ export function App({ project, global, version, installManager }: Props) {
         </Text>
         <Box marginTop={1} flexDirection="column" gap={1}>
           <Text color="red">✗ Could not fetch outdated packages</Text>
-          <Text color="gray" dimColor>
-            {errorMsg}
-          </Text>
+          <Text color="gray">{errorMsg}</Text>
           <Box marginTop={1}>
             <Text color="gray">This usually means a network issue. Check your connection and try again.</Text>
           </Box>
@@ -315,18 +304,11 @@ export function App({ project, global, version, installManager }: Props) {
             {terminalCmd !== "" && (
               <Box>
                 <Text color="gray">$ </Text>
-                <Text dimColor color="gray">
-                  {terminalCmd}
-                </Text>
+                <Text color="gray">{terminalCmd}</Text>
               </Box>
             )}
             {outputLines.map((line, i) => (
-              <Text
-                key={i}
-                color={line.includes("WARN") || line.includes("ERR") ? "yellow" : "gray"}
-                dimColor
-                wrap="truncate"
-              >
+              <Text key={i} color={line.includes("WARN") || line.includes("ERR") ? "yellow" : "gray"} wrap="truncate">
                 {line}
               </Text>
             ))}

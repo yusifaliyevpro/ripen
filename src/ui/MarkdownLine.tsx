@@ -1,4 +1,3 @@
-import React from "react";
 import { Text } from "ink";
 
 interface Segment {
@@ -83,12 +82,7 @@ export function MarkdownLine({ line, baseColor = "white", baseDim = false }: Pro
       <Text>
         {"  " + " ".repeat(indent) + "• "}
         {segments.map((s, i) => (
-          <Text
-            key={i}
-            bold={s.bold}
-            color={s.code ? "cyan" : s.dim ? "gray" : (baseColor as any)}
-            dimColor={s.dim || baseDim}
-          >
+          <Text key={i} bold={s.bold} color={s.code ? "cyan" : s.dim ? "gray" : (baseColor as any)}>
             {s.text}
           </Text>
         ))}
@@ -98,11 +92,7 @@ export function MarkdownLine({ line, baseColor = "white", baseDim = false }: Pro
 
   // Horizontal rule
   if (/^[-*_]{3,}$/.test(raw.trim())) {
-    return (
-      <Text color="gray" dimColor>
-        {"  ────────────────────"}
-      </Text>
-    );
+    return <Text color="gray">{"  ────────────────────"}</Text>;
   }
 
   // Empty line
@@ -116,12 +106,7 @@ export function MarkdownLine({ line, baseColor = "white", baseDim = false }: Pro
     <Text>
       {"  "}
       {segments.map((s, i) => (
-        <Text
-          key={i}
-          bold={s.bold}
-          color={s.code ? "cyan" : s.dim ? "gray" : (baseColor as any)}
-          dimColor={s.dim || baseDim}
-        >
+        <Text key={i} bold={s.bold} color={s.code ? "cyan" : s.dim ? "gray" : (baseColor as any)}>
           {s.text}
         </Text>
       ))}
