@@ -60,7 +60,7 @@ export function App({ project, global, version }: Props) {
   // Self-update check on mount
   useEffect(() => {
     let cancelled = false;
-    fetchLatestVersion("ripen").then((latest) => {
+    fetchLatestVersion("ripencli").then((latest) => {
       if (cancelled) return;
       if (latest && isNewerVersion(version, latest)) {
         setLatestVersion(latest);
@@ -155,7 +155,7 @@ export function App({ project, global, version }: Props) {
   const handleSelfUpdate = async () => {
     setSelfUpdating(true);
     try {
-      await execa("npm", ["install", "--global", `ripen@${latestVersion}`]);
+      await execa("npm", ["install", "--global", `ripencli@${latestVersion}`]);
       setSelfUpdating(false);
       setScreen("loading");
     } catch (err: any) {

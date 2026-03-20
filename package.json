@@ -1,7 +1,7 @@
 {
-  "name": "ripen",
-  "version": "0.1.0",
-  "description": "Interactive dependency updater for pnpm and npm",
+  "name": "ripencli",
+  "version": "0.1.1",
+  "description": "Interactive dependency updater for npm, pnpm, and yarn",
   "type": "module",
   "bin": {
     "ripen": "./dist/cli.js"
