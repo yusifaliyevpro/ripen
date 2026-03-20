@@ -1,0 +1,44 @@
+{
+  "name": "ripen",
+  "version": "0.1.0",
+  "description": "Interactive dependency updater for pnpm and npm",
+  "type": "module",
+  "bin": {
+    "ripen": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsx src/cli.tsx",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/cli.js"
+  },
+  "keywords": [
+    "pnpm",
+    "npm",
+    "dependencies",
+    "update",
+    "interactive",
+    "cli",
+    "tui"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "execa": "^9.3.0",
+    "ink": "^6.8.0",
+    "ink-scroll-view": "^0.3.6",
+    "react": "^19.2.4",
+    "ripen": "link:../../../../AppData/Local/pnpm/global/5/node_modules/ripen"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "tsdown": "^0.21.4",
+    "typescript": "^5.5.0"
+  }
+}
