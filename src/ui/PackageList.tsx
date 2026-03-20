@@ -38,7 +38,13 @@ const GROUP_CHROME = 5; // border top + column header + scroll-up + scroll-down 
 
 type DisplayRow =
   | { kind: "header"; groupType: OutdatedPackage["type"]; label: string; packages: OutdatedPackage[] }
-  | { kind: "scope-header"; groupType: OutdatedPackage["type"]; scope: string; packageIndices: number[]; packages: OutdatedPackage[] }
+  | {
+      kind: "scope-header";
+      groupType: OutdatedPackage["type"];
+      scope: string;
+      packageIndices: number[];
+      packages: OutdatedPackage[];
+    }
   | { kind: "package"; pkg: OutdatedPackage; packageIndex: number; indented: boolean; scopeKey: string | null };
 
 interface GroupItem {
@@ -72,7 +78,12 @@ function buildDisplayRows(packages: OutdatedPackage[], groupByScope: boolean): D
     const items = grouped.get(type);
     if (!items || items.length === 0) continue;
     const allPkgs = items.map((i) => i.pkg);
-    rows.push({ kind: "header", groupType: type as OutdatedPackage["type"], label: GROUP_LABELS[type] ?? type, packages: allPkgs });
+    rows.push({
+      kind: "header",
+      groupType: type as OutdatedPackage["type"],
+      label: GROUP_LABELS[type] ?? type,
+      packages: allPkgs,
+    });
 
     if (groupByScope) {
       // Group by scope prefix
@@ -157,7 +168,7 @@ function groupCheckbox(packages: OutdatedPackage[]): { symbol: string; color: st
 }
 
 function computeMaxPerGroup(terminalRows: number, groupCount: number): number {
-  const available = terminalRows - CHROME_LINES - (groupCount * (GROUP_CHROME + 1)); // +1 for group header line
+  const available = terminalRows - CHROME_LINES - groupCount * (GROUP_CHROME + 1); // +1 for group header line
   const perGroup = Math.floor(available / groupCount);
   return Math.max(3, perGroup);
 }
@@ -200,19 +211,13 @@ export function PackageList({
     }
   }, [allScopeKeys, initialized]);
 
-  const visibleRows = useMemo(
-    () => filterCollapsed(allRows, collapsedScopes),
-    [allRows, collapsedScopes],
-  );
+  const visibleRows = useMemo(() => filterCollapsed(allRows, collapsedScopes), [allRows, collapsedScopes]);
 
   const groups = useMemo(() => buildGroups(visibleRows), [visibleRows]);
 
   const { stdout } = useStdout();
   const terminalRows = stdout?.rows ?? 24;
-  const maxVisible = useMemo(
-    () => computeMaxPerGroup(terminalRows, groups.length),
-    [terminalRows, groups.length],
-  );
+  const maxVisible = useMemo(() => computeMaxPerGroup(terminalRows, groups.length), [terminalRows, groups.length]);
 
   // Per-group scroll offsets
   const [scrollOffsets, setScrollOffsets] = useState<Record<string, number>>({});
@@ -250,48 +255,51 @@ export function PackageList({
     });
   };
 
-  useInput((input, key) => {
-    if (key.upArrow) onFocusChange(Math.max(0, focusedIndex - 1));
-    if (key.downArrow) onFocusChange(Math.min(visibleRows.length - 1, focusedIndex + 1));
+  useInput(
+    (input, key) => {
+      if (key.upArrow) onFocusChange(Math.max(0, focusedIndex - 1));
+      if (key.downArrow) onFocusChange(Math.min(visibleRows.length - 1, focusedIndex + 1));
 
-    // Tab: cycle between main group headers only
-    if (key.tab) {
-      const headerIndices = groups.map((g) => g.headerVisibleIndex);
-      const currentGroupIdx = headerIndices.findIndex((h, i) => {
-        const nextHeader = headerIndices[i + 1] ?? visibleRows.length;
-        return focusedIndex >= h && focusedIndex < nextHeader;
-      });
-      const nextIdx = (currentGroupIdx + 1) % headerIndices.length;
-      onFocusChange(headerIndices[nextIdx]!);
-      return;
-    }
-
-    const focused = visibleRows[focusedIndex];
-    if (!focused) return;
-
-    // Left/Right: collapse/expand scope sub-groups
-    if (focused.kind === "scope-header") {
-      const scopeKey = `${focused.groupType}::${focused.scope}`;
-      if (key.leftArrow && !collapsedScopes.has(scopeKey)) {
-        toggleCollapse(scopeKey);
+      // Tab: cycle between main group headers only
+      if (key.tab) {
+        const headerIndices = groups.map((g) => g.headerVisibleIndex);
+        const currentGroupIdx = headerIndices.findIndex((h, i) => {
+          const nextHeader = headerIndices[i + 1] ?? visibleRows.length;
+          return focusedIndex >= h && focusedIndex < nextHeader;
+        });
+        const nextIdx = (currentGroupIdx + 1) % headerIndices.length;
+        onFocusChange(headerIndices[nextIdx]!);
         return;
       }
-      if (key.rightArrow && collapsedScopes.has(scopeKey)) {
-        toggleCollapse(scopeKey);
-        return;
-      }
-    }
 
-    if (input === " ") {
-      if (focused.kind === "header") onToggleGroup(focused.groupType);
-      else if (focused.kind === "scope-header") onToggleMany(focused.packageIndices);
-      else onToggle(focused.packageIndex);
-    }
-    if (input === "v" && focused.kind === "package") onSelectVersion(focused.packageIndex);
-    if (input === "c" && focused.kind === "package") onViewChangelog(focused.packageIndex);
-    if (input === "s") onOpenSettings?.();
-    if (key.return) onConfirm();
-  }, { isActive });
+      const focused = visibleRows[focusedIndex];
+      if (!focused) return;
+
+      // Left/Right: collapse/expand scope sub-groups
+      if (focused.kind === "scope-header") {
+        const scopeKey = `${focused.groupType}::${focused.scope}`;
+        if (key.leftArrow && !collapsedScopes.has(scopeKey)) {
+          toggleCollapse(scopeKey);
+          return;
+        }
+        if (key.rightArrow && collapsedScopes.has(scopeKey)) {
+          toggleCollapse(scopeKey);
+          return;
+        }
+      }
+
+      if (input === " ") {
+        if (focused.kind === "header") onToggleGroup(focused.groupType);
+        else if (focused.kind === "scope-header") onToggleMany(focused.packageIndices);
+        else onToggle(focused.packageIndex);
+      }
+      if (input === "v" && focused.kind === "package") onSelectVersion(focused.packageIndex);
+      if (input === "c" && focused.kind === "package") onViewChangelog(focused.packageIndex);
+      if (input === "s") onOpenSettings?.();
+      if (key.return) onConfirm();
+    },
+    { isActive },
+  );
 
   const selectedCount = packages.filter((p) => p.selected).length;
 
@@ -300,7 +308,8 @@ export function PackageList({
       {/* Header */}
       <Box marginBottom={1} flexDirection="column">
         <Text bold color="greenBright">
-          {" "}ripen <Text color="gray">-- interactive dependency updater</Text>
+          {" "}
+          ripen <Text color="gray">-- interactive dependency updater</Text>
         </Text>
         <Box marginTop={1}>
           <Text color="gray">
@@ -359,16 +368,24 @@ export function PackageList({
                   {"  "}
                 </Text>
                 <Box width={28}>
-                  <Text dimColor color="gray">package</Text>
+                  <Text dimColor color="gray">
+                    package
+                  </Text>
                 </Box>
                 <Box width={10}>
-                  <Text dimColor color="gray">current</Text>
+                  <Text dimColor color="gray">
+                    current
+                  </Text>
                 </Box>
                 <Box width={10}>
-                  <Text dimColor color="gray">target</Text>
+                  <Text dimColor color="gray">
+                    target
+                  </Text>
                 </Box>
                 <Box width={10}>
-                  <Text dimColor color="gray">latest</Text>
+                  <Text dimColor color="gray">
+                    latest
+                  </Text>
                 </Box>
               </Box>
 
@@ -409,10 +426,8 @@ export function PackageList({
                 return (
                   <Box key={pkg.name} gap={2}>
                     <Text color="greenBright">{isFocused ? "❯" : " "}</Text>
-                    {row.indented && <Text>  </Text>}
-                    <Text color={pkg.selected ? "greenBright" : "gray"}>
-                      {pkg.selected ? "◉" : "○"}
-                    </Text>
+                    {row.indented && <Text> </Text>}
+                    <Text color={pkg.selected ? "greenBright" : "gray"}>{pkg.selected ? "◉" : "○"}</Text>
                     <Box width={row.indented ? 24 : 26}>
                       <Text bold={isFocused} color={isFocused ? "whiteBright" : "white"}>
                         {(() => {
@@ -422,7 +437,9 @@ export function PackageList({
                       </Text>
                     </Box>
                     <Box width={10}>
-                      <Text color="red" dimColor>{pkg.current}</Text>
+                      <Text color="red" dimColor>
+                        {pkg.current}
+                      </Text>
                     </Box>
                     <Box width={10}>
                       <Text color="greenBright">{pkg.targetVersion ?? pkg.latest}</Text>
@@ -430,9 +447,7 @@ export function PackageList({
                     <Box width={10}>
                       <Text color="gray">{pkg.latest}</Text>
                     </Box>
-                    <Box width={9}>
-                      {isMajorBump ? <Text color="yellow">⚠ major</Text> : <Text> </Text>}
-                    </Box>
+                    <Box width={9}>{isMajorBump ? <Text color="yellow">⚠ major</Text> : <Text> </Text>}</Box>
                   </Box>
                 );
               })}
@@ -452,14 +467,14 @@ export function PackageList({
       <Box flexDirection="column">
         <Box gap={2}>
           <Text>
-            <Text color="greenBright" bold>{selectedCount}</Text>
+            <Text color="greenBright" bold>
+              {selectedCount}
+            </Text>
             <Text color="gray"> selected</Text>
             {"  "}
             <Text color="gray">{packages.length} outdated</Text>
           </Text>
-          {selectedCount > 0 && (
-            <Text color="greenBright"> Press enter to update →</Text>
-          )}
+          {selectedCount > 0 && <Text color="greenBright"> Press enter to update →</Text>}
         </Box>
       </Box>
     </Box>

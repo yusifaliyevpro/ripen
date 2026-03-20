@@ -10,14 +10,7 @@ interface Props {
   onSkip: () => void;
 }
 
-export function SelfUpdatePrompt({
-  currentVersion,
-  latestVersion,
-  updating,
-  error,
-  onUpdate,
-  onSkip,
-}: Props) {
+export function SelfUpdatePrompt({ currentVersion, latestVersion, updating, error, onUpdate, onSkip }: Props) {
   const [selected, setSelected] = useState(0);
 
   useInput((input, key) => {
@@ -33,12 +26,12 @@ export function SelfUpdatePrompt({
   return (
     <Box flexDirection="column" padding={1}>
       <Text color="greenBright" bold>
-        {" "}ripen
+        {" "}
+        ripen
       </Text>
       <Box marginTop={1} flexDirection="column">
         <Text>
-          A new version is available!{" "}
-          <Text color="gray">{currentVersion}</Text>
+          A new version is available! <Text color="gray">{currentVersion}</Text>
           <Text color="gray"> → </Text>
           <Text color="greenBright">{latestVersion}</Text>
         </Text>
@@ -56,24 +49,12 @@ export function SelfUpdatePrompt({
       ) : (
         <Box marginTop={1} flexDirection="column">
           <Text>
-            {selected === 0 ? (
-              <Text color="greenBright">{"❯ "}</Text>
-            ) : (
-              <Text>{"  "}</Text>
-            )}
-            <Text color={selected === 0 ? "white" : "gray"}>
-              Update and continue
-            </Text>
+            {selected === 0 ? <Text color="greenBright">{"❯ "}</Text> : <Text>{"  "}</Text>}
+            <Text color={selected === 0 ? "white" : "gray"}>Update and continue</Text>
           </Text>
           <Text>
-            {selected === 1 ? (
-              <Text color="greenBright">{"❯ "}</Text>
-            ) : (
-              <Text>{"  "}</Text>
-            )}
-            <Text color={selected === 1 ? "white" : "gray"}>
-              Just continue
-            </Text>
+            {selected === 1 ? <Text color="greenBright">{"❯ "}</Text> : <Text>{"  "}</Text>}
+            <Text color={selected === 1 ? "white" : "gray"}>Just continue</Text>
           </Text>
         </Box>
       )}

@@ -49,9 +49,7 @@ export function App({ project, global, version, installManager }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [results, setResults] = useState<UpdateResult[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
-  const [loadingMsg, setLoadingMsg] = useState(
-    "Checking for outdated packages…",
-  );
+  const [loadingMsg, setLoadingMsg] = useState("Checking for outdated packages…");
   const MAX_TERMINAL_LINES = 3;
   const [outputLines, setOutputLines] = useState<string[]>([]);
   const [terminalCmd, setTerminalCmd] = useState(
@@ -70,7 +68,9 @@ export function App({ project, global, version, installManager }: Props) {
         setScreen("loading");
       }
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Fetch outdated packages when entering loading screen
@@ -103,27 +103,21 @@ export function App({ project, global, version, installManager }: Props) {
   }, [screen]);
 
   const handleToggle = (index: number) => {
-    setPackages((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, selected: !p.selected } : p)),
-    );
+    setPackages((prev) => prev.map((p, i) => (i === index ? { ...p, selected: !p.selected } : p)));
   };
 
   const handleToggleGroup = (groupType: OutdatedPackage["type"]) => {
     setPackages((prev) => {
       const groupPkgs = prev.filter((p) => p.type === groupType);
       const allSelected = groupPkgs.every((p) => p.selected);
-      return prev.map((p) =>
-        p.type === groupType ? { ...p, selected: !allSelected } : p,
-      );
+      return prev.map((p) => (p.type === groupType ? { ...p, selected: !allSelected } : p));
     });
   };
 
   const handleToggleMany = (indices: number[]) => {
     setPackages((prev) => {
       const allSelected = indices.every((i) => prev[i]?.selected);
-      return prev.map((p, i) =>
-        indices.includes(i) ? { ...p, selected: !allSelected } : p,
-      );
+      return prev.map((p, i) => (indices.includes(i) ? { ...p, selected: !allSelected } : p));
     });
   };
 
@@ -144,11 +138,7 @@ export function App({ project, global, version, installManager }: Props) {
 
   const handleVersionChosen = (version: string) => {
     setPackages((prev) =>
-      prev.map((p, i) =>
-        i === activeIndex
-          ? { ...p, targetVersion: version, selected: true }
-          : p,
-      ),
+      prev.map((p, i) => (i === activeIndex ? { ...p, targetVersion: version, selected: true } : p)),
     );
     setScreen("list");
   };
@@ -156,9 +146,10 @@ export function App({ project, global, version, installManager }: Props) {
   const handleSelfUpdate = async () => {
     setSelfUpdating(true);
     try {
-      const updateArgs = installManager === "yarn"
-        ? ["global", "add", `ripencli@${latestVersion}`]
-        : ["add", "--global", `ripencli@${latestVersion}`];
+      const updateArgs =
+        installManager === "yarn"
+          ? ["global", "add", `ripencli@${latestVersion}`]
+          : ["add", "--global", `ripencli@${latestVersion}`];
       await execa(installManager, updateArgs);
       setSelfUpdating(false);
       setScreen("loading");
@@ -174,9 +165,7 @@ export function App({ project, global, version, installManager }: Props) {
     const selected = packages.filter((p) => p.selected);
     if (selected.length === 0) return;
 
-    setLoadingMsg(
-      `Updating ${selected.length} package${selected.length > 1 ? "s" : ""}…`,
-    );
+    setLoadingMsg(`Updating ${selected.length} package${selected.length > 1 ? "s" : ""}…`);
     setTerminalCmd("");
     setOutputLines([]);
     setScreen("updating");
@@ -185,13 +174,7 @@ export function App({ project, global, version, installManager }: Props) {
       setOutputLines((prev) => [...prev.slice(-(MAX_TERMINAL_LINES - 1)), line]);
     };
 
-    const res = await updatePackages(
-      project.manager,
-      selected,
-      project.cwd,
-      global,
-      onLine,
-    );
+    const res = await updatePackages(project.manager, selected, project.cwd, global, onLine);
     setResults(res);
     setScreen("results");
   };
@@ -201,7 +184,8 @@ export function App({ project, global, version, installManager }: Props) {
     return (
       <Box flexDirection="column" padding={1}>
         <Text color="greenBright" bold>
-          {" "}ripen
+          {" "}
+          ripen
         </Text>
         <Box marginTop={1}>
           <Text color="gray">Checking for updates…</Text>
@@ -229,7 +213,8 @@ export function App({ project, global, version, installManager }: Props) {
     return (
       <Box flexDirection="column" padding={1}>
         <Text color="greenBright" bold>
-          {" "}ripen
+          {" "}
+          ripen
         </Text>
         <Box marginTop={1}>
           <Text color="gray">{loadingMsg}</Text>
@@ -247,11 +232,18 @@ export function App({ project, global, version, installManager }: Props) {
           {terminalCmd !== "" && (
             <Box>
               <Text color="gray">$ </Text>
-              <Text dimColor color="gray">{terminalCmd}</Text>
+              <Text dimColor color="gray">
+                {terminalCmd}
+              </Text>
             </Box>
           )}
           {outputLines.map((line, i) => (
-            <Text key={i} color={line.includes("WARN") || line.includes("ERR") ? "yellow" : "gray"} dimColor wrap="truncate">
+            <Text
+              key={i}
+              color={line.includes("WARN") || line.includes("ERR") ? "yellow" : "gray"}
+              dimColor
+              wrap="truncate"
+            >
               {line}
             </Text>
           ))}
@@ -273,10 +265,7 @@ export function App({ project, global, version, installManager }: Props) {
             {errorMsg}
           </Text>
           <Box marginTop={1}>
-            <Text color="gray">
-              This usually means a network issue. Check your connection and try
-              again.
-            </Text>
+            <Text color="gray">This usually means a network issue. Check your connection and try again.</Text>
           </Box>
         </Box>
       </Box>
@@ -292,8 +281,7 @@ export function App({ project, global, version, installManager }: Props) {
         </Text>
         <Box marginTop={1}>
           <Text color="gray">
-            ✓ All packages are up to date in{" "}
-            <Text color="white">{global ? "global" : project.name}</Text>
+            ✓ All packages are up to date in <Text color="white">{global ? "global" : project.name}</Text>
           </Text>
         </Box>
       </Box>
@@ -308,7 +296,8 @@ export function App({ project, global, version, installManager }: Props) {
       {screen === "updating" && (
         <Box flexDirection="column" padding={1}>
           <Text color="greenBright" bold>
-            {" "}ripen
+            {" "}
+            ripen
           </Text>
           <Box marginTop={1}>
             <Text color="gray">{loadingMsg}</Text>
@@ -326,11 +315,18 @@ export function App({ project, global, version, installManager }: Props) {
             {terminalCmd !== "" && (
               <Box>
                 <Text color="gray">$ </Text>
-                <Text dimColor color="gray">{terminalCmd}</Text>
+                <Text dimColor color="gray">
+                  {terminalCmd}
+                </Text>
               </Box>
             )}
             {outputLines.map((line, i) => (
-              <Text key={i} color={line.includes("WARN") || line.includes("ERR") ? "yellow" : "gray"} dimColor wrap="truncate">
+              <Text
+                key={i}
+                color={line.includes("WARN") || line.includes("ERR") ? "yellow" : "gray"}
+                dimColor
+                wrap="truncate"
+              >
                 {line}
               </Text>
             ))}
@@ -339,16 +335,18 @@ export function App({ project, global, version, installManager }: Props) {
       )}
       {screen === "results" && (
         <Box padding={1}>
-          <UpdateResults results={results} onDone={() => { exit(); process.exit(0); }} />
+          <UpdateResults
+            results={results}
+            onDone={() => {
+              exit();
+              process.exit(0);
+            }}
+          />
         </Box>
       )}
       {screen === "settings" && (
         <Box padding={1}>
-          <Settings
-            config={config}
-            onConfigChange={handleConfigChange}
-            onClose={() => setScreen("list")}
-          />
+          <Settings config={config} onConfigChange={handleConfigChange} onClose={() => setScreen("list")} />
         </Box>
       )}
       {screen === "version-picker" && packages[activeIndex] && (
@@ -362,10 +360,7 @@ export function App({ project, global, version, installManager }: Props) {
       )}
       {screen === "changelog" && packages[activeIndex] && (
         <Box padding={1}>
-          <ChangelogPanel
-            pkg={packages[activeIndex]!}
-            onClose={() => setScreen("list")}
-          />
+          <ChangelogPanel pkg={packages[activeIndex]!} onClose={() => setScreen("list")} />
         </Box>
       )}
       <Box padding={1} display={isListActive ? "flex" : "none"}>

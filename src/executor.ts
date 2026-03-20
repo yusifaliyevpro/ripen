@@ -43,13 +43,9 @@ export async function updatePackages(
   }
 
   for (const batch of batches) {
-    const pkgArgs = batch.pkgs.map(
-      (pkg) => `${pkg.name}@${pkg.targetVersion ?? pkg.latest}`,
-    );
+    const pkgArgs = batch.pkgs.map((pkg) => `${pkg.name}@${pkg.targetVersion ?? pkg.latest}`);
     const isYarnGlobal = batch.mgr === "yarn" && global;
-    const args = isYarnGlobal
-      ? ["global", "add", ...pkgArgs]
-      : ["add", ...batch.flags, ...pkgArgs];
+    const args = isYarnGlobal ? ["global", "add", ...pkgArgs] : ["add", ...batch.flags, ...pkgArgs];
 
     onLine?.(`$ ${batch.mgr} ${args.join(" ")}`);
 
@@ -72,11 +68,22 @@ export async function updatePackages(
       if (result.exitCode !== 0) {
         const errMsg = result.stderr?.trim() || `exited with code ${result.exitCode}`;
         for (const pkg of batch.pkgs) {
-          results.push({ name: pkg.name, fromVersion: pkg.current, version: pkg.targetVersion ?? pkg.latest, success: false, error: errMsg });
+          results.push({
+            name: pkg.name,
+            fromVersion: pkg.current,
+            version: pkg.targetVersion ?? pkg.latest,
+            success: false,
+            error: errMsg,
+          });
         }
       } else {
         for (const pkg of batch.pkgs) {
-          results.push({ name: pkg.name, fromVersion: pkg.current, version: pkg.targetVersion ?? pkg.latest, success: true });
+          results.push({
+            name: pkg.name,
+            fromVersion: pkg.current,
+            version: pkg.targetVersion ?? pkg.latest,
+            success: true,
+          });
         }
       }
     } catch (err: any) {

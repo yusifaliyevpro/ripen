@@ -14,9 +14,7 @@ export interface OutdatedPackage {
   targetVersion?: string;
 }
 
-export type FetchResult =
-  | { ok: true; packages: OutdatedPackage[] }
-  | { ok: false; error: string };
+export type FetchResult = { ok: true; packages: OutdatedPackage[] } | { ok: false; error: string };
 
 export async function getOutdatedPackages(
   manager: PackageManager,
@@ -24,9 +22,7 @@ export async function getOutdatedPackages(
   global = false,
   onLine?: (line: string) => void,
 ): Promise<FetchResult> {
-  const args = global
-    ? ["outdated", "--global", "--json"]
-    : ["outdated", "--json"];
+  const args = global ? ["outdated", "--global", "--json"] : ["outdated", "--json"];
 
   let stdout = "";
   let stderr = "";
@@ -66,8 +62,7 @@ export async function getOutdatedPackages(
   const isExpectedExit = exitCode === 0 || exitCode === 1;
 
   if (!isExpectedExit) {
-    const msg =
-      stderr.trim() || `${manager} outdated exited with code ${exitCode}`;
+    const msg = stderr.trim() || `${manager} outdated exited with code ${exitCode}`;
     return { ok: false, error: msg };
   }
 
@@ -96,10 +91,7 @@ export async function getOutdatedPackages(
 
   try {
     const data = JSON.parse(jsonStr);
-    const packages =
-      manager === "pnpm"
-        ? parsePnpmOutdated(data, global)
-        : parseNpmOutdated(data, global);
+    const packages = manager === "pnpm" ? parsePnpmOutdated(data, global) : parseNpmOutdated(data, global);
     return { ok: true, packages };
   } catch {
     return { ok: false, error: "Failed to parse outdated output. Try again." };
@@ -131,11 +123,7 @@ function parsePnpmOutdated(data: any, global: boolean): OutdatedPackage[] {
     wanted: info.wanted ?? info.latest,
     latest: info.latest,
     dependent: "",
-    type: global
-      ? "global"
-      : info.dependencyType === "devDependencies"
-        ? "devDependencies"
-        : "dependencies",
+    type: global ? "global" : info.dependencyType === "devDependencies" ? "devDependencies" : "dependencies",
     selected: false,
     targetVersion: info.latest,
   }));
@@ -148,11 +136,7 @@ function parseNpmOutdated(data: any, global: boolean): OutdatedPackage[] {
     wanted: info.wanted ?? info.latest,
     latest: info.latest,
     dependent: info.dependent ?? "",
-    type: global
-      ? "global"
-      : info.type === "devDependencies"
-        ? "devDependencies"
-        : "dependencies",
+    type: global ? "global" : info.type === "devDependencies" ? "devDependencies" : "dependencies",
     selected: false,
     targetVersion: info.latest,
   }));
@@ -173,18 +157,11 @@ const ALL_MANAGERS: PackageManager[] = ["npm", "pnpm", "yarn"];
  * Check all available package managers for global outdated packages in parallel.
  * Each returned package is tagged with its owning manager.
  */
-export async function getAllGlobalOutdated(
-  cwd: string,
-  onLine?: (line: string) => void,
-): Promise<FetchResult> {
-  const available = await Promise.all(
-    ALL_MANAGERS.map(async (m) => ({ manager: m, ok: await isManagerAvailable(m) })),
-  );
+export async function getAllGlobalOutdated(cwd: string, onLine?: (line: string) => void): Promise<FetchResult> {
+  const available = await Promise.all(ALL_MANAGERS.map(async (m) => ({ manager: m, ok: await isManagerAvailable(m) })));
   const managers = available.filter((a) => a.ok).map((a) => a.manager);
 
-  const results = await Promise.all(
-    managers.map((m) => getOutdatedPackages(m, cwd, true, onLine)),
-  );
+  const results = await Promise.all(managers.map((m) => getOutdatedPackages(m, cwd, true, onLine)));
 
   const allPackages: OutdatedPackage[] = [];
   for (let i = 0; i < managers.length; i++) {
@@ -218,11 +195,7 @@ function parseYarnOutdated(raw: string, global: boolean): OutdatedPackage[] {
           wanted: row[2] ?? row[3],
           latest: row[3],
           dependent: row[4] ?? "",
-          type: global
-            ? "global"
-            : row[5] === "devDependencies"
-              ? "devDependencies"
-              : "dependencies",
+          type: global ? "global" : row[5] === "devDependencies" ? "devDependencies" : "dependencies",
           selected: false,
           targetVersion: row[3],
         }));

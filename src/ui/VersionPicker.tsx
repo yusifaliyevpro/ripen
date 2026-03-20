@@ -20,9 +20,7 @@ export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
     fetchVersions(pkg.name).then((v) => {
       setVersions(v);
       // pre-select current target
-      const idx = v.findIndex(
-        (x) => x.version === (pkg.targetVersion ?? pkg.latest),
-      );
+      const idx = v.findIndex((x) => x.version === (pkg.targetVersion ?? pkg.latest));
       if (idx >= 0) {
         setCursor(idx);
         setScroll(Math.max(0, idx - Math.floor(PAGE / 2)));
@@ -85,12 +83,7 @@ export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
               <Box key={v.version} gap={2}>
                 <Text color="cyanBright">{isFocused ? "❯" : " "}</Text>
                 <Box width={16}>
-                  <Text
-                    bold={isFocused}
-                    color={
-                      isFocused ? "whiteBright" : isCurrent ? "red" : "white"
-                    }
-                  >
+                  <Text bold={isFocused} color={isFocused ? "whiteBright" : isCurrent ? "red" : "white"}>
                     {v.version}
                   </Text>
                 </Box>
@@ -107,8 +100,7 @@ export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
 
           {versions.length > PAGE && (
             <Text color="gray" dimColor>
-              {"  "}showing {scroll + 1}–
-              {Math.min(scroll + PAGE, versions.length)} of {versions.length}
+              {"  "}showing {scroll + 1}–{Math.min(scroll + PAGE, versions.length)} of {versions.length}
             </Text>
           )}
         </>

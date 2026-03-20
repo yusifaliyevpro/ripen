@@ -4,11 +4,7 @@ import { exec } from "child_process";
 import { useState } from "react";
 import { ScrollView, type ScrollViewRef } from "ink-scroll-view";
 import { MarkdownLine } from "./MarkdownLine";
-import {
-  fetchChangelog,
-  fetchRepoUrl,
-  type ChangelogEntry,
-} from "../registry";
+import { fetchChangelog, fetchRepoUrl, type ChangelogEntry } from "../registry";
 import type { OutdatedPackage } from "../fetcher";
 
 function openInBrowser(url: string) {
@@ -36,15 +32,14 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
   const { stdout } = useStdout();
 
   useEffect(() => {
-    Promise.all([
-      fetchChangelog(pkg.name, pkg.current, pkg.targetVersion ?? pkg.latest),
-      fetchRepoUrl(pkg.name),
-    ]).then(([e, repo]) => {
-      setEntries(e);
-      setActiveEntry(0);
-      setRepoUrl(repo);
-      setLoading(false);
-    });
+    Promise.all([fetchChangelog(pkg.name, pkg.current, pkg.targetVersion ?? pkg.latest), fetchRepoUrl(pkg.name)]).then(
+      ([e, repo]) => {
+        setEntries(e);
+        setActiveEntry(0);
+        setRepoUrl(repo);
+        setLoading(false);
+      },
+    );
   }, [pkg.name]);
 
   useEffect(() => {
@@ -117,9 +112,7 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
             {repoUrl}/releases
           </Text>
         )}
-        <Text color="gray">
-          ────────────────────────────────────────────────────
-        </Text>
+        <Text color="gray">────────────────────────────────────────────────────</Text>
       </Box>
 
       {/* Release navigator */}
@@ -127,12 +120,13 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
         <Box marginBottom={1} gap={1}>
           <Text color="gray">
             {"  "}
-            {activeEntry > 0 ? <Text color="white">←</Text> : <Text dimColor>←</Text>}
-            {" "}
-            <Text color="cyanBright" bold>{currentEntry?.version ?? ""}</Text>
-            {" "}
-            <Text dimColor>({activeEntry + 1}/{entries.length})</Text>
-            {" "}
+            {activeEntry > 0 ? <Text color="white">←</Text> : <Text dimColor>←</Text>}{" "}
+            <Text color="cyanBright" bold>
+              {currentEntry?.version ?? ""}
+            </Text>{" "}
+            <Text dimColor>
+              ({activeEntry + 1}/{entries.length})
+            </Text>{" "}
             {activeEntry < entries.length - 1 ? <Text color="white">→</Text> : <Text dimColor>→</Text>}
           </Text>
         </Box>
@@ -143,15 +137,11 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
         <Text color="gray"> fetching release notes…</Text>
       ) : entries.length === 0 ? (
         <Box flexDirection="column">
-          <Text color="gray">
-            {" "}
-            No GitHub release notes found between these versions.
-          </Text>
+          <Text color="gray"> No GitHub release notes found between these versions.</Text>
           {releasesPageUrl ? (
             <Text color="gray">
               {" "}
-              Press <Text color="white">r</Text> to open releases page in
-              browser.
+              Press <Text color="white">r</Text> to open releases page in browser.
             </Text>
           ) : (
             <Text color="gray"> Check the package repository manually.</Text>
@@ -171,9 +161,7 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
 
       {/* Footer */}
       <Box flexDirection="column" marginTop={1}>
-        <Text color="gray">
-          ────────────────────────────────────────────────────
-        </Text>
+        <Text color="gray">────────────────────────────────────────────────────</Text>
         <Box gap={3}>
           <Text color="gray">
             <Text color="white">↑↓</Text> scroll

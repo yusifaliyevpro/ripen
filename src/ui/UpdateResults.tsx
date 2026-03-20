@@ -29,7 +29,9 @@ export function UpdateResults({ results, onDone }: Props) {
         <Box key={r.name} gap={2}>
           <Text color="greenBright">✓</Text>
           <Text color="white">{r.name}</Text>
-          <Text dimColor color="gray">{r.fromVersion}</Text>
+          <Text dimColor color="gray">
+            {r.fromVersion}
+          </Text>
           <Text color="gray">→</Text>
           <Text color="greenBright">{r.version}</Text>
         </Box>
@@ -40,7 +42,9 @@ export function UpdateResults({ results, onDone }: Props) {
           <Box gap={2}>
             <Text color="red">✗</Text>
             <Text color="white">{r.name}</Text>
-            <Text dimColor color="gray">{r.fromVersion}</Text>
+            <Text dimColor color="gray">
+              {r.fromVersion}
+            </Text>
             <Text color="gray">→</Text>
             <Text color="red">{r.version}</Text>
           </Box>
@@ -52,7 +56,6 @@ export function UpdateResults({ results, onDone }: Props) {
           )}
         </Box>
       ))}
-
     </Box>
   );
 }

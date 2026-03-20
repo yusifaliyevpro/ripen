@@ -1,0 +1,7 @@
+pnpm-lock.yaml
+pnpm-workspace.yaml
+node_modules
+README.md
+AGENTS.md
+CLAUDE.md
+dist

@@ -46,11 +46,7 @@ interface Props {
   baseDim?: boolean;
 }
 
-export function MarkdownLine({
-  line,
-  baseColor = "white",
-  baseDim = false,
-}: Props) {
+export function MarkdownLine({ line, baseColor = "white", baseDim = false }: Props) {
   const raw = line;
 
   // Heading
