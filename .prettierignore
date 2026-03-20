@@ -5,3 +5,5 @@ README.md
 AGENTS.md
 CLAUDE.md
 dist
+.github/ISSUE_TEMPLATE/
+.github/pull_request_template.md
