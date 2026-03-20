@@ -50,14 +50,14 @@ ripen --help
 
 ## How it works
 
-1. Detects your package manager from the lock file (`pnpm-lock.yaml`, `package-lock.json`, or `yarn.lock`)
-2. Runs the appropriate `outdated --json` command to find outdated packages
-3. Shows them in a colorful interactive list
+1. Reads your `package.json` and checks each dependency against the npm registry directly — no dependency on any package manager's `outdated` command
+2. Detects your package manager from the lock file (`pnpm-lock.yaml`, `package-lock.json`, or `yarn.lock`) for running updates
+3. Shows outdated packages in a colorful interactive list
 4. Press `v` on any package to pick a specific version from the npm registry
-5. Press `c` to see GitHub release notes between your current and target version, you see all release notes
-6. Select the ones you want and press enter — ripen runs the update commands for you
+5. Press `c` to see GitHub release notes between your current and target version
+6. Select the ones you want and press enter — ripen runs the update commands for you, preserving your version range prefixes (`^`, `~`, etc.)
 
-When using `ripen -g`, all available package managers are checked in parallel so you see every global package in one place.
+When using `ripen -g`, all available package managers (npm, pnpm, yarn) are checked in parallel so you see every global package in one place.
 
 ## License
 
