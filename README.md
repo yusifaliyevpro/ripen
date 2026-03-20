@@ -50,7 +50,7 @@ ripen --help
 
 ## How it works
 
-1. Reads your `package.json` and checks each dependency against the npm registry directly — no dependency on any package manager's `outdated` command
+1. Reads your `package.json` and checks each dependency against the npm registry directly
 2. Detects your package manager from the lock file (`pnpm-lock.yaml`, `package-lock.json`, or `yarn.lock`) for running updates
 3. Shows outdated packages in a colorful interactive list
 4. Press `v` on any package to pick a specific version from the npm registry
