@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 import React from "react";
 import { render } from "ink";
+import { createRequire } from "module";
 import { getProjectInfo, hasPackageJson } from "./detector";
 import { App } from "./ui/App";
 
-const VERSION = "0.1.0";
+const require = createRequire(import.meta.url);
+const { version: VERSION } = require("../package.json");
 
 const args = process.argv.slice(2);
 const isGlobal = args.includes("--global") || args.includes("-g");
