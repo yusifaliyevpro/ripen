@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { Box, Text, useInput, useStdout } from "ink";
 import { exec } from "child_process";
 import { useState } from "react";

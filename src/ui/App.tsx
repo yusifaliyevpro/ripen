@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Box, Text, useApp, useInput } from "ink";
+import { useState, useEffect } from "react";
+import { Box, Text, useApp } from "ink";
 import type { ProjectInfo } from "../detector";
 import type { OutdatedPackage } from "../fetcher";
 import type { UpdateResult } from "../executor";
@@ -53,7 +53,7 @@ export function App({ project, global, version, installManager }: Props) {
   const MAX_TERMINAL_LINES = 3;
   const [outputLines, setOutputLines] = useState<string[]>([]);
   const [terminalCmd, setTerminalCmd] = useState(
-    global ? "Checking all package managers…" : `${project.manager} outdated --json`,
+    global ? "Checking all package managers…" : "Checking npm registry…",
   );
 
   // Self-update check on mount

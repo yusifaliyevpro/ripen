@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import React from "react";
 import { render } from "ink";
 import { createRequire } from "module";
 import { getProjectInfo, hasPackageJson, detectGlobalInstallManager } from "./detector";

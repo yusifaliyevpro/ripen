@@ -43,7 +43,11 @@ export async function updatePackages(
   }
 
   for (const batch of batches) {
-    const pkgArgs = batch.pkgs.map((pkg) => `${pkg.name}@${pkg.targetVersion ?? pkg.latest}`);
+    const pkgArgs = batch.pkgs.map((pkg) => {
+      const version = pkg.targetVersion ?? pkg.latest;
+      const prefix = pkg.rangePrefix ?? "";
+      return `${pkg.name}@${prefix}${version}`;
+    });
     const isYarnGlobal = batch.mgr === "yarn" && global;
     const args = isYarnGlobal ? ["global", "add", ...pkgArgs] : ["add", ...batch.flags, ...pkgArgs];
 
