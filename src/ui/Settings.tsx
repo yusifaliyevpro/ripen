@@ -95,7 +95,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
     }
 
     // Delete/backspace to remove item when on a list item
-    if ((key.backspace || key.delete) && currentRow?.type === "list-item" && currentRow.listItemIndex !== undefined) {
+    if ((key.backspace || key.delete || (input === "d" && !key.ctrl)) && currentRow?.type === "list-item" && currentRow.listItemIndex !== undefined) {
       const scope = scopes[currentRow.listItemIndex]!;
       removeScope(scope);
       if (flatCursor >= rows.length - 1) {
@@ -216,7 +216,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
               {itemFocused && (
                 <Text dimColor={!config.groupByScope} color="gray">
                   {" "}
-                  delete to remove
+                  d to remove
                 </Text>
               )}
             </Box>
@@ -244,7 +244,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
           <Text color="white">arrow keys</Text> navigate{"  "}
           <Text color="white">space</Text> toggle{"  "}
           <Text color="white">a</Text> add{"  "}
-          <Text color="white">delete</Text> remove{"  "}
+          <Text color="white">d</Text> remove{"  "}
           <Text color="white">esc</Text> back
         </Text>
       </Box>
