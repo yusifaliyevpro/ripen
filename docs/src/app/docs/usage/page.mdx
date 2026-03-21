@@ -1,0 +1,77 @@
+export const metadata = {
+  title: "Usage",
+  description: "Learn how to use ripen's keyboard controls and workflows.",
+};
+
+# Usage
+
+## Basic Usage
+
+Run ripen in any project directory:
+
+```bash
+ripen
+```
+
+ripen will:
+1. Detect your package manager (by checking lock files)
+2. Run the outdated check
+3. Display an interactive list of packages that can be updated
+
+## Global Packages
+
+To check and update globally installed packages:
+
+```bash
+ripen -g
+```
+
+In global mode, ripen scans npm, pnpm, and yarn in parallel and combines the results.
+
+## Keyboard Controls
+
+| Key | Action |
+|-----|--------|
+| `↑` `↓` | Navigate through packages |
+| `Space` | Toggle package selection |
+| `V` | Open version picker for current package |
+| `C` | View changelog / release notes |
+| `Enter` | Update all selected packages |
+| `S` | Open settings |
+| `Esc` | Go back / cancel |
+| `Ctrl+C` | Exit ripen |
+
+## Selecting Packages
+
+Use the arrow keys to move the cursor and press `Space` to toggle selection. Selected packages are marked with a filled circle. Press `Enter` to update all selected packages at once.
+
+ripen groups packages by dependency type (`dependencies` vs `devDependencies`) and runs one install command per group.
+
+## Version Picker
+
+Press `V` on any package to open the version picker. This fetches all available versions from the npm registry and lets you scroll through them to pick a specific version — not just the latest.
+
+Pre-release versions are filtered out unless they carry a dist-tag.
+
+## Changelog Viewer
+
+Press `C` to view the changelog for the currently highlighted package. ripen fetches release notes from the GitHub Releases API and shows them between your current version and the target version.
+
+This helps you understand what changed before committing to an update.
+
+## Update Results
+
+After pressing `Enter`, ripen runs the appropriate install commands and shows a summary of what was updated, including any errors that occurred.
+
+## CLI Options
+
+| Flag | Description |
+|------|-------------|
+| `-g` | Check global packages |
+| `--help` | Show help message |
+| `--version` | Show ripen version |
+
+## Next Steps
+
+- [Configuration](/docs/configuration) — customize grouping and sorting
+- [Package Managers](/docs/package-managers) — learn how detection works

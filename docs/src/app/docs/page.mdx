@@ -1,0 +1,42 @@
+export const metadata = {
+  title: "Documentation",
+  description: "Learn how to use ripen to manage your project dependencies interactively.",
+};
+
+# Documentation
+
+**ripen** is an interactive dependency updater for Node.js projects. It gives you a beautiful terminal interface to navigate outdated packages, preview changelogs, pick specific versions, and update — all without leaving your terminal.
+
+## Quick Start
+
+Install ripen globally:
+
+```bash
+npm install -g ripencli
+```
+
+Then run it in any project directory:
+
+```bash
+ripen
+```
+
+That's it. ripen will detect your package manager, find outdated dependencies, and present them in an interactive list.
+
+## Features at a Glance
+
+- **Interactive TUI** — keyboard-driven navigation with real-time visual feedback
+- **Multi-package manager** — auto-detects npm, pnpm, yarn, and bun
+- **Version picker** — choose any version from the npm registry, not just latest
+- **Changelog viewer** — read GitHub release notes before updating
+- **Smart grouping** — group scoped packages and sort by update frequency
+- **Major version warnings** — highlights potentially breaking bumps
+- **Global packages** — update global installs with `ripen -g`
+- **Self-update** — notifies you when a newer version is available
+
+## Next Steps
+
+- [Installation](/docs/installation) — requirements and setup for all package managers
+- [Usage](/docs/usage) — keyboard controls and workflows
+- [Configuration](/docs/configuration) — settings, frequency tracking, and scope grouping
+- [Package Managers](/docs/package-managers) — how detection works and per-manager details

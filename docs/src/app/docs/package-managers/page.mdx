@@ -1,0 +1,62 @@
+export const metadata = {
+  title: "Package Managers",
+  description: "How ripen detects and works with npm, pnpm, yarn, and bun.",
+};
+
+# Package Managers
+
+ripen supports four package managers and automatically detects which one your project uses.
+
+## Detection
+
+ripen determines your package manager by checking for lock files in this order:
+
+1. `bun.lock` → **Bun**
+2. `pnpm-lock.yaml` or `pnpm-workspace.yaml` → **pnpm**
+3. `yarn.lock` → **Yarn**
+4. `package-lock.json` → **npm**
+
+If no lock file is found, ripen defaults to **npm**.
+
+## Per-Manager Details
+
+### npm
+
+- Uses `npm outdated --json` to detect outdated packages
+- Updates with `npm install package@version`
+- Global packages checked with `npm ls -g --json`
+
+### pnpm
+
+- Uses `pnpm outdated --json` for outdated detection
+- Updates with `pnpm add package@version`
+- Handles exit code 1 (expected when packages are outdated)
+- WARN lines in output are automatically stripped before JSON parsing
+
+### Yarn
+
+- Detected via `yarn.lock`
+- Uses yarn-compatible install commands
+- Global packages supported in global mode
+
+### Bun
+
+- Detected via `bun.lock`
+- Updates with `bun add package@version`
+- Supported for local project updates
+- Global mode support for bun-installed globals
+
+## Global Mode
+
+When running `ripen -g`, ripen checks globally installed packages across **npm**, **pnpm**, and **yarn** in parallel, then combines the results into a single list.
+
+This lets you manage all your global tools from one interface regardless of which package manager installed them.
+
+## Version Prefix Handling
+
+ripen preserves your version range prefixes. If your `package.json` uses `^1.0.0`, the update will maintain the `^` prefix. Same for `~` and exact versions.
+
+## Next Steps
+
+- [Installation](/docs/installation) — get started with ripen
+- [Configuration](/docs/configuration) — customize settings and grouping

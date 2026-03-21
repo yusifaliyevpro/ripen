@@ -4,8 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  ripen: link:../../../../AppData/Local/pnpm/global/5/node_modules/ripen
 
 importers:
 
