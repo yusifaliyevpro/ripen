@@ -290,9 +290,9 @@ export function PackageList({
         else if (focused.kind === "scope-header") onToggleMany(focused.packageIndices);
         else onToggle(focused.packageIndex);
       }
-      if (input === "v" && focused.kind === "package") onSelectVersion(focused.packageIndex);
-      if (input === "c" && focused.kind === "package") onViewChangelog(focused.packageIndex);
-      if (input === "s") onOpenSettings?.();
+      if (input === "v" && !key.ctrl && focused.kind === "package") onSelectVersion(focused.packageIndex);
+      if (input === "c" && !key.ctrl && focused.kind === "package") onViewChangelog(focused.packageIndex);
+      if (input === "s" && !key.ctrl) onOpenSettings?.();
       if (key.return) onConfirm();
     },
     { isActive },

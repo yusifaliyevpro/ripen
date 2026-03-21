@@ -52,6 +52,7 @@ const installManager = detectGlobalInstallManager();
 
 const { waitUntilExit } = render(
   <App project={project} global={isGlobal} version={VERSION} installManager={installManager} />,
+  { exitOnCtrlC: false },
 );
 
 await waitUntilExit();

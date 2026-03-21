@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Text, useApp } from "ink";
+import { Box, Text, useApp, useInput } from "ink";
 import type { ProjectInfo } from "../detector";
 import type { OutdatedPackage } from "../fetcher";
 import type { UpdateResult } from "../executor";
@@ -39,6 +39,17 @@ interface Props {
 
 export function App({ project, global, version, installManager }: Props) {
   const { exit } = useApp();
+
+  useInput((_input, key) => {
+    if (key.ctrl && _input === "c") {
+      setScreen("empty");
+      setTimeout(() => {
+        exit();
+        console.log("  \x1b[32mCancelled.\x1b[0m\n");
+        process.exit(0);
+      }, 200);
+    }
+  });
 
   const [screen, setScreen] = useState<Screen>("self-update-check");
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
