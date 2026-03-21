@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useRef } from "react";
 import { Box, Text, useInput, useStdout } from "ink";
 import type { OutdatedPackage } from "../fetcher";
 
@@ -11,8 +11,6 @@ interface Props {
   onViewChangelog: (index: number) => void;
   onConfirm: () => void;
   onOpenSettings?: () => void;
-  focusedIndex: number;
-  onFocusChange: (index: number) => void;
   groupByScope: boolean;
   isActive?: boolean;
 }
@@ -168,7 +166,11 @@ function groupCheckbox(packages: OutdatedPackage[]): { symbol: string; color: st
 }
 
 function computeMaxPerGroup(terminalRows: number, groupCount: number): number {
-  const available = terminalRows - CHROME_LINES - groupCount * (GROUP_CHROME + 1); // +1 for group header line
+  // Each group has marginBottom={1} that GROUP_CHROME+1 doesn't account for (+groupCount lines).
+  // App.tsx wraps PackageList in <Box padding={1}>, adding 2 lines not in CHROME_LINES.
+  // Without this correction outputHeight === stdout.rows, which triggers Ink's clearTerminal
+  // path (wipes the entire screen on every render) instead of the smooth eraseLines path.
+  const available = terminalRows - CHROME_LINES - groupCount * (GROUP_CHROME + 2) - 2;
   const perGroup = Math.floor(available / groupCount);
   return Math.max(3, perGroup);
 }
@@ -182,11 +184,10 @@ export function PackageList({
   onViewChangelog,
   onConfirm,
   onOpenSettings,
-  focusedIndex,
-  onFocusChange,
   groupByScope,
   isActive = true,
 }: Props) {
+  const [focusedIndex, setFocusedIndex] = useState(0);
   const allRows = useMemo(() => buildDisplayRows(packages, groupByScope), [packages, groupByScope]);
 
   // Collect all scope keys from allRows
@@ -219,32 +220,26 @@ export function PackageList({
   const terminalRows = stdout?.rows ?? 24;
   const maxVisible = useMemo(() => computeMaxPerGroup(terminalRows, groups.length), [terminalRows, groups.length]);
 
-  // Per-group scroll offsets
-  const [scrollOffsets, setScrollOffsets] = useState<Record<string, number>>({});
+  // Per-group scroll offsets tracked in a ref to avoid a second render per keypress
+  const scrollOffsetsRef = useRef<Record<string, number>>({});
 
-  // Auto-scroll to keep focused item visible within its group
-  useEffect(() => {
-    for (const group of groups) {
-      const localIndex = group.items.findIndex((item) => item.visibleIndex === focusedIndex);
-      if (localIndex === -1) continue;
-
-      setScrollOffsets((prev) => {
-        const offset = prev[group.type] ?? 0;
-        let next = offset;
-        if (localIndex < offset) next = localIndex;
-        else if (localIndex >= offset + maxVisible) next = localIndex - maxVisible + 1;
-        if (next === offset) return prev;
-        return { ...prev, [group.type]: next };
-      });
-    }
-  }, [focusedIndex, groups, maxVisible]);
+  // Compute scroll offsets inline during render (deterministic from focusedIndex + maxVisible)
+  for (const group of groups) {
+    const localIndex = group.items.findIndex((item) => item.visibleIndex === focusedIndex);
+    if (localIndex === -1) continue;
+    const prev = scrollOffsetsRef.current[group.type] ?? 0;
+    let next = prev;
+    if (localIndex < prev) next = localIndex;
+    else if (localIndex >= prev + maxVisible) next = localIndex - maxVisible + 1;
+    scrollOffsetsRef.current[group.type] = next;
+  }
 
   // Clamp focusedIndex when visibleRows shrinks (e.g., after collapse)
   useEffect(() => {
     if (focusedIndex >= visibleRows.length) {
-      onFocusChange(Math.max(0, visibleRows.length - 1));
+      setFocusedIndex(Math.max(0, visibleRows.length - 1));
     }
-  }, [visibleRows.length, focusedIndex, onFocusChange]);
+  }, [visibleRows.length, focusedIndex]);
 
   const toggleCollapse = (scopeKey: string) => {
     setCollapsedScopes((prev) => {
@@ -257,8 +252,10 @@ export function PackageList({
 
   useInput(
     (input, key) => {
-      if (key.upArrow) onFocusChange(Math.max(0, focusedIndex - 1));
-      if (key.downArrow) onFocusChange(Math.min(visibleRows.length - 1, focusedIndex + 1));
+      if (key.upArrow) setFocusedIndex(Math.max(0, focusedIndex - 1));
+      if (key.downArrow) setFocusedIndex(Math.min(visibleRows.length - 1, focusedIndex + 1));
+      if (key.pageUp) setFocusedIndex(Math.max(0, focusedIndex - maxVisible));
+      if (key.pageDown) setFocusedIndex(Math.min(visibleRows.length - 1, focusedIndex + maxVisible));
 
       // Tab: cycle between main group headers only
       if (key.tab) {
@@ -268,7 +265,7 @@ export function PackageList({
           return focusedIndex >= h && focusedIndex < nextHeader;
         });
         const nextIdx = (currentGroupIdx + 1) % headerIndices.length;
-        onFocusChange(headerIndices[nextIdx]!);
+        setFocusedIndex(headerIndices[nextIdx]!);
         return;
       }
 
@@ -313,7 +310,7 @@ export function PackageList({
         </Text>
         <Box marginTop={1}>
           <Text color="gray">
-            <Text color="white">↑↓</Text> navigate{"  "}
+            <Text color="white">↑↓/PgDn/PgUp</Text> navigate{"  "}
             <Text color="white">space</Text> select{"  "}
             <Text color="white">tab</Text> groups{"  "}
             <Text color="white">←→</Text> collapse{"  "}
@@ -330,7 +327,7 @@ export function PackageList({
         const check = groupCheckbox(group.allPackages);
         const headerFocused = focusedIndex === group.headerVisibleIndex;
         const typeColor = TYPE_COLORS[group.type] ?? "white";
-        const offset = scrollOffsets[group.type] ?? 0;
+        const offset = scrollOffsetsRef.current[group.type] ?? 0;
         const visibleItems = group.items.slice(offset, offset + maxVisible);
         const totalItems = group.items.length;
         const needsScroll = totalItems > maxVisible;

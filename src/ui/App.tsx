@@ -46,7 +46,6 @@ export function App({ project, global, version, installManager }: Props) {
   const [selfUpdating, setSelfUpdating] = useState(false);
   const [config, setConfig] = useState<RipenConfig>(() => loadConfig());
   const [packages, setPackages] = useState<OutdatedPackage[]>([]);
-  const [focusedIndex, setFocusedIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [results, setResults] = useState<UpdateResult[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
@@ -380,8 +379,6 @@ export function App({ project, global, version, installManager }: Props) {
           onViewChangelog={handleViewChangelog}
           onConfirm={handleConfirm}
           onOpenSettings={() => setScreen("settings")}
-          focusedIndex={focusedIndex}
-          onFocusChange={setFocusedIndex}
           groupByScope={config.groupByScope}
           isActive={isListActive}
         />
