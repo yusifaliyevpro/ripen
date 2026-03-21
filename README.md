@@ -14,6 +14,8 @@
 - **Global packages** — check and update global installs across all* package managers
 - **Self-update** — notifies you when a new version of ripen is available
 - **Major bump warnings** — highlights potentially breaking updates
+- **Scope grouping** — optionally group scoped packages (e.g. `@heroui/*`) together
+- **Frequency sorting** — packages you update often can be surfaced to the top
 
 ## Install
 
@@ -49,6 +51,7 @@ ripen --help
 | `v`     | Pick specific version          |
 | `c`     | View changelog / release notes |
 | `enter` | Update selected packages       |
+| `s`     | Open settings                  |
 | `esc`   | Cancel / go back               |
 
 ## How it works
@@ -59,6 +62,17 @@ ripen --help
 4. Press `v` on any package to pick a specific version from the npm registry
 5. Press `c` to see GitHub release notes between your current and target version
 6. Select the ones you want and press enter — ripen runs the update commands for you
+
+## Settings
+
+Press `s` to open the settings screen. Settings are persisted at `~/.config/ripen/config.json`.
+
+| Setting                      | Default | Description                                                  |
+| ---------------------------- | ------- | ------------------------------------------------------------ |
+| Sort by update frequency     | Off     | Packages you update often appear at the top                  |
+| Enable scope grouping        | Off     | Group scoped packages under their scope prefix               |
+| Show grouped scopes on top   | Off     | Grouped scopes appear before ungrouped packages              |
+| Grouped scopes               | —       | List of scopes to group (e.g. `@heroui`, `@radix-ui`)       |
 
 When using `ripen -g`, all available package managers (npm, pnpm, yarn) are checked in parallel so you see every global package in one place. Bun is not included in global checking because it doesn't provide a JSON output for its outdated command.
 
