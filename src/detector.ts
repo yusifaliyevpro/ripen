@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
-export type PackageManager = "pnpm" | "npm" | "yarn";
+export type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
 
 export interface ProjectInfo {
   manager: PackageManager;
@@ -10,6 +10,8 @@ export interface ProjectInfo {
 }
 
 export function detectPackageManager(cwd: string): PackageManager {
+  if (existsSync(join(cwd, "bun.lock"))) return "bun";
+  if (existsSync(join(cwd, "bun.lockb"))) return "bun";
   if (existsSync(join(cwd, "pnpm-lock.yaml"))) return "pnpm";
   if (existsSync(join(cwd, "pnpm-workspace.yaml"))) return "pnpm";
   if (existsSync(join(cwd, "yarn.lock"))) return "yarn";
@@ -25,6 +27,7 @@ export function detectGlobalInstallManager(): PackageManager {
   const scriptPath = (process.argv[1] ?? "").replace(/\\/g, "/").toLowerCase();
   if (scriptPath.includes("/pnpm/") || scriptPath.includes("/pnpm-global/")) return "pnpm";
   if (scriptPath.includes("/yarn/")) return "yarn";
+  if (scriptPath.includes("/.bun/") || scriptPath.includes("/bun/")) return "bun";
   return "npm";
 }
 

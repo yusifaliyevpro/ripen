@@ -26,7 +26,7 @@ export async function updatePackages(
 
   const batches: { mgr: PackageManager; pkgs: OutdatedPackage[]; flags: string[] }[] = [];
   if (deps.length > 0) batches.push({ mgr: manager, pkgs: deps, flags: [] });
-  if (devDeps.length > 0) batches.push({ mgr: manager, pkgs: devDeps, flags: ["-D"] });
+  if (devDeps.length > 0) batches.push({ mgr: manager, pkgs: devDeps, flags: [manager === "bun" ? "-d" : "-D"] });
 
   if (globalPkgs.length > 0) {
     // Group global packages by their owning manager
@@ -37,7 +37,7 @@ export async function updatePackages(
       byManager.get(mgr)!.push(pkg);
     }
     for (const [mgr, pkgs] of byManager) {
-      const globalFlags = mgr === "yarn" ? [] : ["--global"];
+      const globalFlags = mgr === "yarn" ? [] : mgr === "bun" ? ["-g"] : ["--global"];
       batches.push({ mgr, pkgs, flags: globalFlags });
     }
   }
