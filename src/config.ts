@@ -2,27 +2,23 @@ import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
 
-export const DEFAULT_UNGROUP_SCOPES = ["@types", "@react-types"];
-
 export type RipenConfig = {
+  /** Enable scope grouping */
   groupByScope: boolean;
-  /** User-added scopes beyond the defaults */
-  addedScopes: string[];
-  /** Default scopes the user explicitly removed */
-  removedDefaults: string[];
+  /** Scopes to sub-group (e.g. ["@heroui"] groups @heroui/* packages) */
+  groupScopes: string[];
+  /** Show grouped scopes at the top of their section */
+  groupsOnTop: boolean;
+  /** Sort packages by update frequency (most updated first) */
+  frequencySort: boolean;
 };
 
 export const DEFAULT_CONFIG: RipenConfig = {
-  groupByScope: true,
-  addedScopes: [],
-  removedDefaults: [],
+  groupByScope: false,
+  groupScopes: [],
+  groupsOnTop: false,
+  frequencySort: false,
 };
-
-/** Compute the effective ungroup scopes list: (defaults - removedDefaults) + addedScopes */
-export function getEffectiveUngroupScopes(config: RipenConfig): string[] {
-  const defaults = DEFAULT_UNGROUP_SCOPES.filter((s) => !config.removedDefaults.includes(s));
-  return [...defaults, ...config.addedScopes];
-}
 
 const CONFIG_DIR = join(homedir(), ".config", "ripen");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
@@ -42,6 +38,32 @@ export function saveConfig(config: RipenConfig): void {
   try {
     mkdirSync(CONFIG_DIR, { recursive: true });
     writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2) + "\n", "utf-8");
+  } catch {
+    // Silently fail — non-critical
+  }
+}
+
+// --- Frequency tracking ---
+
+const FREQUENCY_PATH = join(CONFIG_DIR, "frequency.json");
+
+export function loadFrequency(): Record<string, number> {
+  try {
+    const raw = readFileSync(FREQUENCY_PATH, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+export function incrementFrequency(packageNames: string[]): void {
+  try {
+    const freq = loadFrequency();
+    for (const name of packageNames) {
+      freq[name] = (freq[name] ?? 0) + 1;
+    }
+    mkdirSync(CONFIG_DIR, { recursive: true });
+    writeFileSync(FREQUENCY_PATH, JSON.stringify(freq, null, 2) + "\n", "utf-8");
   } catch {
     // Silently fail — non-critical
   }

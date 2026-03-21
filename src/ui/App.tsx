@@ -5,7 +5,7 @@ import type { OutdatedPackage } from "../fetcher";
 import type { UpdateResult } from "../executor";
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
 import { updatePackages } from "../executor";
-import { loadConfig, saveConfig, getEffectiveUngroupScopes } from "../config";
+import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../config";
 import type { RipenConfig } from "../config";
 import { fetchLatestVersion, isNewerVersion } from "../registry";
 import { execa } from "execa";
@@ -56,6 +56,7 @@ export function App({ project, global, version, installManager }: Props) {
   const [selfUpdateError, setSelfUpdateError] = useState<string | null>(null);
   const [selfUpdating, setSelfUpdating] = useState(false);
   const [config, setConfig] = useState<RipenConfig>(() => loadConfig());
+  const [frequency, setFrequency] = useState<Record<string, number>>(() => loadFrequency());
   const [packages, setPackages] = useState<OutdatedPackage[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [results, setResults] = useState<UpdateResult[]>([]);
@@ -206,6 +207,12 @@ export function App({ project, global, version, installManager }: Props) {
     const res = await updatePackages(project.manager, selected, project.cwd, global, onLine);
     setResults(res);
     setScreen("results");
+
+    const successNames = res.filter((r) => r.success).map((r) => r.name);
+    if (successNames.length > 0) {
+      incrementFrequency(successNames);
+      setFrequency(loadFrequency());
+    }
   };
 
   // Self-update check screen
@@ -401,7 +408,10 @@ export function App({ project, global, version, installManager }: Props) {
           onConfirm={handleConfirm}
           onOpenSettings={() => setScreen("settings")}
           groupByScope={config.groupByScope}
-          ungroupScopes={getEffectiveUngroupScopes(config)}
+          groupScopes={config.groupScopes}
+          groupsOnTop={config.groupsOnTop}
+          frequencySort={config.frequencySort}
+          frequency={frequency}
           isActive={isListActive}
         />
       </Box>

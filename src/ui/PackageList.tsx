@@ -11,8 +11,11 @@ type Props = {
   onViewChangelog: (index: number) => void;
   onConfirm: () => void;
   onOpenSettings?: () => void;
-  groupByScope: boolean;
-  ungroupScopes: string[];
+  groupByScope?: boolean;
+  groupScopes: string[];
+  groupsOnTop?: boolean;
+  frequencySort?: boolean;
+  frequency?: Record<string, number>;
   isActive?: boolean;
 };
 
@@ -66,8 +69,11 @@ function getScope(name: string): string | null {
 
 function buildDisplayRows(
   packages: OutdatedPackage[],
-  groupByScope: boolean,
-  ungroupScopes: string[] = [],
+  groupByScope: boolean = false,
+  groupScopes: string[] = [],
+  groupsOnTop: boolean = false,
+  frequencySort: boolean = false,
+  frequency: Record<string, number> = {},
 ): DisplayRow[] {
   const grouped = new Map<string, { pkg: OutdatedPackage; index: number }[]>();
 
@@ -75,6 +81,13 @@ function buildDisplayRows(
     if (!grouped.has(pkg.type)) grouped.set(pkg.type, []);
     grouped.get(pkg.type)!.push({ pkg, index: i });
   });
+
+  const freqSort = (a: { pkg: OutdatedPackage }, b: { pkg: OutdatedPackage }) => {
+    const fa = frequency[a.pkg.name] ?? 0;
+    const fb = frequency[b.pkg.name] ?? 0;
+    if (fb !== fa) return fb - fa;
+    return a.pkg.name.localeCompare(b.pkg.name);
+  };
 
   const rows: DisplayRow[] = [];
   for (const type of GROUP_ORDER) {
@@ -88,50 +101,98 @@ function buildDisplayRows(
       packages: allPkgs,
     });
 
-    if (groupByScope) {
-      // Group by scope prefix
+    if (groupByScope && groupScopes.length > 0) {
       const scopeMap = new Map<string, { pkg: OutdatedPackage; index: number }[]>();
-      const unscoped: { pkg: OutdatedPackage; index: number }[] = [];
+      const ungrouped: { pkg: OutdatedPackage; index: number }[] = [];
 
       for (const item of items) {
         const scope = getScope(item.pkg.name);
-        if (scope && !ungroupScopes.includes(scope)) {
+        if (scope && groupScopes.includes(scope)) {
           if (!scopeMap.has(scope)) scopeMap.set(scope, []);
           scopeMap.get(scope)!.push(item);
         } else {
-          unscoped.push(item);
+          ungrouped.push(item);
         }
       }
 
-      // Emit in order: iterate original items, emit scope headers when first seen
-      const emittedScopes = new Set<string>();
-      for (const item of items) {
-        const scope = getScope(item.pkg.name);
-        if (scope && scopeMap.has(scope) && scopeMap.get(scope)!.length >= 2) {
-          // Scoped with 2+ packages — emit scope header first time
-          if (!emittedScopes.has(scope)) {
-            emittedScopes.add(scope);
-            const scopeItems = scopeMap.get(scope)!;
-            const scopeKey = `${type}::${scope}`;
-            rows.push({
-              kind: "scope-header",
-              groupType: type as OutdatedPackage["type"],
-              scope,
-              packageIndices: scopeItems.map((si) => si.index),
-              packages: scopeItems.map((si) => si.pkg),
-            });
-            for (const si of scopeItems) {
-              rows.push({ kind: "package", pkg: si.pkg, packageIndex: si.index, indented: true, scopeKey });
-            }
-          }
-          // Skip — already emitted with the scope group
+      // Separate real scope groups (2+) from singles
+      const scopeGroups: { scope: string; items: { pkg: OutdatedPackage; index: number }[] }[] = [];
+      for (const [scope, scopeItems] of scopeMap) {
+        if (scopeItems.length >= 2) {
+          scopeGroups.push({ scope, items: scopeItems });
         } else {
-          // Unscoped or single-scoped
+          ungrouped.push(...scopeItems);
+        }
+      }
+
+      // Sort scope groups: by max frequency if enabled, otherwise alphabetical
+      if (frequencySort) {
+        scopeGroups.sort((a, b) => {
+          const maxA = Math.max(...a.items.map((i) => frequency[i.pkg.name] ?? 0));
+          const maxB = Math.max(...b.items.map((i) => frequency[i.pkg.name] ?? 0));
+          if (maxB !== maxA) return maxB - maxA;
+          return a.scope.localeCompare(b.scope);
+        });
+      } else {
+        scopeGroups.sort((a, b) => a.scope.localeCompare(b.scope));
+      }
+
+      const emitScopeGroups = () => {
+        for (const { scope, items: scopeItems } of scopeGroups) {
+          if (frequencySort) scopeItems.sort(freqSort);
+          const scopeKey = `${type}::${scope}`;
+          rows.push({
+            kind: "scope-header",
+            groupType: type as OutdatedPackage["type"],
+            scope,
+            packageIndices: scopeItems.map((si) => si.index),
+            packages: scopeItems.map((si) => si.pkg),
+          });
+          for (const si of scopeItems) {
+            rows.push({ kind: "package", pkg: si.pkg, packageIndex: si.index, indented: true, scopeKey });
+          }
+        }
+      };
+
+      const emitUngrouped = () => {
+        if (frequencySort) ungrouped.sort(freqSort);
+        for (const item of ungrouped) {
           rows.push({ kind: "package", pkg: item.pkg, packageIndex: item.index, indented: false, scopeKey: null });
+        }
+      };
+
+      if (groupsOnTop || frequencySort) {
+        emitScopeGroups();
+        emitUngrouped();
+      } else {
+        // Interleave: emit in original order, emitting scope group when first member is encountered
+        const emittedScopes = new Set<string>();
+        for (const item of items) {
+          const scope = getScope(item.pkg.name);
+          const group = scope ? scopeGroups.find((g) => g.scope === scope) : undefined;
+          if (group) {
+            if (!emittedScopes.has(scope!)) {
+              emittedScopes.add(scope!);
+              const scopeKey = `${type}::${scope}`;
+              rows.push({
+                kind: "scope-header",
+                groupType: type as OutdatedPackage["type"],
+                scope: scope!,
+                packageIndices: group.items.map((si) => si.index),
+                packages: group.items.map((si) => si.pkg),
+              });
+              for (const si of group.items) {
+                rows.push({ kind: "package", pkg: si.pkg, packageIndex: si.index, indented: true, scopeKey });
+              }
+            }
+          } else {
+            rows.push({ kind: "package", pkg: item.pkg, packageIndex: item.index, indented: false, scopeKey: null });
+          }
         }
       }
     } else {
-      for (const item of items) {
+      const sorted = frequencySort ? [...items].sort(freqSort) : items;
+      for (const item of sorted) {
         rows.push({ kind: "package", pkg: item.pkg, packageIndex: item.index, indented: false, scopeKey: null });
       }
     }
@@ -189,14 +250,17 @@ export function PackageList({
   onViewChangelog,
   onConfirm,
   onOpenSettings,
-  groupByScope,
-  ungroupScopes,
+  groupByScope = false,
+  groupScopes,
+  groupsOnTop = false,
+  frequencySort = false,
+  frequency = {},
   isActive = true,
 }: Props) {
   const [focusedIndex, setFocusedIndex] = useState(0);
   const allRows = useMemo(
-    () => buildDisplayRows(packages, groupByScope, ungroupScopes),
-    [packages, groupByScope, ungroupScopes],
+    () => buildDisplayRows(packages, groupByScope, groupScopes, groupsOnTop, frequencySort, frequency),
+    [packages, groupByScope, groupScopes, groupsOnTop, frequencySort, frequency],
   );
 
   // Collect all scope keys from allRows

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Box, Text, useInput } from "ink";
 import type { RipenConfig } from "../config";
-import { DEFAULT_UNGROUP_SCOPES, getEffectiveUngroupScopes } from "../config";
 
 type Props = {
   config: RipenConfig;
@@ -13,16 +12,21 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
   const [inputMode, setInputMode] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
-  const effectiveScopes = getEffectiveUngroupScopes(config);
+  const scopes = config.groupScopes;
 
   // Build flat list of focusable rows:
-  // Row 0: groupByScope toggle
-  // Row 1: ungroupScopes header
-  // Row 2+: each effective scope item
-  const rows: { type: "toggle" | "list-header" | "list-item"; listItemIndex?: number }[] = [
-    { type: "toggle" },
+  // Row 0: frequencySort toggle
+  // Row 1: groupScopes header
+  // Row 2+: each scope item
+  const rows: {
+    type: "toggle-frequency" | "toggle-group" | "toggle-groups-top" | "list-header" | "list-item";
+    listItemIndex?: number;
+  }[] = [
+    { type: "toggle-frequency" },
+    { type: "toggle-group" },
+    { type: "toggle-groups-top" },
     { type: "list-header" },
-    ...effectiveScopes.map((_, i) => ({ type: "list-item" as const, listItemIndex: i })),
+    ...scopes.map((_, i) => ({ type: "list-item" as const, listItemIndex: i })),
   ];
 
   const [flatCursor, setFlatCursor] = useState(0);
@@ -30,36 +34,18 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
 
   const addScope = (value: string) => {
     const scope = value.startsWith("@") ? value : `@${value}`;
-    if (effectiveScopes.includes(scope)) return;
-
-    // If it's a previously removed default, just un-remove it
-    if (DEFAULT_UNGROUP_SCOPES.includes(scope)) {
-      onConfigChange({
-        ...config,
-        removedDefaults: config.removedDefaults.filter((s) => s !== scope),
-      });
-    } else {
-      onConfigChange({
-        ...config,
-        addedScopes: [...config.addedScopes, scope],
-      });
-    }
+    if (scopes.includes(scope)) return;
+    onConfigChange({
+      ...config,
+      groupScopes: [...scopes, scope],
+    });
   };
 
   const removeScope = (scope: string) => {
-    if (DEFAULT_UNGROUP_SCOPES.includes(scope)) {
-      // It's a default — mark as removed
-      onConfigChange({
-        ...config,
-        removedDefaults: [...config.removedDefaults, scope],
-      });
-    } else {
-      // It's user-added — just remove it
-      onConfigChange({
-        ...config,
-        addedScopes: config.addedScopes.filter((s) => s !== scope),
-      });
-    }
+    onConfigChange({
+      ...config,
+      groupScopes: scopes.filter((s) => s !== scope),
+    });
   };
 
   useInput((input, key) => {
@@ -90,8 +76,12 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
     if (key.downArrow) setFlatCursor((c) => Math.min(rows.length - 1, c + 1));
 
     if (input === " " || key.return) {
-      if (currentRow?.type === "toggle") {
+      if (currentRow?.type === "toggle-frequency") {
+        onConfigChange({ ...config, frequencySort: !config.frequencySort });
+      } else if (currentRow?.type === "toggle-group") {
         onConfigChange({ ...config, groupByScope: !config.groupByScope });
+      } else if (currentRow?.type === "toggle-groups-top") {
+        onConfigChange({ ...config, groupsOnTop: !config.groupsOnTop });
       } else if (currentRow?.type === "list-header") {
         setInputMode(true);
         setInputValue("");
@@ -106,7 +96,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
 
     // Delete/backspace to remove item when on a list item
     if ((key.backspace || key.delete) && currentRow?.type === "list-item" && currentRow.listItemIndex !== undefined) {
-      const scope = effectiveScopes[currentRow.listItemIndex]!;
+      const scope = scopes[currentRow.listItemIndex]!;
       removeScope(scope);
       if (flatCursor >= rows.length - 1) {
         setFlatCursor(Math.max(0, flatCursor - 1));
@@ -118,8 +108,10 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
     }
   });
 
-  const toggleFocused = flatCursor === 0;
-  const listHeaderFocused = flatCursor === 1;
+  const freqToggleFocused = currentRow?.type === "toggle-frequency";
+  const groupToggleFocused = currentRow?.type === "toggle-group";
+  const groupsTopFocused = currentRow?.type === "toggle-groups-top";
+  const listHeaderFocused = currentRow?.type === "list-header";
 
   return (
     <Box flexDirection="column">
@@ -130,44 +122,103 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
         </Text>
       </Box>
 
-      {/* Toggle: groupByScope */}
+      {/* Toggle: frequencySort */}
       <Box flexDirection="column" marginBottom={1}>
         <Box gap={1}>
-          <Text color="greenBright">{toggleFocused ? ">" : " "}</Text>
-          <Text color={config.groupByScope ? "greenBright" : "gray"}>[{config.groupByScope ? "x" : " "}]</Text>
-          <Text bold={toggleFocused} color={toggleFocused ? "whiteBright" : "white"}>
-            Group packages by scope
+          <Text color="greenBright">{freqToggleFocused ? ">" : " "}</Text>
+          <Text color={config.frequencySort ? "greenBright" : "gray"}>[{config.frequencySort ? "x" : " "}]</Text>
+          <Text bold={freqToggleFocused} color={freqToggleFocused ? "whiteBright" : "white"}>
+            Sort by update frequency
           </Text>
         </Box>
         <Box marginLeft={6}>
-          <Text color="gray">Sub-group scoped packages (@org/pkg) under their scope prefix</Text>
+          <Text color="gray">Packages you update often appear at the top</Text>
         </Box>
       </Box>
 
-      {/* List: ungroupScopes */}
+      {/* Toggle: groupByScope */}
+      <Box flexDirection="column" marginBottom={1}>
+        <Box gap={1}>
+          <Text color="greenBright">{groupToggleFocused ? ">" : " "}</Text>
+          <Text color={config.groupByScope ? "greenBright" : "gray"}>[{config.groupByScope ? "x" : " "}]</Text>
+          <Text bold={groupToggleFocused} color={groupToggleFocused ? "whiteBright" : "white"}>
+            Enable scope grouping
+          </Text>
+        </Box>
+        <Box marginLeft={6}>
+          <Text color="gray">Group scoped packages listed below under their scope prefix</Text>
+        </Box>
+      </Box>
+
+      {/* Toggle: groupsOnTop */}
+      <Box flexDirection="column" marginBottom={1}>
+        <Box gap={1}>
+          <Text dimColor={!config.groupByScope} color="greenBright">
+            {groupsTopFocused ? ">" : " "}
+          </Text>
+          <Text
+            dimColor={!config.groupByScope}
+            color={config.groupsOnTop && config.groupByScope ? "greenBright" : "gray"}
+          >
+            [{config.groupsOnTop ? "x" : " "}]
+          </Text>
+          <Text
+            dimColor={!config.groupByScope}
+            bold={groupsTopFocused}
+            color={!config.groupByScope ? "gray" : groupsTopFocused ? "whiteBright" : "white"}
+          >
+            Show grouped scopes on top
+          </Text>
+        </Box>
+        <Box marginLeft={6}>
+          <Text dimColor={!config.groupByScope} color="gray">
+            Grouped scope packages appear before ungrouped ones
+          </Text>
+        </Box>
+      </Box>
+
+      {/* List: groupScopes */}
       <Box flexDirection="column" marginBottom={1}>
         <Box flexDirection="column" marginBottom={0}>
           <Box gap={1}>
-            <Text color="greenBright">{listHeaderFocused ? ">" : " "}</Text>
-            <Text bold={listHeaderFocused} color={listHeaderFocused ? "whiteBright" : "white"}>
-              Excluded scopes from grouping
+            <Text dimColor={!config.groupByScope} color="greenBright">
+              {listHeaderFocused ? ">" : " "}
+            </Text>
+            <Text
+              dimColor={!config.groupByScope}
+              bold={listHeaderFocused}
+              color={!config.groupByScope ? "gray" : listHeaderFocused ? "whiteBright" : "white"}
+            >
+              Grouped scopes
             </Text>
           </Box>
           <Box marginLeft={4}>
-            <Text color="gray">Scopes listed here won't be sub-grouped (type to add, delete to remove)</Text>
+            <Text dimColor={!config.groupByScope} color="gray">
+              Scoped packages (@scope/*) listed here will be sub-grouped together
+            </Text>
           </Box>
         </Box>
 
         {/* Scope items */}
-        {effectiveScopes.map((scope, i) => {
-          const itemFocused = flatCursor === 2 + i;
-          const isDefault = DEFAULT_UNGROUP_SCOPES.includes(scope);
+        {scopes.map((scope, i) => {
+          const itemFocused = flatCursor === 4 + i;
           return (
             <Box key={scope} marginLeft={4} gap={1}>
-              <Text color="greenBright">{itemFocused ? ">" : " "}</Text>
-              <Text color={itemFocused ? "whiteBright" : "white"}>{scope}</Text>
-              {isDefault && <Text color="gray">(default)</Text>}
-              {itemFocused && <Text color="gray"> delete to remove</Text>}
+              <Text dimColor={!config.groupByScope} color="greenBright">
+                {itemFocused ? ">" : " "}
+              </Text>
+              <Text
+                dimColor={!config.groupByScope}
+                color={!config.groupByScope ? "gray" : itemFocused ? "whiteBright" : "white"}
+              >
+                {scope}
+              </Text>
+              {itemFocused && (
+                <Text dimColor={!config.groupByScope} color="gray">
+                  {" "}
+                  delete to remove
+                </Text>
+              )}
             </Box>
           );
         })}
