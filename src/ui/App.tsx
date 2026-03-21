@@ -30,12 +30,12 @@ type Screen =
   | "settings"
   | "self-update-done";
 
-interface Props {
+type Props = {
   project: ProjectInfo;
   global: boolean;
   version: string;
   installManager: ProjectInfo["manager"];
-}
+};
 
 export function App({ project, global, version, installManager }: Props) {
   const { exit } = useApp();

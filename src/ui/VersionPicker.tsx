@@ -3,11 +3,11 @@ import { Box, Text, useInput } from "ink";
 import { fetchVersions, type RegistryVersion } from "../registry";
 import type { OutdatedPackage } from "../fetcher";
 
-interface Props {
+type Props = {
   pkg: OutdatedPackage;
   onSelect: (version: string) => void;
   onCancel: () => void;
-}
+};
 
 export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
   const [versions, setVersions] = useState<RegistryVersion[]>([]);

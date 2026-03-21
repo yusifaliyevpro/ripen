@@ -1,11 +1,11 @@
 import { Text } from "ink";
 
-interface Segment {
+type Segment = {
   text: string;
   bold?: boolean;
   code?: boolean;
   dim?: boolean;
-}
+};
 
 function parseInline(raw: string): Segment[] {
   const segments: Segment[] = [];
@@ -39,11 +39,11 @@ function parseInline(raw: string): Segment[] {
   return segments;
 }
 
-interface Props {
+type Props = {
   line: string;
   baseColor?: string;
   baseDim?: boolean;
-}
+};
 
 export function MarkdownLine({ line, baseColor = "white", baseDim = false }: Props) {
   const raw = line;

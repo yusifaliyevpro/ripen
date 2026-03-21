@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Box, Text, useInput } from "ink";
 
-interface Props {
+type Props = {
   currentVersion: string;
   latestVersion: string;
   updating: boolean;
   error: string | null;
   onUpdate: () => void;
   onSkip: () => void;
-}
+};
 
 export function SelfUpdatePrompt({ currentVersion, latestVersion, updating, error, onUpdate, onSkip }: Props) {
   const [selected, setSelected] = useState(0);

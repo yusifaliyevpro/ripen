@@ -2,13 +2,13 @@ import { execa } from "execa";
 import type { PackageManager } from "./detector";
 import type { OutdatedPackage } from "./fetcher";
 
-export interface UpdateResult {
+export type UpdateResult = {
   name: string;
   fromVersion: string;
   version: string;
   success: boolean;
   error?: string;
-}
+};
 
 export async function updatePackages(
   manager: PackageManager,

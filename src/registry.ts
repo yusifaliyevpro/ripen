@@ -1,14 +1,14 @@
-export interface RegistryVersion {
+export type RegistryVersion = {
   version: string;
   date: string;
   tag?: string;
-}
+};
 
-export interface ChangelogEntry {
+export type ChangelogEntry = {
   version: string;
   body: string;
   url: string;
-}
+};
 
 export async function fetchVersions(packageName: string): Promise<RegistryVersion[]> {
   try {

@@ -3,11 +3,11 @@ import { Box, Text, useInput } from "ink";
 import type { RipenConfig } from "../config";
 import { DEFAULT_UNGROUP_SCOPES, getEffectiveUngroupScopes } from "../config";
 
-interface Props {
+type Props = {
   config: RipenConfig;
   onConfigChange: (config: RipenConfig) => void;
   onClose: () => void;
-}
+};
 
 export function Settings({ config, onConfigChange, onClose }: Props) {
   const [inputMode, setInputMode] = useState(false);

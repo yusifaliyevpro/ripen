@@ -4,7 +4,7 @@ import { execa } from "execa";
 import type { PackageManager } from "./detector";
 import { isNewerVersion } from "./registry";
 
-export interface OutdatedPackage {
+export type OutdatedPackage = {
   name: string;
   current: string;
   wanted: string;
@@ -17,7 +17,7 @@ export interface OutdatedPackage {
   targetVersion?: string;
   /** Original range prefix from package.json (e.g. "^", "~") */
   rangePrefix?: string;
-}
+};
 
 export type FetchResult = { ok: true; packages: OutdatedPackage[] } | { ok: false; error: string };
 
@@ -38,12 +38,12 @@ function parseBaseVersion(range: string): { version: string; prefix: string } | 
   return null;
 }
 
-interface DepEntry {
+type DepEntry = {
   name: string;
   current: string;
   prefix: string;
   type: "dependencies" | "devDependencies";
-}
+};
 
 function readPackageJsonDeps(cwd: string): DepEntry[] {
   const raw = readFileSync(join(cwd, "package.json"), "utf-8");

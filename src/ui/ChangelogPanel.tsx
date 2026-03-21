@@ -17,10 +17,10 @@ function openInBrowser(url: string) {
   exec(cmd);
 }
 
-interface Props {
+type Props = {
   pkg: OutdatedPackage;
   onClose: () => void;
-}
+};
 
 export function ChangelogPanel({ pkg, onClose }: Props) {
   const [entries, setEntries] = useState<ChangelogEntry[]>([]);

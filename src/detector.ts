@@ -3,11 +3,11 @@ import { join } from "path";
 
 export type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
 
-export interface ProjectInfo {
+export type ProjectInfo = {
   manager: PackageManager;
   cwd: string;
   name: string;
-}
+};
 
 export function detectPackageManager(cwd: string): PackageManager {
   if (existsSync(join(cwd, "bun.lock"))) return "bun";

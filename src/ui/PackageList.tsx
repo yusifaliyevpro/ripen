@@ -2,7 +2,7 @@ import { useMemo, useEffect, useState, useRef } from "react";
 import { Box, Text, useInput, useStdout } from "ink";
 import type { OutdatedPackage } from "../fetcher";
 
-interface Props {
+type Props = {
   packages: OutdatedPackage[];
   onToggle: (index: number) => void;
   onToggleGroup: (groupType: OutdatedPackage["type"]) => void;
@@ -14,7 +14,7 @@ interface Props {
   groupByScope: boolean;
   ungroupScopes: string[];
   isActive?: boolean;
-}
+};
 
 const TYPE_COLORS: Record<string, string> = {
   dependencies: "cyan",
@@ -46,25 +46,29 @@ type DisplayRow =
     }
   | { kind: "package"; pkg: OutdatedPackage; packageIndex: number; indented: boolean; scopeKey: string | null };
 
-interface GroupItem {
+type GroupItem = {
   row: DisplayRow;
   visibleIndex: number;
-}
+};
 
-interface PackageGroup {
+type PackageGroup = {
   type: OutdatedPackage["type"];
   label: string;
   allPackages: OutdatedPackage[];
   items: GroupItem[];
   headerVisibleIndex: number;
-}
+};
 
 function getScope(name: string): string | null {
   const match = name.match(/^(@[^/]+)\//);
   return match?.[1] ?? null;
 }
 
-function buildDisplayRows(packages: OutdatedPackage[], groupByScope: boolean, ungroupScopes: string[] = []): DisplayRow[] {
+function buildDisplayRows(
+  packages: OutdatedPackage[],
+  groupByScope: boolean,
+  ungroupScopes: string[] = [],
+): DisplayRow[] {
   const grouped = new Map<string, { pkg: OutdatedPackage; index: number }[]>();
 
   packages.forEach((pkg, i) => {
@@ -190,7 +194,10 @@ export function PackageList({
   isActive = true,
 }: Props) {
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const allRows = useMemo(() => buildDisplayRows(packages, groupByScope, ungroupScopes), [packages, groupByScope, ungroupScopes]);
+  const allRows = useMemo(
+    () => buildDisplayRows(packages, groupByScope, ungroupScopes),
+    [packages, groupByScope, ungroupScopes],
+  );
 
   // Collect all scope keys from allRows
   const allScopeKeys = useMemo(() => {

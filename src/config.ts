@@ -4,13 +4,13 @@ import { homedir } from "os";
 
 export const DEFAULT_UNGROUP_SCOPES = ["@types", "@react-types"];
 
-export interface RipenConfig {
+export type RipenConfig = {
   groupByScope: boolean;
   /** User-added scopes beyond the defaults */
   addedScopes: string[];
   /** Default scopes the user explicitly removed */
   removedDefaults: string[];
-}
+};
 
 export const DEFAULT_CONFIG: RipenConfig = {
   groupByScope: true,

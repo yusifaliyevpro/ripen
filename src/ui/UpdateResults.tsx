@@ -2,10 +2,10 @@ import { useEffect } from "react";
 import { Box, Text } from "ink";
 import type { UpdateResult } from "../executor";
 
-interface Props {
+type Props = {
   results: UpdateResult[];
   onDone: () => void;
-}
+};
 
 export function UpdateResults({ results, onDone }: Props) {
   useEffect(() => {
