@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Text, useApp } from "ink";
+import { Box, Text, useApp, useInput } from "ink";
 import type { ProjectInfo } from "../detector";
 import type { OutdatedPackage } from "../fetcher";
 import type { UpdateResult } from "../executor";
@@ -40,13 +40,23 @@ interface Props {
 export function App({ project, global, version, installManager }: Props) {
   const { exit } = useApp();
 
+  useInput((_input, key) => {
+    if (key.ctrl && _input === "c") {
+      setScreen("empty");
+      setTimeout(() => {
+        exit();
+        console.log("  \x1b[32mCancelled.\x1b[0m\n");
+        process.exit(0);
+      }, 200);
+    }
+  });
+
   const [screen, setScreen] = useState<Screen>("self-update-check");
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const [selfUpdateError, setSelfUpdateError] = useState<string | null>(null);
   const [selfUpdating, setSelfUpdating] = useState(false);
   const [config, setConfig] = useState<RipenConfig>(() => loadConfig());
   const [packages, setPackages] = useState<OutdatedPackage[]>([]);
-  const [focusedIndex, setFocusedIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [results, setResults] = useState<UpdateResult[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
@@ -380,8 +390,6 @@ export function App({ project, global, version, installManager }: Props) {
           onViewChangelog={handleViewChangelog}
           onConfirm={handleConfirm}
           onOpenSettings={() => setScreen("settings")}
-          focusedIndex={focusedIndex}
-          onFocusChange={setFocusedIndex}
           groupByScope={config.groupByScope}
           isActive={isListActive}
         />
