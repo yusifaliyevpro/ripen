@@ -12,6 +12,7 @@ interface Props {
   onConfirm: () => void;
   onOpenSettings?: () => void;
   groupByScope: boolean;
+  ungroupScopes: string[];
   isActive?: boolean;
 }
 
@@ -63,7 +64,7 @@ function getScope(name: string): string | null {
   return match?.[1] ?? null;
 }
 
-function buildDisplayRows(packages: OutdatedPackage[], groupByScope: boolean): DisplayRow[] {
+function buildDisplayRows(packages: OutdatedPackage[], groupByScope: boolean, ungroupScopes: string[] = []): DisplayRow[] {
   const grouped = new Map<string, { pkg: OutdatedPackage; index: number }[]>();
 
   packages.forEach((pkg, i) => {
@@ -90,7 +91,7 @@ function buildDisplayRows(packages: OutdatedPackage[], groupByScope: boolean): D
 
       for (const item of items) {
         const scope = getScope(item.pkg.name);
-        if (scope) {
+        if (scope && !ungroupScopes.includes(scope)) {
           if (!scopeMap.has(scope)) scopeMap.set(scope, []);
           scopeMap.get(scope)!.push(item);
         } else {
@@ -102,7 +103,7 @@ function buildDisplayRows(packages: OutdatedPackage[], groupByScope: boolean): D
       const emittedScopes = new Set<string>();
       for (const item of items) {
         const scope = getScope(item.pkg.name);
-        if (scope && scopeMap.get(scope)!.length >= 2) {
+        if (scope && scopeMap.has(scope) && scopeMap.get(scope)!.length >= 2) {
           // Scoped with 2+ packages — emit scope header first time
           if (!emittedScopes.has(scope)) {
             emittedScopes.add(scope);
@@ -185,10 +186,11 @@ export function PackageList({
   onConfirm,
   onOpenSettings,
   groupByScope,
+  ungroupScopes,
   isActive = true,
 }: Props) {
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const allRows = useMemo(() => buildDisplayRows(packages, groupByScope), [packages, groupByScope]);
+  const allRows = useMemo(() => buildDisplayRows(packages, groupByScope, ungroupScopes), [packages, groupByScope, ungroupScopes]);
 
   // Collect all scope keys from allRows
   const allScopeKeys = useMemo(() => {

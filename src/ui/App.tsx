@@ -5,7 +5,7 @@ import type { OutdatedPackage } from "../fetcher";
 import type { UpdateResult } from "../executor";
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
 import { updatePackages } from "../executor";
-import { loadConfig, saveConfig } from "../config";
+import { loadConfig, saveConfig, getEffectiveUngroupScopes } from "../config";
 import type { RipenConfig } from "../config";
 import { fetchLatestVersion, isNewerVersion } from "../registry";
 import { execa } from "execa";
@@ -401,6 +401,7 @@ export function App({ project, global, version, installManager }: Props) {
           onConfirm={handleConfirm}
           onOpenSettings={() => setScreen("settings")}
           groupByScope={config.groupByScope}
+          ungroupScopes={getEffectiveUngroupScopes(config)}
           isActive={isListActive}
         />
       </Box>
