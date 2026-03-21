@@ -88,7 +88,17 @@ export function App({ project, global, version, installManager }: Props) {
     const timer = setTimeout(() => {
       exit();
       process.exit(0);
-    }, 1500);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [screen]);
+
+  // Exit when all packages are up to date
+  useEffect(() => {
+    if (screen !== "empty") return;
+    const timer = setTimeout(() => {
+      exit();
+      process.exit(0);
+    }, 300);
     return () => clearTimeout(timer);
   }, [screen]);
 
