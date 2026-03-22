@@ -17,7 +17,7 @@ export function Hero() {
 
       <div className="relative max-w-6xl mx-auto px-6 flex flex-col items-center text-center">
         {/* Logo */}
-        <Image src="/icon.svg" alt="ripen" width={120} height={120} priority />
+        <Image src="/icon.png" unoptimized alt="ripen" width={120} height={120} priority />
 
         {/* Headline */}
         <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-4">

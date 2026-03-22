@@ -9,7 +9,16 @@ export const metadata: Metadata = {
 export default function ChangelogPage() {
   return (
     <>
-      <ChangelogEntry version="0.2.9" date="March 2025" title="Pre-release Version Support">
+      <ChangelogEntry version="0.3.0" date="March 22, 2025" title="Enhanced MetaData and Website Redesign">
+        <p>Welcome to ripen 0.3.0! This major release includes several exciting features and improvements:</p>
+        <ul className="list-disc list-inside mt-2 space-y-1">
+          <li>
+            <strong>Enhanced MetaData</strong> — Redesigned Website interface with improved usability and visual appeal
+          </li>
+        </ul>
+      </ChangelogEntry>
+
+      <ChangelogEntry version="0.2.9" date="March 22, 2025" title="Pre-release Version Support">
         <p>
           Fixed version comparison for <strong>pre-release versions</strong> (e.g.,{" "}
           <code className="bg-surface border border-border rounded px-1.5 py-0.5 text-xs font-mono">3.0.0-beta.8</code>
