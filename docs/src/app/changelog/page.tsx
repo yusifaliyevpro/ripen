@@ -9,6 +9,16 @@ export const metadata: Metadata = {
 export default function ChangelogPage() {
   return (
     <>
+      <ChangelogEntry version="0.3.1" date="March 22, 2025" title="Add Home Page Link to package.json">
+        <p>
+          Added a <strong>homepage</strong> field to the package.json metadata, linking to the ripen homepage at{" "}
+          <a href="https://ripencli.vercel.app" className="text-orange hover:underline">
+            https://ripencli.vercel.app
+          </a>
+          . This provides users with an easy way to find more information about ripen and access the documentation
+          directly from the npm registry.
+        </p>
+      </ChangelogEntry>
       <ChangelogEntry
         version="0.3.0"
         date="March 22, 2025"

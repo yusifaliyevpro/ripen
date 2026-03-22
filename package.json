@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Interactive dependency updater for npm, pnpm, and yarn",
   "license": "MIT",
   "author": {
@@ -18,7 +18,7 @@
       "url": "https://kofe.al/@yusifaliyevpro"
     }
   ],
-  "homepage": "https://github.com/yusifaliyevpro/ripen#readme",
+  "homepage": "https://ripencli.vercel.app",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yusifaliyevpro/ripen.git"

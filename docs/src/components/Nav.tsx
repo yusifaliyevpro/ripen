@@ -36,7 +36,7 @@ export function Nav() {
 
         {/* Desktop links */}
         <div className="hidden flex-row items-center gap-20 sm:flex">
-          <div className="items-center flex gap-7">
+          <div className="flex items-center gap-7">
             {links.map((link) => {
               const isActive = pathname.startsWith(link.href);
               return (
@@ -73,16 +73,15 @@ export function Nav() {
               <SiNpm className="h-5 w-5" />
             </a>
           </div>
-
         </div>
-          {/* Mobile toggle */}
-          <button
-            className="cursor-pointer text-text-muted transition-colors hover:text-text sm:hidden"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <VscClose className="h-5 w-5" /> : <VscMenu className="h-5 w-5" />}
-          </button>
+        {/* Mobile toggle */}
+        <button
+          className="cursor-pointer text-text-muted transition-colors hover:text-text sm:hidden"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileOpen ? <VscClose className="h-5 w-5" /> : <VscMenu className="h-5 w-5" />}
+        </button>
       </div>
 
       {/* Mobile menu */}
