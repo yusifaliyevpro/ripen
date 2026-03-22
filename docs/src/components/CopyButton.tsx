@@ -1,13 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { VscCheck, VscCopy } from "react-icons/vsc";
+import { MdCheck, MdContentCopy } from "react-icons/md";
 
-export function CopyButton({ text, className = "" }: { text: string; className?: string }) {
+export function CopyButton({
+  text,
+  getText,
+  className = "",
+}: {
+  text?: string;
+  getText?: () => string;
+  className?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(text);
+    const content = getText ? getText() : text ?? "";
+    await navigator.clipboard.writeText(content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -15,10 +24,10 @@ export function CopyButton({ text, className = "" }: { text: string; className?:
   return (
     <button
       onClick={handleCopy}
-      className={`text-text-muted hover:text-orange transition-colors cursor-pointer ${className}`}
+      className={`p-1.5 border border-border rounded-md shadow-sm bg-surface hover:bg-surface/80 text-text-muted hover:text-orange transition-colors cursor-pointer ${className}`}
       aria-label="Copy to clipboard"
     >
-      {copied ? <VscCheck className="w-4 h-4 text-green" /> : <VscCopy className="w-4 h-4" />}
+      {copied ? <MdCheck className="w-4 h-4 text-green" /> : <MdContentCopy className="w-4 h-4" />}
     </button>
   );
 }

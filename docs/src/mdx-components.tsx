@@ -1,4 +1,6 @@
 import type { MDXComponents } from "mdx/types";
+import { MdxCodeBlock } from "@/components/MdxCodeBlock";
+import { MdxTable } from "@/components/MdxTable";
 
 const components: MDXComponents = {
   h1: ({ children }) => (
@@ -37,11 +39,7 @@ const components: MDXComponents = {
       {children}
     </code>
   ),
-  pre: ({ children }) => (
-    <pre className="bg-surface border border-border rounded-xl p-4 overflow-x-auto mb-6 text-sm font-mono leading-relaxed">
-      {children}
-    </pre>
-  ),
+  pre: ({ children }) => <MdxCodeBlock>{children}</MdxCodeBlock>,
   ul: ({ children }) => (
     <ul className="list-disc list-outside ml-6 space-y-2 mb-6 text-text-muted">
       {children}
@@ -55,24 +53,7 @@ const components: MDXComponents = {
   li: ({ children }) => (
     <li className="leading-relaxed">{children}</li>
   ),
-  table: ({ children }) => (
-    <div className="overflow-x-auto mb-6 rounded-xl border border-border">
-      <table className="w-full text-sm">{children}</table>
-    </div>
-  ),
-  thead: ({ children }) => (
-    <thead className="bg-surface">{children}</thead>
-  ),
-  th: ({ children }) => (
-    <th className="text-left px-4 py-3 text-text font-semibold text-xs uppercase tracking-wider">
-      {children}
-    </th>
-  ),
-  td: ({ children }) => (
-    <td className="px-4 py-3 border-t border-border text-text-muted">
-      {children}
-    </td>
-  ),
+  table: ({ children }) => <MdxTable>{children}</MdxTable>,
   blockquote: ({ children }) => (
     <blockquote className="border-l-3 border-orange pl-4 my-6 text-text-muted [&>p]:mb-0">
       {children}

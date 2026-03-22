@@ -436,13 +436,13 @@ export function PackageList({
                 <Box width={28}>
                   <Text color="gray">package</Text>
                 </Box>
-                <Box width={10}>
+                <Box width={14}>
                   <Text color="gray">current</Text>
                 </Box>
-                <Box width={10}>
+                <Box width={14}>
                   <Text color="gray">target</Text>
                 </Box>
-                <Box width={10}>
+                <Box width={14}>
                   <Text color="gray">latest</Text>
                 </Box>
               </Box>
@@ -490,13 +490,13 @@ export function PackageList({
                         })()}
                       </Text>
                     </Box>
-                    <Box width={10}>
+                    <Box width={14}>
                       <Text color="red">{pkg.current}</Text>
                     </Box>
-                    <Box width={10}>
+                    <Box width={14}>
                       <Text color="greenBright">{pkg.targetVersion ?? pkg.latest}</Text>
                     </Box>
-                    <Box width={10}>
+                    <Box width={14}>
                       <Text color="gray">{pkg.latest}</Text>
                     </Box>
                     <Box width={9}>{isMajorBump ? <Text color="yellow">⚠ major</Text> : <Text> </Text>}</Box>

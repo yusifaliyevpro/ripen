@@ -1,3 +1,5 @@
+import { PackageTabs } from "@/components/PackageTabs";
+
 export const metadata = {
   title: "Installation",
   description: "Install ripen with npm, pnpm, yarn, or bun.",
@@ -14,19 +16,12 @@ export const metadata = {
 
 Install ripen as a global CLI tool with your preferred package manager:
 
-```bash
-# npm
-npm install -g ripencli
-
-# pnpm
-pnpm add -g ripencli
-
-# yarn
-yarn global add ripencli
-
-# bun
-bun add -g ripencli
-```
+<PackageTabs
+  pnpm="pnpm add -g ripencli"
+  npm="npm install -g ripencli"
+  yarn="yarn global add ripencli"
+  bun="bun add -g ripencli"
+/>
 
 ## Verify Installation
 
@@ -58,9 +53,12 @@ ripen -g
 
 ripen checks for updates automatically. When a new version is available, you'll see a notification in the UI. You can update it the same way you installed it:
 
-```bash
-npm update -g ripencli
-```
+<PackageTabs
+  pnpm="pnpm update -g ripencli"
+  npm="npm update -g ripencli"
+  yarn="yarn global upgrade ripencli"
+  bun="bun update -g ripencli"
+/>
 
 Or let ripen update itself — it will prompt you when a newer version is detected.
 

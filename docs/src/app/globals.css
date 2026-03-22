@@ -1,23 +1,24 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --color-bg: #0A0A0B;
+  --color-bg: #0a0a0b;
   --color-surface: #141416;
-  --color-surface-hover: #1C1C20;
-  --color-border: #27272A;
-  --color-border-bright: #3F3F46;
-  --color-text: #FAFAFA;
-  --color-text-muted: #A1A1AA;
-  --color-text-dim: #71717A;
-  --color-orange: #F97316;
-  --color-orange-light: #FB923C;
+  --color-surface-hover: #1c1c20;
+  --color-border: #27272a;
+  --color-border-bright: #3f3f46;
+  --color-text: #fafafa;
+  --color-text-muted: #a1a1aa;
+  --color-text-dim: #71717a;
+  --color-orange: #f97316;
+  --color-orange-light: #fb923c;
   --color-orange-glow: rgba(249, 115, 22, 0.15);
   --color-orange-glow-strong: rgba(249, 115, 22, 0.25);
-  --color-green: #4ADE80;
-  --color-green-muted: #16A34A;
-  --color-red: #EF4444;
-  --color-red-muted: #DC2626;
+  --color-green: #4ade80;
+  --color-green-muted: #16a34a;
+  --color-red: #ef4444;
+  --color-red-muted: #dc2626;
 }
 
 html {

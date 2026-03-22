@@ -16,7 +16,7 @@ export function InstallBlock() {
   return (
     <div className="w-full max-w-xl">
       {/* Tabs */}
-      <div className="flex gap-0 border-b border-border">
+      <div className="flex gap-0 border border-border border-b-0 rounded-t-xl bg-surface/50">
         {managers.map((pm, i) => (
           <button
             key={pm.id}
@@ -36,8 +36,8 @@ export function InstallBlock() {
       </div>
 
       {/* Command */}
-      <div className="bg-surface border border-border border-t-0 rounded-b-xl px-4 py-3 flex items-center justify-between gap-3">
-        <code className="font-mono text-sm text-text-muted flex-1 overflow-x-auto">
+      <div className="bg-surface border border-border border-t-0 rounded-b-xl px-4 py-3 flex items-center gap-3">
+        <code className="font-mono text-sm text-text-muted flex-1 overflow-x-auto min-w-[280px] text-left">
           <span className="text-green select-none">$ </span>
           {managers[active].command}
         </code>

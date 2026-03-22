@@ -11,12 +11,12 @@ export default function Home() {
       <KeyboardShortcuts />
 
       {/* Bottom CTA */}
-      <section className="py-24 sm:py-32 border-t border-border">
+      <section className="py-32 sm:py-44 border-t border-border">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
             Ready to update?
           </h2>
-          <p className="text-text-muted max-w-lg mx-auto mb-8">
+          <p className="text-text-muted max-w-lg mx-auto mb-10">
             Install ripen and take control of your dependencies with an
             interactive, keyboard-driven workflow.
           </p>

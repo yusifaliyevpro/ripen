@@ -1,3 +1,4 @@
+import { SiNpm } from "react-icons/si";
 import { VscGithubInverted } from "react-icons/vsc";
 
 export function Footer() {
@@ -7,7 +8,7 @@ export function Footer() {
         <p className="text-sm text-text-dim">
           Built by{" "}
           <a
-            href="https://github.com/yusifaliyevpro"
+            href="https://yusifaliyevpro.com/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-text-muted hover:text-orange transition-colors"
@@ -17,20 +18,20 @@ export function Footer() {
         </p>
         <div className="flex items-center gap-6">
           <a
-            href="https://www.npmjs.com/package/ripencli"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-text-dim hover:text-orange transition-colors"
-          >
-            npm
-          </a>
-          <a
             href="https://github.com/yusifaliyevpro/ripen"
             target="_blank"
             rel="noopener noreferrer"
             className="text-text-dim hover:text-orange transition-colors"
           >
-            <VscGithubInverted className="w-4 h-4" />
+            <VscGithubInverted className="w-5 h-5" />
+          </a>
+          <a
+            href="https://www.npmjs.com/package/ripencli"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-text-dim hover:text-orange transition-colors"
+          >
+            <SiNpm className="w-5 h-5" />
           </a>
         </div>
       </div>

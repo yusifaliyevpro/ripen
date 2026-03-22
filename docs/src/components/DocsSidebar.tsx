@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { VscMenu, VscClose } from "react-icons/vsc";
 
 const navItems = [
   { href: "/docs", label: "Overview" },
@@ -52,20 +51,28 @@ export function DocsSidebar() {
         </div>
       </aside>
 
-      {/* Mobile toggle */}
-      <div className="lg:hidden mb-6">
+      {/* Mobile menu */}
+      <div className="lg:hidden">
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 text-sm text-text-muted hover:text-text transition-colors cursor-pointer"
+          className="w-full flex items-center justify-between py-3 px-4 text-sm font-medium text-text-muted hover:text-text border border-border rounded-xl bg-surface/50 transition-colors cursor-pointer"
         >
-          {open ? (
-            <VscClose className="w-4 h-4" />
-          ) : (
-            <VscMenu className="w-4 h-4" />
-          )}
-          Navigation
+          <span>Menu</span>
+          <svg
+            className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
         </button>
-        {open && <div className="mt-3 border border-border rounded-xl p-3 bg-surface">{navContent}</div>}
+        {open && (
+          <div className="mt-2 border border-border rounded-xl p-3 bg-surface/50">
+            {navContent}
+          </div>
+        )}
       </div>
     </>
   );

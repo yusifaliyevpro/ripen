@@ -1,3 +1,5 @@
+import { PackageTabs } from "@/components/PackageTabs";
+
 export const metadata = {
   title: "Documentation",
   description: "Learn how to use ripen to manage your project dependencies interactively.",
@@ -11,9 +13,12 @@ export const metadata = {
 
 Install ripen globally:
 
-```bash
-npm install -g ripencli
-```
+<PackageTabs
+  pnpm="pnpm add -g ripencli"
+  npm="npm install -g ripencli"
+  yarn="yarn global add ripencli"
+  bun="bun add -g ripencli"
+/>
 
 Then run it in any project directory:
 

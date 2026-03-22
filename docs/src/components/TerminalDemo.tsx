@@ -1,6 +1,6 @@
 export function TerminalDemo() {
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto">
       <div className="rounded-xl border border-border overflow-hidden shadow-2xl shadow-black/40">
         {/* Title bar */}
         <div className="bg-surface px-4 py-2.5 flex items-center gap-2 border-b border-border">
@@ -16,78 +16,62 @@ export function TerminalDemo() {
 
         {/* Terminal content */}
         <div className="bg-[#0C0C0D] px-4 py-4 font-mono text-[13px] leading-6 overflow-x-auto">
-          {/* Header */}
-          <div className="text-text-dim mb-1">
-            <span className="text-green">$</span>{" "}
-            <span className="text-text">ripen</span>
-          </div>
-          <div className="mb-3">
-            <span className="text-orange font-bold">ripen</span>{" "}
-            <span className="text-text-dim">v0.2.8</span>{" "}
-            <span className="text-text-dim">·</span>{" "}
-            <span className="text-text-dim">my-project</span>{" "}
-            <span className="text-text-dim">·</span>{" "}
-            <span className="text-text-dim">pnpm</span>
+          {/* App header */}
+          <div className="mb-1">
+            <span className="text-green font-bold"> ripen</span>{" "}
+            <span className="text-text-dim">-- interactive dependency updater</span>
           </div>
 
-          {/* Column headers */}
-          <div className="flex text-text-dim text-xs mb-1 gap-2">
-            <span className="w-6" />
-            <span className="w-52">Package</span>
-            <span className="w-20 text-right">Current</span>
-            <span className="w-8 text-center" />
-            <span className="w-20 text-right">Latest</span>
+          {/* Keyboard shortcuts bar */}
+          <div className="text-text-dim text-[11px] mb-3">
+            <span className="text-text">↑↓</span> navigate{"  "}
+            <span className="text-text">space</span> select{"  "}
+            <span className="text-text">tab</span> groups{"  "}
+            <span className="text-text">v</span> version{"  "}
+            <span className="text-text">c</span> changelog{"  "}
+            <span className="text-text">s</span> settings{"  "}
+            <span className="text-text">enter</span> update
           </div>
-          <div className="border-b border-border mb-1" />
 
-          {/* Package rows */}
-          <PackageRow
-            selected
-            name="react"
-            current="18.2.0"
-            latest="19.2.4"
-            color="red"
+          {/* Dependencies group */}
+          <GroupHeader
+            label="Dependencies"
+            count={6}
+            color="text-cyan-400"
+            focused
+            checkbox="□"
           />
-          <PackageRow
-            selected
-            name="next"
-            current="15.1.0"
-            latest="16.2.1"
-            color="red"
+          <div className="border border-cyan-400/30 rounded-lg px-3 py-1 mb-2">
+            <ColumnHeaders />
+            <PackageRow cursor name="react" current="18.2.0" target="19.2.4" latest="19.2.4" major />
+            <PackageRow name="next" current="15.1.0" target="16.2.1" latest="16.2.1" major />
+            <PackageRow selected name="motion" current="12.31.0" target="12.38.0" latest="12.38.0" />
+            <div className="text-text-dim text-[11px] py-0.5">
+              {"  "}↓ 3 more below
+            </div>
+          </div>
+
+          {/* Dev Dependencies group */}
+          <GroupHeader
+            label="Dev Dependencies"
+            count={4}
+            color="text-fuchsia-400"
+            checkbox="□"
           />
-          <PackageRow
-            name="typescript"
-            current="5.4.5"
-            latest="5.8.3"
-            color="orange"
-            cursor
-          />
-          <PackageRow
-            name="eslint"
-            current="9.0.0"
-            latest="9.5.0"
-            color="orange"
-          />
-          <PackageRow
-            name="tailwindcss"
-            current="4.0.0"
-            latest="4.1.3"
-            color="green"
-          />
-          <PackageRow
-            name="prettier"
-            current="3.4.0"
-            latest="3.5.3"
-            color="green"
-          />
+          <div className="border border-gray-700 rounded-lg px-3 py-1 mb-2">
+            <ColumnHeaders />
+            <PackageRow name="typescript" current="5.4.5" target="5.8.3" latest="5.8.3" />
+            <PackageRow name="@types/node" current="22.18.0" target="25.5.0" latest="25.5.0" major />
+            <PackageRow name="eslint" current="9.0.0" target="9.5.0" latest="9.5.0" />
+          </div>
 
           {/* Footer */}
-          <div className="mt-3 text-text-dim text-xs">
-            <span className="text-text-muted">2</span> selected{" "}
-            <span className="text-text-dim">·</span>{" "}
-            <span className="text-text-dim">
-              ↑↓ navigate · space select · v version · c changelog · enter update
+          <div className="mt-1 flex gap-4 text-[11px]">
+            <span>
+              <span className="text-green font-bold">1</span>
+              <span className="text-text-dim"> selected</span>
             </span>
+            <span className="text-text-dim">10 outdated</span>
           </div>
         </div>
       </div>
@@ -95,49 +79,83 @@ export function TerminalDemo() {
   );
 }
 
+function GroupHeader({
+  label,
+  count,
+  color,
+  focused,
+  checkbox,
+}: {
+  label: string;
+  count: number;
+  color: string;
+  focused?: boolean;
+  checkbox: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 py-0.5">
+      <span className="text-green">{focused ? "❯" : " "}</span>
+      <span className="text-text-dim">{checkbox}</span>
+      <span className={`${color} ${focused ? "font-bold" : ""}`}>{label}</span>
+      <span className="text-text-dim">({count})</span>
+    </div>
+  );
+}
+
+function ColumnHeaders() {
+  return (
+    <div className="flex gap-4 text-text-dim text-[11px] py-0.5">
+      <span className="w-5" />
+      <span className="w-32">package</span>
+      <span className="w-20">current</span>
+      <span className="w-20">target</span>
+      <span className="w-20">latest</span>
+      <span className="w-16" />
+    </div>
+  );
+}
+
 function PackageRow({
   selected,
+  cursor,
   name,
   current,
+  target,
   latest,
-  color,
-  cursor,
+  major,
 }: {
   selected?: boolean;
+  cursor?: boolean;
   name: string;
   current: string;
+  target: string;
   latest: string;
-  color: "red" | "orange" | "green";
-  cursor?: boolean;
+  major?: boolean;
 }) {
-  const colorClass = {
-    red: "text-red",
-    orange: "text-orange",
-    green: "text-green",
-  }[color];
-
   return (
     <div
-      className={`flex items-center gap-2 py-0.5 ${
-        cursor ? "bg-white/[0.03] -mx-2 px-2 rounded" : ""
+      className={`flex items-center gap-4 py-0.5 ${
+        cursor ? "bg-white/[0.04] -mx-1 px-1 rounded" : ""
       }`}
     >
-      <span className="w-6 text-center">
+      <span className="w-5 text-center shrink-0">
         {cursor ? (
-          <span className="text-orange">›</span>
-        ) : selected ? (
-          <span className="text-orange">◉</span>
+          <span className="text-green">❯</span>
         ) : (
-          <span className="text-text-dim">○</span>
+          <span className="w-2 inline-block" />
         )}
       </span>
-      <span className={`w-52 ${cursor ? "text-text" : "text-text-muted"}`}>
+      <span className={selected ? "text-green" : "text-text-dim"}>
+        {selected ? "◉" : "○"}
+      </span>
+      <span className={`w-32 ${cursor ? "text-text font-bold" : "text-text-muted"}`}>
         {name}
       </span>
-      <span className="w-20 text-right text-text-dim">{current}</span>
-      <span className={`w-8 text-center ${colorClass}`}>→</span>
-      <span className={`w-20 text-right font-medium ${colorClass}`}>
-        {latest}
+      <span className="w-20 text-red">{current}</span>
+      <span className="w-20 text-green">{target}</span>
+      <span className="w-20 text-text-dim">{latest}</span>
+      <span className="w-16">
+        {major && <span className="text-yellow-400 text-[11px]">⚠ major</span>}
       </span>
     </div>
   );
