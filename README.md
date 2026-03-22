@@ -5,6 +5,9 @@
 ![npm version](https://img.shields.io/npm/v/ripencli) ![node](https://img.shields.io/node/v/ripencli) ![GitHub License](https://img.shields.io/github/license/yusifaliyevpro/ripen)
 
 
+![ripen banner](https://raw.githubusercontent.com/yusifaliyevpro/ripen/main/docs/public/og.svg)
+
+
 ## Features
 
 - **Interactive TUI** — navigate packages with arrow keys, select with space
