@@ -1,0 +1,63 @@
+export const metadata = {
+  title: "Configuration",
+  description: "Configure ripen settings, frequency tracking, and scope grouping.",
+};
+
+# Configuration
+
+ripen stores its settings in a JSON file at:
+
+```
+~/.config/ripen/config.json
+```
+
+You can modify settings through the in-app settings screen (press `S`) or by editing the file directly.
+
+## Settings
+
+| Setting         | Type       | Default | Description                                                    |
+| --------------- | ---------- | ------- | -------------------------------------------------------------- |
+| `groupByScope`  | `boolean`  | `false` | Group scoped packages (e.g., `@heroui/*`) together in the list |
+| `groupScopes`   | `string[]` | `[]`    | Custom list of scopes to group                                 |
+| `groupsOnTop`   | `boolean`  | `false` | Display grouped scopes before ungrouped packages               |
+| `frequencySort` | `boolean`  | `false` | Sort packages by how often you update them                     |
+
+## Example Configuration
+
+```json
+{
+  "groupByScope": true,
+  "groupScopes": ["@heroui", "@radix-ui", "@types"],
+  "groupsOnTop": true,
+  "frequencySort": false
+}
+```
+
+## Scope Grouping
+
+When `groupByScope` is enabled, packages that share the same scope (e.g., `@heroui/button`, `@heroui/modal`) are visually grouped together in the list.
+
+You can specify which scopes to group with `groupScopes`. If left empty, all scopes are grouped automatically.
+
+The `groupsOnTop` option controls whether grouped scopes appear at the top of the list or in their natural position.
+
+### Managing Scopes in Settings
+
+Press `S` to open the settings screen. You can add new scopes, toggle grouping options, and delete existing scopes using the keyboard.
+
+## Frequency Tracking
+
+When `frequencySort` is enabled, ripen tracks how many times you update each package and surfaces frequently-updated packages to the top of the list.
+
+Frequency data is stored separately at:
+
+```
+~/.config/ripen/frequency.json
+```
+
+This file maps package names to update counts and is managed automatically.
+
+## Next Steps
+
+- [Usage](/docs/usage) — keyboard controls and workflows
+- [Package Managers](/docs/package-managers) — how detection works per manager

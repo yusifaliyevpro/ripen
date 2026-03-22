@@ -1,0 +1,68 @@
+import { PackageTabs } from "@/components/PackageTabs";
+
+export const metadata = {
+  title: "Installation",
+  description: "Install ripen with npm, pnpm, yarn, or bun.",
+};
+
+# Installation
+
+## Requirements
+
+- **Node.js** 18 or later
+- One of: **npm**, **pnpm**, **yarn**, or **bun**
+
+## Install Globally
+
+Install ripen as a global CLI tool with your preferred package manager:
+
+<PackageTabs
+  pnpm="pnpm add -g ripencli"
+  npm="npm install -g ripencli"
+  yarn="yarn global add ripencli"
+  bun="bun add -g ripencli"
+/>
+
+## Verify Installation
+
+After installing, verify that ripen is available:
+
+```bash
+ripen --version
+```
+
+This should print the current version number (e.g., `0.2.8`).
+
+## Usage
+
+Once installed, navigate to any project directory and run:
+
+```bash
+ripen
+```
+
+ripen will automatically detect your package manager and show outdated dependencies.
+
+For global packages:
+
+```bash
+ripen -g
+```
+
+## Updating ripen
+
+ripen checks for updates automatically. When a new version is available, you'll see a notification in the UI. You can update it the same way you installed it:
+
+<PackageTabs
+  pnpm="pnpm update -g ripencli"
+  npm="npm update -g ripencli"
+  yarn="yarn global upgrade ripencli"
+  bun="bun update -g ripencli"
+/>
+
+Or let ripen update itself — it will prompt you when a newer version is detected.
+
+## Next Steps
+
+- [Usage](/docs/usage) — learn keyboard controls and workflows
+- [Configuration](/docs/configuration) — customize settings and grouping

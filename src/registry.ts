@@ -32,11 +32,16 @@ export async function fetchVersions(packageName: string): Promise<RegistryVersio
         tag: tagByVersion[v],
       }))
       .sort((a, b) => {
-        const pa = a.version.split(".").map(Number);
-        const pb = b.version.split(".").map(Number);
+        const pa = a.version.replace(/-.*$/, "").split(".").map(Number);
+        const pb = b.version.replace(/-.*$/, "").split(".").map(Number);
         for (let i = 0; i < 3; i++) {
           if ((pb[i] ?? 0) !== (pa[i] ?? 0)) return (pb[i] ?? 0) - (pa[i] ?? 0);
         }
+        // Same base version: stable (no prerelease) sorts before prerelease
+        const aHas = a.version.includes("-");
+        const bHas = b.version.includes("-");
+        if (aHas && !bHas) return 1;
+        if (!aHas && bHas) return -1;
         return 0;
       });
 
@@ -131,12 +136,20 @@ export async function fetchLatestVersion(packageName: string): Promise<string | 
 }
 
 export function isNewerVersion(current: string, latest: string): boolean {
-  const a = current.split(".").map(Number);
-  const b = latest.split(".").map(Number);
+  // Strip pre-release suffix for base version comparison (e.g. "3.0.0-beta.8" → "3.0.0")
+  const baseA = current.replace(/-.*$/, "");
+  const baseB = latest.replace(/-.*$/, "");
+  const a = baseA.split(".").map(Number);
+  const b = baseB.split(".").map(Number);
   for (let i = 0; i < 3; i++) {
     if ((b[i] ?? 0) > (a[i] ?? 0)) return true;
     if ((b[i] ?? 0) < (a[i] ?? 0)) return false;
   }
+  // Base versions are equal — if current has a pre-release tag but latest doesn't,
+  // then latest is newer (e.g. "3.0.0-beta.8" < "3.0.0")
+  const currentHasPrerelease = current.includes("-");
+  const latestHasPrerelease = latest.includes("-");
+  if (currentHasPrerelease && !latestHasPrerelease) return true;
   return false;
 }
 
