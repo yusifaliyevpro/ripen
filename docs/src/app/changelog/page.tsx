@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function ChangelogPage() {
   return (
     <>
-      <ChangelogEntry version="0.3.1" date="March 22, 2025" title="Add Home Page Link to package.json">
+      <ChangelogEntry version="0.3.1" date="March 22, 2026" title="Add Home Page Link to package.json">
         <p>
           Added a <strong>homepage</strong> field to the package.json metadata, linking to the ripen homepage at{" "}
           <a href="https://ripencli.vercel.app" className="text-orange hover:underline">
@@ -21,7 +21,7 @@ export default function ChangelogPage() {
       </ChangelogEntry>
       <ChangelogEntry
         version="0.3.0"
-        date="March 22, 2025"
+        date="March 22, 2026"
         title="Enhanced MetaData and Website Redesign"
         image="/changelog/030_banner.png"
       >
@@ -33,7 +33,7 @@ export default function ChangelogPage() {
         </ul>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.2.9" date="March 22, 2025" title="Pre-release Version Support">
+      <ChangelogEntry version="0.2.9" date="March 22, 2026" title="Pre-release Version Support">
         <p>
           Fixed version comparison for <strong>pre-release versions</strong> (e.g.,{" "}
           <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">3.0.0-beta.8</code>
@@ -55,21 +55,21 @@ export default function ChangelogPage() {
         </ul>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.2.8" date="March 2025" title="Settings Delete Shortcut">
+      <ChangelogEntry version="0.2.8" date="March 2026" title="Settings Delete Shortcut">
         <p>
           Enhanced the Settings screen with a new delete shortcut for removing grouped scopes directly from the settings
           UI.
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.2.7" date="March 2025" title="Frequency Sorting">
+      <ChangelogEntry version="0.2.7" date="March 2026" title="Frequency Sorting">
         <p>
           Added <strong>frequency sorting</strong> — packages you update often can now be surfaced to the top of the
           list. Enhanced README with settings documentation.
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.2.6" date="March 2025" title="Configuration System">
+      <ChangelogEntry version="0.2.6" date="March 2026" title="Configuration System">
         <p>
           Introduced the <strong>configuration system</strong> with support for:
         </p>
@@ -98,7 +98,7 @@ export default function ChangelogPage() {
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.2.5" date="March 2025" title="Codebase Refactoring">
+      <ChangelogEntry version="0.2.5" date="March 2026" title="Codebase Refactoring">
         <p>
           Refactored all{" "}
           <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">interface</code>{" "}
@@ -108,7 +108,7 @@ export default function ChangelogPage() {
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.2.4" date="March 2025" title="TypeScript & Exit Handling">
+      <ChangelogEntry version="0.2.4" date="March 2026" title="TypeScript & Exit Handling">
         <p>
           TypeScript improvements and optimization pass. Better{" "}
           <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">Ctrl+C</code>{" "}
@@ -116,21 +116,21 @@ export default function ChangelogPage() {
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.2.2" date="March 2025" title="Performance Improvements">
+      <ChangelogEntry version="0.2.2" date="March 2026" title="Performance Improvements">
         <p>
           Performance improvements with reduced UI flickering during package list rendering. Smoother scrolling and
           selection experience.
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.1.9" date="March 2025" title="Self-Update Flow">
+      <ChangelogEntry version="0.1.9" date="March 2026" title="Self-Update Flow">
         <p>
           Added <strong>self-update flow</strong> with process restart. ripen now notifies you when a newer version is
           available and can update itself, then automatically restarts with the new version.
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.1.8" date="March 2025" title="Bun Support">
+      <ChangelogEntry version="0.1.8" date="March 2026" title="Bun Support">
         <p>
           Added <strong>Bun support</strong>. ripen now detects{" "}
           <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">bun.lock</code> and
@@ -139,7 +139,7 @@ export default function ChangelogPage() {
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.1.7" date="March 2025" title="Dependency Updates">
+      <ChangelogEntry version="0.1.7" date="March 2026" title="Dependency Updates">
         <p>Dependency updates and added funding links to the package metadata.</p>
       </ChangelogEntry>
     </>
