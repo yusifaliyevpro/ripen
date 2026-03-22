@@ -1,7 +1,7 @@
 "use client";
 
 import { Table } from "@heroui/react";
-import { Children, isValidElement, type ReactNode, type ReactElement } from "react";
+import { Children, type ReactElement, type ReactNode, isValidElement } from "react";
 
 function getChildArray(node: ReactNode): ReactNode[] {
   if (!isValidElement(node)) return [];

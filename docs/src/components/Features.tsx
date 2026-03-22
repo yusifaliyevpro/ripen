@@ -1,14 +1,14 @@
-import {
-  VscTerminal,
-  VscPackage,
-  VscTag,
-  VscGitCommit,
-  VscFolderOpened,
-  VscWarning,
-  VscGlobe,
-  VscSync,
-} from "react-icons/vsc";
 import type { IconType } from "react-icons";
+import {
+  VscFolderOpened,
+  VscGitCommit,
+  VscGlobe,
+  VscPackage,
+  VscSync,
+  VscTag,
+  VscTerminal,
+  VscWarning,
+} from "react-icons/vsc";
 
 const features: { icon: IconType; title: string; description: string }[] = [
   {
@@ -59,30 +59,30 @@ const features: { icon: IconType; title: string; description: string }[] = [
 export function Features() {
   return (
     <section className="py-24 sm:py-32">
-      <div className="max-w-6xl mx-auto px-6">
-        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-center mb-4">
+      <div className="mx-auto max-w-6xl px-6">
+        <h2 className="mb-4 text-center text-3xl font-bold tracking-tight sm:text-4xl">
           Everything you need to manage dependencies
         </h2>
-        <p className="text-text-muted text-center max-w-2xl mx-auto mb-16">
+        <p className="mx-auto mb-16 max-w-2xl text-center text-text-muted">
           A complete toolkit for keeping your projects up to date, right from the terminal.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="group relative bg-surface border border-border rounded-xl p-6 hover:border-border-bright transition-colors"
+              className="group relative rounded-xl border border-border bg-surface p-6 transition-colors hover:border-border-bright"
             >
               {/* Left accent */}
-              <div className="absolute left-0 top-6 bottom-6 w-0.5 bg-orange/0 group-hover:bg-orange transition-colors rounded-full" />
+              <div className="absolute top-6 bottom-6 left-0 w-0.5 rounded-full bg-orange/0 transition-colors group-hover:bg-orange" />
 
               <div className="flex items-start gap-4">
-                <div className="p-2 rounded-lg bg-orange/10 text-orange shrink-0">
-                  <feature.icon className="w-5 h-5" />
+                <div className="shrink-0 rounded-lg bg-orange/10 p-2 text-orange">
+                  <feature.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-text mb-1">{feature.title}</h3>
-                  <p className="text-sm text-text-muted leading-relaxed">{feature.description}</p>
+                  <h3 className="mb-1 font-semibold text-text">{feature.title}</h3>
+                  <p className="text-sm leading-relaxed text-text-muted">{feature.description}</p>
                 </div>
               </div>
             </div>

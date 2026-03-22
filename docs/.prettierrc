@@ -1,0 +1,27 @@
+{
+  "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
+  "tailwindStylesheet": "./src/app/globals.css",
+  "printWidth": 120,
+  "tailwindFunctions": ["clsx", "cn"],
+  "tailwindAttributes": ["classNames", "tw"],
+  "importOrder": [
+    "@/lib/env.server",
+    "<BUILTIN_MODULES>",
+    "<THIRD_PARTY_MODULES>",
+    "^@heroui/(.*)$",
+    "^next/(.*)$",
+    "^react",
+    "^@sanity/(.*)$",
+    "sanity",
+    "^@/components/(.*)$",
+    "^@/data/(.*)$",
+    "^@/lib/(.*)$",
+    "^@/hooks/(.*)$",
+    "<TYPES>",
+    "^@/types/(.*)$",
+    "^@/generated/(.*)$",
+    "^@/(.*)$",
+    "^[./]"
+  ],
+  "importOrderSortSpecifiers": true
+}

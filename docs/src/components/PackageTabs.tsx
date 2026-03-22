@@ -13,34 +13,34 @@ export function PackageTabs({ pnpm, npm, yarn, bun }: { pnpm: string; npm: strin
   const current = commands[active];
 
   return (
-    <div className="mb-6 rounded-xl border border-border overflow-hidden">
+    <div className="mb-6 overflow-hidden rounded-xl border border-border">
       {/* Tabs */}
       <div className="flex border-b border-border bg-surface/50">
         {managers.map((pm) => (
           <button
             key={pm}
             onClick={() => setActive(pm)}
-            className={`px-4 py-2 text-sm font-mono font-medium transition-colors relative cursor-pointer ${
+            className={`relative cursor-pointer px-4 py-2 font-mono text-sm font-medium transition-colors ${
               active === pm ? "text-orange" : "text-text-dim hover:text-text-muted"
             }`}
           >
             {pm}
-            {active === pm && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange rounded-full" />}
+            {active === pm && <span className="absolute right-0 bottom-0 left-0 h-0.5 rounded-full bg-orange" />}
           </button>
         ))}
       </div>
 
       {/* Header bar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-surface/30">
-        <span className="text-text-dim text-xs font-mono flex items-center gap-1.5">
+      <div className="flex items-center justify-between border-b border-border bg-surface/30 px-4 py-2">
+        <span className="flex items-center gap-1.5 font-mono text-xs text-text-dim">
           <span className="text-text-muted">❯_</span> Terminal
         </span>
         <CopyButton text={current} />
       </div>
 
       {/* Code content */}
-      <div className="bg-surface px-4 py-4 overflow-x-auto">
-        <pre className="text-sm font-mono leading-relaxed">
+      <div className="overflow-x-auto bg-surface px-4 py-4">
+        <pre className="font-mono text-sm leading-relaxed">
           {current.split("\n").map((line, i) => {
             // Simple syntax highlighting for shell commands
             const parts = line.match(/^(\S+)(.*)/);

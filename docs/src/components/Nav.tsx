@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { SiNpm } from "react-icons/si";
-import { VscGithubInverted, VscMenu, VscClose } from "react-icons/vsc";
+import { VscClose, VscGithubInverted, VscMenu } from "react-icons/vsc";
 
 const links = [
   { href: "/docs", label: "Docs" },
@@ -17,38 +17,38 @@ export function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-bg/60 backdrop-blur-xl">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <nav className="fixed top-0 right-0 left-0 z-50 border-b border-border/50 bg-bg/60 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-1 group">
+        <Link href="/" className="group flex items-center gap-1">
           <Image
             src="/icon.png"
             alt="ripen logo"
             width={50}
             height={50}
             unoptimized
-            className="group-hover:scale-110 transition-transform"
+            className="transition-transform group-hover:scale-110"
           />
-          <span className="font-sans font-bold text-2xl bg-linear-to-r from-orange to-orange-light bg-clip-text text-transparent tracking-tight">
+          <span className="bg-linear-to-r from-orange to-orange-light bg-clip-text font-sans text-2xl font-bold tracking-tight text-transparent">
             ripen
           </span>
         </Link>
 
         {/* Desktop links */}
-        <div className="flex flex-row items-center gap-20">
-          <div className="hidden sm:flex items-center gap-7">
+        <div className="hidden flex-row items-center gap-20 sm:flex">
+          <div className="items-center gap-7">
             {links.map((link) => {
               const isActive = pathname.startsWith(link.href);
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-sm font-medium transition-colors relative py-1 ${
+                  className={`relative py-1 text-sm font-medium transition-colors ${
                     isActive ? "text-orange" : "text-text-muted hover:text-text"
                   }`}
                 >
                   {link.label}
-                  {isActive && <span className="absolute -bottom-4.5 left-0 right-0 h-px bg-orange" />}
+                  {isActive && <span className="absolute right-0 -bottom-4.5 left-0 h-px bg-orange" />}
                 </Link>
               );
             })}
@@ -58,36 +58,36 @@ export function Nav() {
               href="https://github.com/yusifaliyevpro/ripen"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-text-muted hover:text-text transition-colors"
+              className="text-text-muted transition-colors hover:text-text"
               aria-label="GitHub"
             >
-              <VscGithubInverted className="w-5 h-5" />
+              <VscGithubInverted className="h-5 w-5" />
             </a>
             <a
               href="https://www.npmjs.com/package/ripencli"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-text-muted hover:text-text transition-colors"
+              className="text-text-muted transition-colors hover:text-text"
               aria-label="npm"
             >
-              <SiNpm className="w-5 h-5" />
+              <SiNpm className="h-5 w-5" />
             </a>
           </div>
 
+        </div>
           {/* Mobile toggle */}
           <button
-            className="sm:hidden text-text-muted hover:text-text transition-colors cursor-pointer"
+            className="cursor-pointer text-text-muted transition-colors hover:text-text sm:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >
-            {mobileOpen ? <VscClose className="w-5 h-5" /> : <VscMenu className="w-5 h-5" />}
+            {mobileOpen ? <VscClose className="h-5 w-5" /> : <VscMenu className="h-5 w-5" />}
           </button>
-        </div>
       </div>
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="sm:hidden border-t border-border bg-bg/95 backdrop-blur-xl px-6 py-4 flex flex-col gap-3">
+        <div className="flex flex-col gap-3 border-t border-border bg-bg/95 px-6 py-4 backdrop-blur-xl sm:hidden">
           {links.map((link) => {
             const isActive = pathname.startsWith(link.href);
             return (
@@ -95,7 +95,7 @@ export function Nav() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
-                className={`text-sm font-medium py-2 ${isActive ? "text-orange" : "text-text-muted"}`}
+                className={`py-2 text-sm font-medium ${isActive ? "text-orange" : "text-text-muted"}`}
               >
                 {link.label}
               </Link>
@@ -105,18 +105,18 @@ export function Nav() {
             href="https://github.com/yusifaliyevpro/ripen"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-text-muted py-2 flex items-center gap-2"
+            className="flex items-center gap-2 py-2 text-sm font-medium text-text-muted"
           >
-            <VscGithubInverted className="w-4 h-4" />
+            <VscGithubInverted className="h-4 w-4" />
             GitHub
           </a>
           <a
             href="https://www.npmjs.com/package/ripencli"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-text-muted py-2 flex items-center gap-2"
+            className="flex items-center gap-2 py-2 text-sm font-medium text-text-muted"
           >
-            <SiNpm className="w-4 h-4" />
+            <SiNpm className="h-4 w-4" />
             npm
           </a>
         </div>

@@ -1,5 +1,5 @@
-import { ChangelogEntry } from "@/components/ChangelogEntry";
 import type { Metadata } from "next";
+import { ChangelogEntry } from "@/components/ChangelogEntry";
 
 export const metadata: Metadata = {
   title: "Changelog",
@@ -16,7 +16,7 @@ export default function ChangelogPage() {
         image="/changelog/030_banner.png"
       >
         <p>Welcome to ripen 0.3.0! This major release includes several exciting features and improvements:</p>
-        <ul className="list-disc list-inside mt-2 space-y-1">
+        <ul className="mt-2 list-inside list-disc space-y-1">
           <li>
             <strong>Enhanced MetaData</strong> — Redesigned Website interface with improved usability and visual appeal
           </li>
@@ -26,10 +26,10 @@ export default function ChangelogPage() {
       <ChangelogEntry version="0.2.9" date="March 22, 2025" title="Pre-release Version Support">
         <p>
           Fixed version comparison for <strong>pre-release versions</strong> (e.g.,{" "}
-          <code className="bg-surface border border-border rounded px-1.5 py-0.5 text-xs font-mono">3.0.0-beta.8</code>
+          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">3.0.0-beta.8</code>
           ). Packages with pre-release current versions were previously ignored during the outdated check.
         </p>
-        <ul className="list-disc list-inside mt-2 space-y-1">
+        <ul className="mt-2 list-inside list-disc space-y-1">
           <li>
             <strong>Version comparison fix</strong> — pre-release suffixes are now stripped before comparing semver
             bases, and a pre-release is correctly detected as older than its stable release
@@ -63,13 +63,13 @@ export default function ChangelogPage() {
         <p>
           Introduced the <strong>configuration system</strong> with support for:
         </p>
-        <ul className="list-disc list-inside mt-2 space-y-1">
+        <ul className="mt-2 list-inside list-disc space-y-1">
           <li>
             <strong>Frequency tracking</strong> — tracks how many times each package is updated
           </li>
           <li>
             <strong>Scope grouping</strong> — group scoped packages (e.g.,{" "}
-            <code className="bg-surface border border-border rounded px-1.5 py-0.5 text-xs font-mono">@heroui/*</code>)
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">@heroui/*</code>)
             together
           </li>
           <li>
@@ -81,7 +81,7 @@ export default function ChangelogPage() {
         </ul>
         <p className="mt-2">
           Settings are persisted at{" "}
-          <code className="bg-surface border border-border rounded px-1.5 py-0.5 text-xs font-mono">
+          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
             ~/.config/ripen/config.json
           </code>
           .
@@ -91,9 +91,9 @@ export default function ChangelogPage() {
       <ChangelogEntry version="0.2.5" date="February 2025" title="Codebase Refactoring">
         <p>
           Refactored all{" "}
-          <code className="bg-surface border border-border rounded px-1.5 py-0.5 text-xs font-mono">interface</code>{" "}
+          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">interface</code>{" "}
           declarations to{" "}
-          <code className="bg-surface border border-border rounded px-1.5 py-0.5 text-xs font-mono">type</code> across
+          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">type</code> across
           the entire codebase for consistency and better TypeScript patterns.
         </p>
       </ChangelogEntry>
@@ -101,7 +101,7 @@ export default function ChangelogPage() {
       <ChangelogEntry version="0.2.4" date="January 2025" title="TypeScript & Exit Handling">
         <p>
           TypeScript improvements and optimization pass. Better{" "}
-          <code className="bg-surface border border-border rounded px-1.5 py-0.5 text-xs font-mono">Ctrl+C</code>{" "}
+          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">Ctrl+C</code>{" "}
           handling for cleaner process exits.
         </p>
       </ChangelogEntry>
@@ -123,8 +123,8 @@ export default function ChangelogPage() {
       <ChangelogEntry version="0.1.8" date="December 2024" title="Bun Support">
         <p>
           Added <strong>Bun support</strong>. ripen now detects{" "}
-          <code className="bg-surface border border-border rounded px-1.5 py-0.5 text-xs font-mono">bun.lock</code> and
-          uses <code className="bg-surface border border-border rounded px-1.5 py-0.5 text-xs font-mono">bun add</code>{" "}
+          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">bun.lock</code> and
+          uses <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">bun add</code>{" "}
           for updates. The package manager family is now complete: npm, pnpm, yarn, and bun.
         </p>
       </ChangelogEntry>

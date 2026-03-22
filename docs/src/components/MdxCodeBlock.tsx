@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
 import { CopyButton } from "./CopyButton";
 
 export function MdxCodeBlock({ children }: { children: ReactNode }) {
@@ -10,7 +10,7 @@ export function MdxCodeBlock({ children }: { children: ReactNode }) {
     <div className="relative mb-6">
       <pre
         ref={preRef}
-        className="bg-surface border border-border rounded-xl p-4 pr-12 overflow-x-auto text-sm font-mono leading-relaxed [&>code]:bg-transparent [&>code]:border-0 [&>code]:p-0 [&>code]:rounded-none [&>code]:text-text-muted [&>code]:text-[1em]"
+        className="overflow-x-auto rounded-xl border border-border bg-surface p-4 pr-12 font-mono text-sm leading-relaxed [&>code]:rounded-none [&>code]:border-0 [&>code]:bg-transparent [&>code]:p-0 [&>code]:text-[1em] [&>code]:text-text-muted"
       >
         {children}
       </pre>

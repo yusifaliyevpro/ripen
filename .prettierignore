@@ -8,9 +8,4 @@ dist
 .github/ISSUE_TEMPLATE/
 .github/pull_request_template.md
 
-docs/.heroui-docs/
-docs/.agents/
-docs/.vercel
-docs/.next/
-docs/.out/
-docs/.DS_Store
+docs/

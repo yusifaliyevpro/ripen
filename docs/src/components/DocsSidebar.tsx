@@ -25,8 +25,8 @@ export function DocsSidebar() {
             <Link
               href={item.href}
               onClick={() => setOpen(false)}
-              className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive ? "text-orange bg-orange/10" : "text-text-muted hover:text-text hover:bg-surface"
+              className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                isActive ? "bg-orange/10 text-orange" : "text-text-muted hover:bg-surface hover:text-text"
               }`}
             >
               {item.label}
@@ -40,9 +40,9 @@ export function DocsSidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:block w-56 shrink-0">
+      <aside className="hidden w-56 shrink-0 lg:block">
         <div className="sticky top-24">
-          <p className="px-3 mb-3 text-xs font-semibold uppercase tracking-wider text-text-dim">Documentation</p>
+          <p className="mb-3 px-3 text-xs font-semibold tracking-wider text-text-dim uppercase">Documentation</p>
           {navContent}
         </div>
       </aside>
@@ -51,11 +51,11 @@ export function DocsSidebar() {
       <div className="lg:hidden">
         <button
           onClick={() => setOpen(!open)}
-          className="w-full flex items-center justify-between py-3 px-4 text-sm font-medium text-text-muted hover:text-text border border-border rounded-xl bg-surface/50 transition-colors cursor-pointer"
+          className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-border bg-surface/50 px-4 py-3 text-sm font-medium text-text-muted transition-colors hover:text-text"
         >
           <span>Menu</span>
           <svg
-            className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`}
+            className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -64,7 +64,7 @@ export function DocsSidebar() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        {open && <div className="mt-2 border border-border rounded-xl p-3 bg-surface/50">{navContent}</div>}
+        {open && <div className="mt-2 rounded-xl border border-border bg-surface/50 p-3">{navContent}</div>}
       </div>
     </>
   );

@@ -24,10 +24,10 @@ export function CopyButton({
   return (
     <button
       onClick={handleCopy}
-      className={`p-1.5 border border-border rounded-md shadow-sm bg-surface hover:bg-surface/80 text-text-muted hover:text-orange transition-colors cursor-pointer ${className}`}
+      className={`cursor-pointer rounded-md border border-border bg-surface p-1.5 text-text-muted shadow-sm transition-colors hover:bg-surface/80 hover:text-orange ${className}`}
       aria-label="Copy to clipboard"
     >
-      {copied ? <MdCheck className="w-4 h-4 text-green" /> : <MdContentCopy className="w-4 h-4" />}
+      {copied ? <MdCheck className="h-4 w-4 text-green" /> : <MdContentCopy className="h-4 w-4" />}
     </button>
   );
 }
