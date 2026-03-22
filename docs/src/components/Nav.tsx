@@ -22,10 +22,11 @@ export function Nav() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-1 group">
           <Image
-            src="/icon.svg"
+            src="/icon.png"
             alt="ripen logo"
             width={50}
             height={50}
+            unoptimized
             className="group-hover:scale-110 transition-transform"
           />
           <span className="font-sans font-bold text-2xl bg-linear-to-r from-orange to-orange-light bg-clip-text text-transparent tracking-tight">
