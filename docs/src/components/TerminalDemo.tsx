@@ -9,9 +9,7 @@ export function TerminalDemo() {
             <div className="w-3 h-3 rounded-full bg-orange/80" />
             <div className="w-3 h-3 rounded-full bg-green/80" />
           </div>
-          <span className="text-xs text-text-dim font-mono ml-2">
-            ~/my-project
-          </span>
+          <span className="text-xs text-text-dim font-mono ml-2">~/my-project</span>
         </div>
 
         {/* Terminal content */}
@@ -34,30 +32,17 @@ export function TerminalDemo() {
           </div>
 
           {/* Dependencies group */}
-          <GroupHeader
-            label="Dependencies"
-            count={6}
-            color="text-cyan-400"
-            focused
-            checkbox="□"
-          />
+          <GroupHeader label="Dependencies" count={6} color="text-cyan-400" focused checkbox="□" />
           <div className="border border-cyan-400/30 rounded-lg px-3 py-1 mb-2">
             <ColumnHeaders />
             <PackageRow cursor name="react" current="18.2.0" target="19.2.4" latest="19.2.4" major />
             <PackageRow name="next" current="15.1.0" target="16.2.1" latest="16.2.1" major />
             <PackageRow selected name="motion" current="12.31.0" target="12.38.0" latest="12.38.0" />
-            <div className="text-text-dim text-[11px] py-0.5">
-              {"  "}↓ 3 more below
-            </div>
+            <div className="text-text-dim text-[11px] py-0.5">{"  "}↓ 3 more below</div>
           </div>
 
           {/* Dev Dependencies group */}
-          <GroupHeader
-            label="Dev Dependencies"
-            count={4}
-            color="text-fuchsia-400"
-            checkbox="□"
-          />
+          <GroupHeader label="Dev Dependencies" count={4} color="text-fuchsia-400" checkbox="□" />
           <div className="border border-gray-700 rounded-lg px-3 py-1 mb-2">
             <ColumnHeaders />
             <PackageRow name="typescript" current="5.4.5" target="5.8.3" latest="5.8.3" />
@@ -133,30 +118,16 @@ function PackageRow({
   major?: boolean;
 }) {
   return (
-    <div
-      className={`flex items-center gap-4 py-0.5 ${
-        cursor ? "bg-white/[0.04] -mx-1 px-1 rounded" : ""
-      }`}
-    >
+    <div className={`flex items-center gap-4 py-0.5 ${cursor ? "bg-white/[0.04] -mx-1 px-1 rounded" : ""}`}>
       <span className="w-5 text-center shrink-0">
-        {cursor ? (
-          <span className="text-green">❯</span>
-        ) : (
-          <span className="w-2 inline-block" />
-        )}
+        {cursor ? <span className="text-green">❯</span> : <span className="w-2 inline-block" />}
       </span>
-      <span className={selected ? "text-green" : "text-text-dim"}>
-        {selected ? "◉" : "○"}
-      </span>
-      <span className={`w-32 ${cursor ? "text-text font-bold" : "text-text-muted"}`}>
-        {name}
-      </span>
+      <span className={selected ? "text-green" : "text-text-dim"}>{selected ? "◉" : "○"}</span>
+      <span className={`w-32 ${cursor ? "text-text font-bold" : "text-text-muted"}`}>{name}</span>
       <span className="w-20 text-red">{current}</span>
       <span className="w-20 text-green">{target}</span>
       <span className="w-20 text-text-dim">{latest}</span>
-      <span className="w-16">
-        {major && <span className="text-yellow-400 text-[11px]">⚠ major</span>}
-      </span>
+      <span className="w-16">{major && <span className="text-yellow-400 text-[11px]">⚠ major</span>}</span>
     </div>
   );
 }

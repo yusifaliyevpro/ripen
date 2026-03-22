@@ -6,17 +6,7 @@ import { CopyButton } from "./CopyButton";
 const managers = ["pnpm", "npm", "yarn", "bun"] as const;
 type Manager = (typeof managers)[number];
 
-export function PackageTabs({
-  pnpm,
-  npm,
-  yarn,
-  bun,
-}: {
-  pnpm: string;
-  npm: string;
-  yarn: string;
-  bun: string;
-}) {
+export function PackageTabs({ pnpm, npm, yarn, bun }: { pnpm: string; npm: string; yarn: string; bun: string }) {
   const [active, setActive] = useState<Manager>("pnpm");
 
   const commands: Record<Manager, string> = { pnpm, npm, yarn, bun };
@@ -31,15 +21,11 @@ export function PackageTabs({
             key={pm}
             onClick={() => setActive(pm)}
             className={`px-4 py-2 text-sm font-mono font-medium transition-colors relative cursor-pointer ${
-              active === pm
-                ? "text-orange"
-                : "text-text-dim hover:text-text-muted"
+              active === pm ? "text-orange" : "text-text-dim hover:text-text-muted"
             }`}
           >
             {pm}
-            {active === pm && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange rounded-full" />
-            )}
+            {active === pm && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange rounded-full" />}
           </button>
         ))}
       </div>

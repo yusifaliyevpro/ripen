@@ -27,12 +27,8 @@ export function ChangelogEntry({
 
         {/* Right column — title + description */}
         <div className="flex-1 min-w-0">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">
-            {title}
-          </h2>
-          <div className="text-text-muted leading-relaxed space-y-3">
-            {children}
-          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">{title}</h2>
+          <div className="text-text-muted leading-relaxed space-y-3">{children}</div>
         </div>
       </div>
 
@@ -40,13 +36,7 @@ export function ChangelogEntry({
       {image && (
         <div className="mt-8 sm:mt-10 sm:ml-52">
           <div className="relative rounded-xl overflow-hidden border border-border shadow-lg shadow-orange-glow/20">
-            <Image
-              src={image}
-              alt={`${title} screenshot`}
-              width={900}
-              height={500}
-              className="w-full h-auto"
-            />
+            <Image src={image} alt={`${title} screenshot`} width={900} height={500} className="w-full h-auto" />
           </div>
         </div>
       )}

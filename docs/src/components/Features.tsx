@@ -32,32 +32,27 @@ const features: { icon: IconType; title: string; description: string }[] = [
   {
     icon: VscGitCommit,
     title: "Changelog Viewer",
-    description:
-      "Read GitHub release notes directly in the terminal before updating. Know what changed.",
+    description: "Read GitHub release notes directly in the terminal before updating. Know what changed.",
   },
   {
     icon: VscFolderOpened,
     title: "Smart Grouping",
-    description:
-      "Group scoped packages together and sort by update frequency. Surface what matters most.",
+    description: "Group scoped packages together and sort by update frequency. Surface what matters most.",
   },
   {
     icon: VscWarning,
     title: "Major Warnings",
-    description:
-      "Highlights potentially breaking major version bumps so you can update with confidence.",
+    description: "Highlights potentially breaking major version bumps so you can update with confidence.",
   },
   {
     icon: VscGlobe,
     title: "Global Packages",
-    description:
-      "Check and update globally installed packages across npm, pnpm, and yarn in parallel with -g.",
+    description: "Check and update globally installed packages across npm, pnpm, and yarn in parallel with -g.",
   },
   {
     icon: VscSync,
     title: "Self-Update",
-    description:
-      "Automatically notifies you when a newer version of ripen is available and can update itself.",
+    description: "Automatically notifies you when a newer version of ripen is available and can update itself.",
   },
 ];
 
@@ -86,12 +81,8 @@ export function Features() {
                   <feature.icon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-text mb-1">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-text-muted leading-relaxed">
-                    {feature.description}
-                  </p>
+                  <h3 className="font-semibold text-text mb-1">{feature.title}</h3>
+                  <p className="text-sm text-text-muted leading-relaxed">{feature.description}</p>
                 </div>
               </div>
             </div>

@@ -15,7 +15,7 @@ export function CopyButton({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    const content = getText ? getText() : text ?? "";
+    const content = getText ? getText() : (text ?? "");
     await navigator.clipboard.writeText(content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

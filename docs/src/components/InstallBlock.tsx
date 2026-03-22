@@ -22,15 +22,11 @@ export function InstallBlock() {
             key={pm.id}
             onClick={() => setActive(i)}
             className={`px-4 py-2 text-sm font-mono font-medium transition-colors relative cursor-pointer ${
-              active === i
-                ? "text-orange"
-                : "text-text-dim hover:text-text-muted"
+              active === i ? "text-orange" : "text-text-dim hover:text-text-muted"
             }`}
           >
             {pm.label}
-            {active === i && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange rounded-full" />
-            )}
+            {active === i && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange rounded-full" />}
           </button>
         ))}
       </div>

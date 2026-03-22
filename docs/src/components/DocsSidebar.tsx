@@ -26,9 +26,7 @@ export function DocsSidebar() {
               href={item.href}
               onClick={() => setOpen(false)}
               className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? "text-orange bg-orange/10"
-                  : "text-text-muted hover:text-text hover:bg-surface"
+                isActive ? "text-orange bg-orange/10" : "text-text-muted hover:text-text hover:bg-surface"
               }`}
             >
               {item.label}
@@ -44,9 +42,7 @@ export function DocsSidebar() {
       {/* Desktop sidebar */}
       <aside className="hidden lg:block w-56 shrink-0">
         <div className="sticky top-24">
-          <p className="px-3 mb-3 text-xs font-semibold uppercase tracking-wider text-text-dim">
-            Documentation
-          </p>
+          <p className="px-3 mb-3 text-xs font-semibold uppercase tracking-wider text-text-dim">Documentation</p>
           {navContent}
         </div>
       </aside>
@@ -68,11 +64,7 @@ export function DocsSidebar() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        {open && (
-          <div className="mt-2 border border-border rounded-xl p-3 bg-surface/50">
-            {navContent}
-          </div>
-        )}
+        {open && <div className="mt-2 border border-border rounded-xl p-3 bg-surface/50">{navContent}</div>}
       </div>
     </>
   );

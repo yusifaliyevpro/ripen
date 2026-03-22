@@ -95,7 +95,11 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
     }
 
     // Delete/backspace to remove item when on a list item
-    if ((key.backspace || key.delete || (input === "d" && !key.ctrl)) && currentRow?.type === "list-item" && currentRow.listItemIndex !== undefined) {
+    if (
+      (key.backspace || key.delete || (input === "d" && !key.ctrl)) &&
+      currentRow?.type === "list-item" &&
+      currentRow.listItemIndex !== undefined
+    ) {
       const scope = scopes[currentRow.listItemIndex]!;
       removeScope(scope);
       if (flatCursor >= rows.length - 1) {

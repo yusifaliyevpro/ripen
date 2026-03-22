@@ -30,8 +30,7 @@ export function KeyboardShortcuts() {
           Control everything from the keyboard
         </h2>
         <p className="text-text-muted text-center max-w-lg mx-auto mb-12">
-          No mouse needed. Every action has a keyboard shortcut for a fast,
-          fluid workflow.
+          No mouse needed. Every action has a keyboard shortcut for a fast, fluid workflow.
         </p>
 
         <div className="max-w-2xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -43,9 +42,7 @@ export function KeyboardShortcuts() {
               <div className="flex items-center gap-1.5">
                 {shortcut.keys.map((key, i) => (
                   <span key={key} className="flex items-center gap-1.5">
-                    {i > 0 && (
-                      <span className="text-text-dim text-xs">+</span>
-                    )}
+                    {i > 0 && <span className="text-text-dim text-xs">+</span>}
                     <KeyCap label={key} />
                   </span>
                 ))}
