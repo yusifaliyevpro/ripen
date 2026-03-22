@@ -36,7 +36,7 @@ export function Nav() {
 
         {/* Desktop links */}
         <div className="hidden flex-row items-center gap-20 sm:flex">
-          <div className="items-center gap-7">
+          <div className="items-center flex gap-7">
             {links.map((link) => {
               const isActive = pathname.startsWith(link.href);
               return (
