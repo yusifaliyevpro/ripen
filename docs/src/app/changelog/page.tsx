@@ -69,7 +69,7 @@ export default function ChangelogPage() {
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.2.6" date="February 2025" title="Configuration System">
+      <ChangelogEntry version="0.2.6" date="March 2025" title="Configuration System">
         <p>
           Introduced the <strong>configuration system</strong> with support for:
         </p>
@@ -98,7 +98,7 @@ export default function ChangelogPage() {
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.2.5" date="February 2025" title="Codebase Refactoring">
+      <ChangelogEntry version="0.2.5" date="March 2025" title="Codebase Refactoring">
         <p>
           Refactored all{" "}
           <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">interface</code>{" "}
@@ -108,7 +108,7 @@ export default function ChangelogPage() {
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.2.4" date="January 2025" title="TypeScript & Exit Handling">
+      <ChangelogEntry version="0.2.4" date="March 2025" title="TypeScript & Exit Handling">
         <p>
           TypeScript improvements and optimization pass. Better{" "}
           <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">Ctrl+C</code>{" "}
@@ -116,21 +116,21 @@ export default function ChangelogPage() {
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.2.2" date="January 2025" title="Performance Improvements">
+      <ChangelogEntry version="0.2.2" date="March 2025" title="Performance Improvements">
         <p>
           Performance improvements with reduced UI flickering during package list rendering. Smoother scrolling and
           selection experience.
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.1.9" date="December 2024" title="Self-Update Flow">
+      <ChangelogEntry version="0.1.9" date="March 2025" title="Self-Update Flow">
         <p>
           Added <strong>self-update flow</strong> with process restart. ripen now notifies you when a newer version is
           available and can update itself, then automatically restarts with the new version.
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.1.8" date="December 2024" title="Bun Support">
+      <ChangelogEntry version="0.1.8" date="March 2025" title="Bun Support">
         <p>
           Added <strong>Bun support</strong>. ripen now detects{" "}
           <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">bun.lock</code> and
@@ -139,7 +139,7 @@ export default function ChangelogPage() {
         </p>
       </ChangelogEntry>
 
-      <ChangelogEntry version="0.1.7" date="November 2024" title="Dependency Updates">
+      <ChangelogEntry version="0.1.7" date="March 2025" title="Dependency Updates">
         <p>Dependency updates and added funding links to the package metadata.</p>
       </ChangelogEntry>
     </>
