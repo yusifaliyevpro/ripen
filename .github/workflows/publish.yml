@@ -73,52 +73,7 @@ jobs:
 
       - name: Extract release notes
         if: steps.check.outputs.version_changed == 'true'
-        id: notes
-        run: |
-          VERSION="${{ steps.check.outputs.new_version }}"
-          # Extract the changelog entry for this version using Node.js
-          node -e "
-            const fs = require('fs');
-            const src = fs.readFileSync('docs/src/app/changelog/page.tsx', 'utf-8');
-
-            // Find the ChangelogEntry for this version
-            const versionEscaped = '$VERSION'.replace(/\./g, '\\\\.');
-            const entryRegex = new RegExp(
-              '<ChangelogEntry[^>]*version=\"' + versionEscaped + '\"[^>]*title=\"([^\"]+)\"[^>]*>([\\s\\S]*?)</ChangelogEntry>',
-              'm'
-            );
-            const match = src.match(entryRegex);
-            if (!match) {
-              console.error('Could not extract release notes');
-              process.exit(1);
-            }
-
-            const title = match[1];
-            let body = match[2];
-
-            // Strip JSX tags and convert to markdown
-            body = body
-              .replace(/<p>/g, '')
-              .replace(/<\/p>/g, '\n')
-              .replace(/<strong>/g, '**')
-              .replace(/<\/strong>/g, '**')
-              .replace(/<code[^>]*>/g, '\`')
-              .replace(/<\/code>/g, '\`')
-              .replace(/<ul[^>]*>/g, '')
-              .replace(/<\/ul>/g, '')
-              .replace(/<li>/g, '- ')
-              .replace(/<\/li>/g, '\n')
-              .replace(/<br\s*\/?>/g, '\n')
-              .replace(/\{\" \"\}/g, ' ')
-              .replace(/\{\"\\n\"\}/g, '\n')
-              .replace(/<[^>]+>/g, '')
-              .replace(/\n{3,}/g, '\n\n')
-              .trim();
-
-            const notes = '## ' + title + '\n\n' + body;
-            fs.writeFileSync('/tmp/release-notes.md', notes);
-            console.log('Release notes extracted successfully');
-          "
+        run: node scripts/extract-release-notes.cjs "${{ steps.check.outputs.new_version }}" /tmp/release-notes.md
 
       - name: Build
         if: steps.check.outputs.version_changed == 'true'
