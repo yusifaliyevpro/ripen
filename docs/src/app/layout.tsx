@@ -46,13 +46,13 @@ export const metadata: Metadata = {
     title: "ripen - Interactive Dependency Updater",
     description:
       "Update npm, pnpm, yarn, and bun dependencies interactively from your terminal. Version picker, changelog viewer, and smart grouping.",
-    images: [{ url: "/og.svg", width: 1200, height: 630, alt: "ripen - Interactive Dependency Updater" }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "ripen - Interactive Dependency Updater" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "ripen - Interactive Dependency Updater",
     description: "Update npm, pnpm, yarn, and bun dependencies interactively from your terminal.",
-    images: ["/og.svg"],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "ripen - Interactive Dependency Updater" }],
   },
   robots: {
     index: true,
