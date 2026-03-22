@@ -9,6 +9,24 @@ export const metadata: Metadata = {
 export default function ChangelogPage() {
   return (
     <>
+      <ChangelogEntry version="0.3.2" date="March 22, 2026" title="Grouping Fixes & Separate Dev Dependencies Setting">
+        <p>
+          Fixed the <strong>groupsOnTop</strong> setting not being respected and added a new setting to merge dependency
+          groups.
+        </p>
+        <ul className="mt-2 list-inside list-disc space-y-1">
+          <li>
+            <strong>groupsOnTop fix</strong> — scope groups now correctly appear at their natural position when the
+            setting is turned off. Previously, frequency sorting was forcing groups to the top regardless of the
+            groupsOnTop value
+          </li>
+          <li>
+            <strong>Separate dev dependencies</strong> — new setting to merge dependencies and devDependencies into a
+            single {'"'}All Dependencies{'"'} group. Enabled by default (separate groups), can be toggled off in settings
+          </li>
+        </ul>
+      </ChangelogEntry>
+
       <ChangelogEntry version="0.3.1" date="March 22, 2026" title="Add Home Page Link to package.json">
         <p>
           Added a <strong>homepage</strong> field to the package.json metadata, linking to the ripen homepage at{" "}

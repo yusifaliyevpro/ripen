@@ -28,7 +28,8 @@ type Screen =
   | "empty"
   | "error"
   | "settings"
-  | "self-update-done";
+  | "self-update-done"
+  | "cancelled";
 
 type Props = {
   project: ProjectInfo;
@@ -42,12 +43,7 @@ export function App({ project, global, version, installManager }: Props) {
 
   useInput((_input, key) => {
     if (key.ctrl && _input === "c") {
-      setScreen("empty");
-      setTimeout(() => {
-        exit();
-        console.log("  \x1b[32mCancelled.\x1b[0m\n");
-        process.exit(0);
-      }, 200);
+      setScreen("cancelled");
     }
   });
 
@@ -100,6 +96,17 @@ export function App({ project, global, version, installManager }: Props) {
       exit();
       process.exit(0);
     }, 300);
+    return () => clearTimeout(timer);
+  }, [screen]);
+
+  // Exit on cancel (Ctrl+C)
+  useEffect(() => {
+    if (screen !== "cancelled") return;
+    const timer = setTimeout(() => {
+      exit();
+      console.log("  \x1b[32mCancelled.\x1b[0m\n");
+      process.exit(0);
+    }, 200);
     return () => clearTimeout(timer);
   }, [screen]);
 
@@ -313,6 +320,10 @@ export function App({ project, global, version, installManager }: Props) {
     );
   }
 
+  if (screen === "cancelled") {
+    return <></>;
+  }
+
   if (screen === "empty") {
     return (
       <Box flexDirection="column" padding={1}>
@@ -412,6 +423,7 @@ export function App({ project, global, version, installManager }: Props) {
           groupsOnTop={config.groupsOnTop}
           frequencySort={config.frequencySort}
           frequency={frequency}
+          separateDevDeps={config.separateDevDeps}
           isActive={isListActive}
         />
       </Box>

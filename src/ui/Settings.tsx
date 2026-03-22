@@ -19,10 +19,11 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
   // Row 1: groupScopes header
   // Row 2+: each scope item
   const rows: {
-    type: "toggle-frequency" | "toggle-group" | "toggle-groups-top" | "list-header" | "list-item";
+    type: "toggle-frequency" | "toggle-group" | "toggle-groups-top" | "toggle-separate-dev" | "list-header" | "list-item";
     listItemIndex?: number;
   }[] = [
     { type: "toggle-frequency" },
+    { type: "toggle-separate-dev" },
     { type: "toggle-group" },
     { type: "toggle-groups-top" },
     { type: "list-header" },
@@ -80,6 +81,8 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
         onConfigChange({ ...config, frequencySort: !config.frequencySort });
       } else if (currentRow?.type === "toggle-group") {
         onConfigChange({ ...config, groupByScope: !config.groupByScope });
+      } else if (currentRow?.type === "toggle-separate-dev") {
+        onConfigChange({ ...config, separateDevDeps: !config.separateDevDeps });
       } else if (currentRow?.type === "toggle-groups-top") {
         onConfigChange({ ...config, groupsOnTop: !config.groupsOnTop });
       } else if (currentRow?.type === "list-header") {
@@ -113,6 +116,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
   });
 
   const freqToggleFocused = currentRow?.type === "toggle-frequency";
+  const separateDevFocused = currentRow?.type === "toggle-separate-dev";
   const groupToggleFocused = currentRow?.type === "toggle-group";
   const groupsTopFocused = currentRow?.type === "toggle-groups-top";
   const listHeaderFocused = currentRow?.type === "list-header";
@@ -137,6 +141,20 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
         </Box>
         <Box marginLeft={6}>
           <Text color="gray">Packages you update often appear at the top</Text>
+        </Box>
+      </Box>
+
+      {/* Toggle: separateDevDeps */}
+      <Box flexDirection="column" marginBottom={1}>
+        <Box gap={1}>
+          <Text color="greenBright">{separateDevFocused ? ">" : " "}</Text>
+          <Text color={config.separateDevDeps ? "greenBright" : "gray"}>[{config.separateDevDeps ? "x" : " "}]</Text>
+          <Text bold={separateDevFocused} color={separateDevFocused ? "whiteBright" : "white"}>
+            Separate dev dependencies
+          </Text>
+        </Box>
+        <Box marginLeft={6}>
+          <Text color="gray">Show dependencies and devDependencies in separate groups</Text>
         </Box>
       </Box>
 
@@ -205,7 +223,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
 
         {/* Scope items */}
         {scopes.map((scope, i) => {
-          const itemFocused = flatCursor === 4 + i;
+          const itemFocused = flatCursor === 5 + i;
           return (
             <Box key={scope} marginLeft={4} gap={1}>
               <Text dimColor={!config.groupByScope} color="greenBright">

@@ -11,6 +11,8 @@ export type RipenConfig = {
   groupsOnTop: boolean;
   /** Sort packages by update frequency (most updated first) */
   frequencySort: boolean;
+  /** Separate dependencies and devDependencies into separate groups (default: true) */
+  separateDevDeps: boolean;
 };
 
 export const DEFAULT_CONFIG: RipenConfig = {
@@ -18,6 +20,7 @@ export const DEFAULT_CONFIG: RipenConfig = {
   groupScopes: [],
   groupsOnTop: false,
   frequencySort: false,
+  separateDevDeps: true,
 };
 
 const CONFIG_DIR = join(homedir(), ".config", "ripen");

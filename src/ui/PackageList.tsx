@@ -16,6 +16,7 @@ type Props = {
   groupsOnTop?: boolean;
   frequencySort?: boolean;
   frequency?: Record<string, number>;
+  separateDevDeps?: boolean;
   isActive?: boolean;
 };
 
@@ -67,6 +68,11 @@ function getScope(name: string): string | null {
   return match?.[1] ?? null;
 }
 
+/** Strip leading @ for natural alphabetical sorting (so @vercel/x sorts among 'v', not before 'a') */
+function sortableName(name: string): string {
+  return name.startsWith("@") ? name.slice(1) : name;
+}
+
 function buildDisplayRows(
   packages: OutdatedPackage[],
   groupByScope: boolean = false,
@@ -74,19 +80,25 @@ function buildDisplayRows(
   groupsOnTop: boolean = false,
   frequencySort: boolean = false,
   frequency: Record<string, number> = {},
+  separateDevDeps: boolean = true,
 ): DisplayRow[] {
   const grouped = new Map<string, { pkg: OutdatedPackage; index: number }[]>();
 
   packages.forEach((pkg, i) => {
-    if (!grouped.has(pkg.type)) grouped.set(pkg.type, []);
-    grouped.get(pkg.type)!.push({ pkg, index: i });
+    // When separateDevDeps is false, merge devDependencies into dependencies
+    const type = !separateDevDeps && pkg.type === "devDependencies" ? "dependencies" : pkg.type;
+    if (!grouped.has(type)) grouped.set(type, []);
+    grouped.get(type)!.push({ pkg, index: i });
   });
+
+  const nameSort = (a: { pkg: OutdatedPackage }, b: { pkg: OutdatedPackage }) =>
+    sortableName(a.pkg.name).localeCompare(sortableName(b.pkg.name));
 
   const freqSort = (a: { pkg: OutdatedPackage }, b: { pkg: OutdatedPackage }) => {
     const fa = frequency[a.pkg.name] ?? 0;
     const fb = frequency[b.pkg.name] ?? 0;
     if (fb !== fa) return fb - fa;
-    return a.pkg.name.localeCompare(b.pkg.name);
+    return sortableName(a.pkg.name).localeCompare(sortableName(b.pkg.name));
   };
 
   const rows: DisplayRow[] = [];
@@ -94,10 +106,12 @@ function buildDisplayRows(
     const items = grouped.get(type);
     if (!items || items.length === 0) continue;
     const allPkgs = items.map((i) => i.pkg);
+    // When deps are merged, show "All Dependencies" instead of "Dependencies"
+    const label = !separateDevDeps && type === "dependencies" ? "All Dependencies" : (GROUP_LABELS[type] ?? type);
     rows.push({
       kind: "header",
       groupType: type as OutdatedPackage["type"],
-      label: GROUP_LABELS[type] ?? type,
+      label,
       packages: allPkgs,
     });
 
@@ -155,43 +169,83 @@ function buildDisplayRows(
       };
 
       const emitUngrouped = () => {
-        if (frequencySort) ungrouped.sort(freqSort);
+        ungrouped.sort(frequencySort ? freqSort : nameSort);
         for (const item of ungrouped) {
           rows.push({ kind: "package", pkg: item.pkg, packageIndex: item.index, indented: false, scopeKey: null });
         }
       };
 
-      if (groupsOnTop || frequencySort) {
+      if (groupsOnTop) {
         emitScopeGroups();
         emitUngrouped();
-      } else {
-        // Interleave: emit in original order, emitting scope group when first member is encountered
-        const emittedScopes = new Set<string>();
-        for (const item of items) {
-          const scope = getScope(item.pkg.name);
-          const group = scope ? scopeGroups.find((g) => g.scope === scope) : undefined;
-          if (group) {
-            if (!emittedScopes.has(scope!)) {
-              emittedScopes.add(scope!);
-              const scopeKey = `${type}::${scope}`;
-              rows.push({
-                kind: "scope-header",
-                groupType: type as OutdatedPackage["type"],
-                scope: scope!,
-                packageIndices: group.items.map((si) => si.index),
-                packages: group.items.map((si) => si.pkg),
-              });
-              for (const si of group.items) {
-                rows.push({ kind: "package", pkg: si.pkg, packageIndex: si.index, indented: true, scopeKey });
-              }
+      } else if (frequencySort) {
+        // Interleave by frequency — groups positioned by their max-frequency member
+        type Slot =
+          | { kind: "group"; group: (typeof scopeGroups)[number]; freq: number; sortKey: string }
+          | { kind: "single"; item: (typeof ungrouped)[number]; freq: number; sortKey: string };
+        const slots: Slot[] = [];
+        for (const g of scopeGroups) {
+          g.items.sort(freqSort);
+          slots.push({ kind: "group", group: g, freq: Math.max(...g.items.map((i) => frequency[i.pkg.name] ?? 0)), sortKey: sortableName(g.scope) });
+        }
+        for (const item of ungrouped) {
+          slots.push({ kind: "single", item, freq: frequency[item.pkg.name] ?? 0, sortKey: sortableName(item.pkg.name) });
+        }
+        slots.sort((a, b) => {
+          if (b.freq !== a.freq) return b.freq - a.freq;
+          return a.sortKey.localeCompare(b.sortKey);
+        });
+        for (const slot of slots) {
+          if (slot.kind === "group") {
+            const scopeKey = `${type}::${slot.group.scope}`;
+            rows.push({
+              kind: "scope-header",
+              groupType: type as OutdatedPackage["type"],
+              scope: slot.group.scope,
+              packageIndices: slot.group.items.map((si) => si.index),
+              packages: slot.group.items.map((si) => si.pkg),
+            });
+            for (const si of slot.group.items) {
+              rows.push({ kind: "package", pkg: si.pkg, packageIndex: si.index, indented: true, scopeKey });
             }
           } else {
-            rows.push({ kind: "package", pkg: item.pkg, packageIndex: item.index, indented: false, scopeKey: null });
+            rows.push({ kind: "package", pkg: slot.item.pkg, packageIndex: slot.item.index, indented: false, scopeKey: null });
+          }
+        }
+      } else {
+        // Interleave alphabetically by sortable name (strip @ prefix so @vercel sorts among 'v')
+        type Slot =
+          | { kind: "group"; group: (typeof scopeGroups)[number]; sortKey: string }
+          | { kind: "single"; item: (typeof ungrouped)[number]; sortKey: string };
+        const slots: Slot[] = [];
+        for (const g of scopeGroups) {
+          g.items.sort(nameSort);
+          slots.push({ kind: "group", group: g, sortKey: sortableName(g.scope) });
+        }
+        for (const item of ungrouped) {
+          slots.push({ kind: "single", item, sortKey: sortableName(item.pkg.name) });
+        }
+        slots.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+        for (const slot of slots) {
+          if (slot.kind === "group") {
+            const scopeKey = `${type}::${slot.group.scope}`;
+            rows.push({
+              kind: "scope-header",
+              groupType: type as OutdatedPackage["type"],
+              scope: slot.group.scope,
+              packageIndices: slot.group.items.map((si) => si.index),
+              packages: slot.group.items.map((si) => si.pkg),
+            });
+            for (const si of slot.group.items) {
+              rows.push({ kind: "package", pkg: si.pkg, packageIndex: si.index, indented: true, scopeKey });
+            }
+          } else {
+            rows.push({ kind: "package", pkg: slot.item.pkg, packageIndex: slot.item.index, indented: false, scopeKey: null });
           }
         }
       }
     } else {
-      const sorted = frequencySort ? [...items].sort(freqSort) : items;
+      const sorted = frequencySort ? [...items].sort(freqSort) : [...items].sort(nameSort);
       for (const item of sorted) {
         rows.push({ kind: "package", pkg: item.pkg, packageIndex: item.index, indented: false, scopeKey: null });
       }
@@ -255,12 +309,13 @@ export function PackageList({
   groupsOnTop = false,
   frequencySort = false,
   frequency = {},
+  separateDevDeps = true,
   isActive = true,
 }: Props) {
   const [focusedIndex, setFocusedIndex] = useState(0);
   const allRows = useMemo(
-    () => buildDisplayRows(packages, groupByScope, groupScopes, groupsOnTop, frequencySort, frequency),
-    [packages, groupByScope, groupScopes, groupsOnTop, frequencySort, frequency],
+    () => buildDisplayRows(packages, groupByScope, groupScopes, groupsOnTop, frequencySort, frequency, separateDevDeps),
+    [packages, groupByScope, groupScopes, groupsOnTop, frequencySort, frequency, separateDevDeps],
   );
 
   // Collect all scope keys from allRows
