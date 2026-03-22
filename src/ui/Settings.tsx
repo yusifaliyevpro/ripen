@@ -19,7 +19,13 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
   // Row 1: groupScopes header
   // Row 2+: each scope item
   const rows: {
-    type: "toggle-frequency" | "toggle-group" | "toggle-groups-top" | "toggle-separate-dev" | "list-header" | "list-item";
+    type:
+      | "toggle-frequency"
+      | "toggle-group"
+      | "toggle-groups-top"
+      | "toggle-separate-dev"
+      | "list-header"
+      | "list-item";
     listItemIndex?: number;
   }[] = [
     { type: "toggle-frequency" },

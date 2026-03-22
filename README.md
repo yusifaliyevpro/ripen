@@ -73,6 +73,7 @@ Press `s` to open the settings screen. Settings are persisted at `~/.config/ripe
 | Setting                      | Default | Description                                                  |
 | ---------------------------- | ------- | ------------------------------------------------------------ |
 | Sort by update frequency     | Off     | Packages you update often appear at the top                  |
+| Separate dev dependencies    | On      | Show dependencies and devDependencies in separate groups     |
 | Enable scope grouping        | Off     | Group scoped packages under their scope prefix               |
 | Show grouped scopes on top   | Off     | Grouped scopes appear before ungrouped packages              |
 | Grouped scopes               | —       | List of scopes to group (e.g. `@heroui`, `@radix-ui`)       |

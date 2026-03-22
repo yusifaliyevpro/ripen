@@ -9,6 +9,30 @@ export const metadata: Metadata = {
 export default function ChangelogPage() {
   return (
     <>
+      <ChangelogEntry
+        version="0.3.3"
+        date="March 22, 2026"
+        title="Documentation Updates"
+        image="/changelog/030_banner.png"
+      >
+        <p>
+          Updated documentation to include the new <strong>separateDevDeps</strong> setting in both the README and the
+          configuration docs page.
+        </p>
+        <ul className="mt-2 list-inside list-disc space-y-1">
+          <li>
+            <strong>README settings table</strong> — added the Separate dev dependencies row
+          </li>
+          <li>
+            <strong>Configuration docs</strong> — added{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              separateDevDeps
+            </code>{" "}
+            to the settings table and example JSON
+          </li>
+        </ul>
+      </ChangelogEntry>
+
       <ChangelogEntry version="0.3.2" date="March 22, 2026" title="Grouping Fixes & Separate Dev Dependencies Setting">
         <p>
           Fixed the <strong>groupsOnTop</strong> setting not being respected and added a new setting to merge dependency
@@ -22,7 +46,8 @@ export default function ChangelogPage() {
           </li>
           <li>
             <strong>Separate dev dependencies</strong> — new setting to merge dependencies and devDependencies into a
-            single {'"'}All Dependencies{'"'} group. Enabled by default (separate groups), can be toggled off in settings
+            single {'"'}All Dependencies{'"'} group. Enabled by default (separate groups), can be toggled off in
+            settings
           </li>
         </ul>
       </ChangelogEntry>
@@ -37,12 +62,7 @@ export default function ChangelogPage() {
           directly from the npm registry.
         </p>
       </ChangelogEntry>
-      <ChangelogEntry
-        version="0.3.0"
-        date="March 22, 2026"
-        title="Enhanced MetaData and Website Redesign"
-        image="/changelog/030_banner.png"
-      >
+      <ChangelogEntry version="0.3.0" date="March 22, 2026" title="Enhanced MetaData and Website Redesign">
         <p>Welcome to ripen 0.3.0! This major release includes several exciting features and improvements:</p>
         <ul className="mt-2 list-inside list-disc space-y-1">
           <li>

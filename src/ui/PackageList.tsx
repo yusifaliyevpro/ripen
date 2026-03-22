@@ -186,10 +186,20 @@ function buildDisplayRows(
         const slots: Slot[] = [];
         for (const g of scopeGroups) {
           g.items.sort(freqSort);
-          slots.push({ kind: "group", group: g, freq: Math.max(...g.items.map((i) => frequency[i.pkg.name] ?? 0)), sortKey: sortableName(g.scope) });
+          slots.push({
+            kind: "group",
+            group: g,
+            freq: Math.max(...g.items.map((i) => frequency[i.pkg.name] ?? 0)),
+            sortKey: sortableName(g.scope),
+          });
         }
         for (const item of ungrouped) {
-          slots.push({ kind: "single", item, freq: frequency[item.pkg.name] ?? 0, sortKey: sortableName(item.pkg.name) });
+          slots.push({
+            kind: "single",
+            item,
+            freq: frequency[item.pkg.name] ?? 0,
+            sortKey: sortableName(item.pkg.name),
+          });
         }
         slots.sort((a, b) => {
           if (b.freq !== a.freq) return b.freq - a.freq;
@@ -209,7 +219,13 @@ function buildDisplayRows(
               rows.push({ kind: "package", pkg: si.pkg, packageIndex: si.index, indented: true, scopeKey });
             }
           } else {
-            rows.push({ kind: "package", pkg: slot.item.pkg, packageIndex: slot.item.index, indented: false, scopeKey: null });
+            rows.push({
+              kind: "package",
+              pkg: slot.item.pkg,
+              packageIndex: slot.item.index,
+              indented: false,
+              scopeKey: null,
+            });
           }
         }
       } else {
@@ -240,7 +256,13 @@ function buildDisplayRows(
               rows.push({ kind: "package", pkg: si.pkg, packageIndex: si.index, indented: true, scopeKey });
             }
           } else {
-            rows.push({ kind: "package", pkg: slot.item.pkg, packageIndex: slot.item.index, indented: false, scopeKey: null });
+            rows.push({
+              kind: "package",
+              pkg: slot.item.pkg,
+              packageIndex: slot.item.index,
+              indented: false,
+              scopeKey: null,
+            });
           }
         }
       }
