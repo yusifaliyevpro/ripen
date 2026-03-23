@@ -66,7 +66,10 @@ export function PackageList({
     }
   }, [allScopeKeys, initialized]);
 
-  const visibleRows = useMemo(() => filterCollapsed(allRows, collapsedScopes), [allRows, collapsedScopes]);
+  // Use allScopeKeys on first render to avoid a flash of expanded scopes
+  const effectiveCollapsed = !initialized && allScopeKeys.size > 0 ? allScopeKeys : collapsedScopes;
+
+  const visibleRows = useMemo(() => filterCollapsed(allRows, effectiveCollapsed), [allRows, effectiveCollapsed]);
 
   const groups = useMemo(() => buildGroups(visibleRows), [visibleRows]);
 
@@ -96,6 +99,17 @@ export function PackageList({
   }, [visibleRows.length, focusedIndex]);
 
   const toggleCollapse = (scopeKey: string) => {
+    // On first interaction, seed from effectiveCollapsed so the toggle is correct
+    if (!initialized && allScopeKeys.size > 0) {
+      setCollapsedScopes(() => {
+        const next = new Set(allScopeKeys);
+        if (next.has(scopeKey)) next.delete(scopeKey);
+        else next.add(scopeKey);
+        return next;
+      });
+      setInitialized(true);
+      return;
+    }
     setCollapsedScopes((prev) => {
       const next = new Set(prev);
       if (next.has(scopeKey)) next.delete(scopeKey);
@@ -129,11 +143,11 @@ export function PackageList({
       // Left/Right: collapse/expand scope sub-groups
       if (focused.kind === "scope-header") {
         const scopeKey = `${focused.groupType}::${focused.scope}`;
-        if (key.leftArrow && !collapsedScopes.has(scopeKey)) {
+        if (key.leftArrow && !effectiveCollapsed.has(scopeKey)) {
           toggleCollapse(scopeKey);
           return;
         }
-        if (key.rightArrow && collapsedScopes.has(scopeKey)) {
+        if (key.rightArrow && effectiveCollapsed.has(scopeKey)) {
           toggleCollapse(scopeKey);
           return;
         }
