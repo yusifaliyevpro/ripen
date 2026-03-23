@@ -1,21 +1,10 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Box, Text, useInput, useStdout } from "ink";
-import { exec } from "child_process";
-import { useState } from "react";
 import { ScrollView, type ScrollViewRef } from "ink-scroll-view";
+import type { ChangelogEntry, OutdatedPackage } from "../types";
+import { openInBrowser } from "../lib/utils";
 import { MarkdownLine } from "./MarkdownLine";
-import { fetchChangelog, fetchRepoUrl, type ChangelogEntry } from "../registry";
-import type { OutdatedPackage } from "../fetcher";
-
-function openInBrowser(url: string) {
-  const cmd =
-    process.platform === "win32"
-      ? `start "" "${url}"`
-      : process.platform === "darwin"
-        ? `open "${url}"`
-        : `xdg-open "${url}"`;
-  exec(cmd);
-}
+import { fetchChangelog, fetchRepoUrl } from "../registry";
 
 type Props = {
   pkg: OutdatedPackage;

@@ -1,13 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
-
-export type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
-
-export type ProjectInfo = {
-  manager: PackageManager;
-  cwd: string;
-  name: string;
-};
+import type { PackageManager, ProjectInfo } from "./types";
 
 export function detectPackageManager(cwd: string): PackageManager {
   if (existsSync(join(cwd, "bun.lock"))) return "bun";

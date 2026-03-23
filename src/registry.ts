@@ -1,14 +1,7 @@
-export type RegistryVersion = {
-  version: string;
-  date: string;
-  tag?: string;
-};
+import type { RegistryVersion, ChangelogEntry } from "./types";
+import { compareVersions } from "./lib/versions";
 
-export type ChangelogEntry = {
-  version: string;
-  body: string;
-  url: string;
-};
+export { isNewerVersion } from "./lib/versions";
 
 export async function fetchVersions(packageName: string): Promise<RegistryVersion[]> {
   try {
@@ -32,11 +25,8 @@ export async function fetchVersions(packageName: string): Promise<RegistryVersio
         tag: tagByVersion[v],
       }))
       .sort((a, b) => {
-        const pa = a.version.replace(/-.*$/, "").split(".").map(Number);
-        const pb = b.version.replace(/-.*$/, "").split(".").map(Number);
-        for (let i = 0; i < 3; i++) {
-          if ((pb[i] ?? 0) !== (pa[i] ?? 0)) return (pb[i] ?? 0) - (pa[i] ?? 0);
-        }
+        const cmp = compareVersions(b.version, a.version);
+        if (cmp !== 0) return cmp;
         // Same base version: stable (no prerelease) sorts before prerelease
         const aHas = a.version.includes("-");
         const bHas = b.version.includes("-");
@@ -61,12 +51,8 @@ export async function fetchChangelog(
     if (!res.ok) return [];
     const data = (await res.json()) as any;
 
-    const repoUrl: string = typeof data.repository === "string" ? data.repository : (data.repository?.url ?? "");
-
-    const match = repoUrl.match(/github\.com[/:]([^/]+\/[^/]+)/);
-    if (!match) return [];
-
-    const repo = match[1]!.replace(/\.git$/, "");
+    const repo = extractGitHubRepo(data);
+    if (!repo) return [];
 
     const ghRes = await fetch(`https://api.github.com/repos/${repo}/releases?per_page=30`, {
       headers: { Accept: "application/vnd.github+json" },
@@ -75,30 +61,11 @@ export async function fetchChangelog(
 
     const releases = (await ghRes.json()) as any[];
 
-    // strip any non-numeric prefix like "v", "next@", "package@v" etc.
-    const parseVer = (v: string): number[] =>
-      v
-        .replace(/^[^0-9]*/, "")
-        .split(".")
-        .map(Number);
-
-    const cmpVer = (a: number[], b: number[]): number => {
-      for (let i = 0; i < 3; i++) {
-        const diff = (a[i] ?? 0) - (b[i] ?? 0);
-        if (diff !== 0) return diff;
-      }
-      return 0;
-    };
-
-    const from = parseVer(fromVersion);
-    const to = parseVer(toVersion);
-
     const filtered = releases
       .filter((r) => {
         if (r.draft || r.prerelease) return false;
-        const ver = parseVer(r.tag_name);
         // include: from < ver <= to
-        return cmpVer(ver, from) > 0 && cmpVer(ver, to) <= 0;
+        return compareVersions(r.tag_name, fromVersion) > 0 && compareVersions(r.tag_name, toVersion) <= 0;
       })
       .map((r) => ({
         version: r.tag_name,
@@ -135,38 +102,25 @@ export async function fetchLatestVersion(packageName: string): Promise<string | 
   }
 }
 
-export function isNewerVersion(current: string, latest: string): boolean {
-  // Strip pre-release suffix for base version comparison (e.g. "3.0.0-beta.8" → "3.0.0")
-  const baseA = current.replace(/-.*$/, "");
-  const baseB = latest.replace(/-.*$/, "");
-  const a = baseA.split(".").map(Number);
-  const b = baseB.split(".").map(Number);
-  for (let i = 0; i < 3; i++) {
-    if ((b[i] ?? 0) > (a[i] ?? 0)) return true;
-    if ((b[i] ?? 0) < (a[i] ?? 0)) return false;
-  }
-  // Base versions are equal — if current has a pre-release tag but latest doesn't,
-  // then latest is newer (e.g. "3.0.0-beta.8" < "3.0.0")
-  const currentHasPrerelease = current.includes("-");
-  const latestHasPrerelease = latest.includes("-");
-  if (currentHasPrerelease && !latestHasPrerelease) return true;
-  return false;
-}
-
 export async function fetchRepoUrl(packageName: string): Promise<string> {
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
     if (!res.ok) return "";
     const data = (await res.json()) as any;
-
-    const repoUrl: string = typeof data.repository === "string" ? data.repository : (data.repository?.url ?? "");
-
-    const match = repoUrl.match(/github\.com[/:]([^/]+\/[^/]+)/);
-    if (!match) return "";
-
-    const repo = match[1]!.replace(/\.git$/, "");
-    return `https://github.com/${repo}`;
+    const repo = extractGitHubRepo(data);
+    return repo ? `https://github.com/${repo}` : "";
   } catch {
     return "";
   }
+}
+
+/**
+ * Extract "owner/repo" from npm registry package data.
+ * Handles both string and object repository fields.
+ */
+function extractGitHubRepo(data: any): string | null {
+  const repoUrl: string = typeof data.repository === "string" ? data.repository : (data.repository?.url ?? "");
+  const match = repoUrl.match(/github\.com[/:]([^/]+\/[^/]+)/);
+  if (!match) return null;
+  return match[1]!.replace(/\.git$/, "");
 }

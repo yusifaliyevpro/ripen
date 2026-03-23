@@ -19,6 +19,7 @@
     }
   ],
   "homepage": "https://ripencli.vercel.app",
+  "preferGlobal": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yusifaliyevpro/ripen.git"

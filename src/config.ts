@@ -1,19 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
-
-export type RipenConfig = {
-  /** Enable scope grouping */
-  groupByScope: boolean;
-  /** Scopes to sub-group (e.g. ["@heroui"] groups @heroui/* packages) */
-  groupScopes: string[];
-  /** Show grouped scopes at the top of their section */
-  groupsOnTop: boolean;
-  /** Sort packages by update frequency (most updated first) */
-  frequencySort: boolean;
-  /** Separate dependencies and devDependencies into separate groups (default: true) */
-  separateDevDeps: boolean;
-};
+import type { RipenConfig } from "./types";
 
 export const DEFAULT_CONFIG: RipenConfig = {
   groupByScope: false,

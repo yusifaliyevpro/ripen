@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Box, Text, useInput } from "ink";
-import { fetchVersions, type RegistryVersion } from "../registry";
-import type { OutdatedPackage } from "../fetcher";
+import type { RegistryVersion, OutdatedPackage } from "../types";
+import { fetchVersions } from "../registry";
 
 type Props = {
   pkg: OutdatedPackage;
