@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Box, Text, useInput } from "ink";
-import type { RipenConfig } from "../config";
+import type { RipenConfig } from "../types";
+import { SettingsToggle } from "./SettingsToggle";
 
 type Props = {
   config: RipenConfig;
@@ -16,8 +17,11 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
 
   // Build flat list of focusable rows:
   // Row 0: frequencySort toggle
-  // Row 1: groupScopes header
-  // Row 2+: each scope item
+  // Row 1: separateDevDeps toggle
+  // Row 2: groupByScope toggle
+  // Row 3: groupsOnTop toggle
+  // Row 4: list-header
+  // Row 5+: each scope item
   const rows: {
     type:
       | "toggle-frequency"
@@ -121,10 +125,6 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
     }
   });
 
-  const freqToggleFocused = currentRow?.type === "toggle-frequency";
-  const separateDevFocused = currentRow?.type === "toggle-separate-dev";
-  const groupToggleFocused = currentRow?.type === "toggle-group";
-  const groupsTopFocused = currentRow?.type === "toggle-groups-top";
   const listHeaderFocused = currentRow?.type === "list-header";
 
   return (
@@ -136,74 +136,31 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
         </Text>
       </Box>
 
-      {/* Toggle: frequencySort */}
-      <Box flexDirection="column" marginBottom={1}>
-        <Box gap={1}>
-          <Text color="greenBright">{freqToggleFocused ? ">" : " "}</Text>
-          <Text color={config.frequencySort ? "greenBright" : "gray"}>[{config.frequencySort ? "x" : " "}]</Text>
-          <Text bold={freqToggleFocused} color={freqToggleFocused ? "whiteBright" : "white"}>
-            Sort by update frequency
-          </Text>
-        </Box>
-        <Box marginLeft={6}>
-          <Text color="gray">Packages you update often appear at the top</Text>
-        </Box>
-      </Box>
-
-      {/* Toggle: separateDevDeps */}
-      <Box flexDirection="column" marginBottom={1}>
-        <Box gap={1}>
-          <Text color="greenBright">{separateDevFocused ? ">" : " "}</Text>
-          <Text color={config.separateDevDeps ? "greenBright" : "gray"}>[{config.separateDevDeps ? "x" : " "}]</Text>
-          <Text bold={separateDevFocused} color={separateDevFocused ? "whiteBright" : "white"}>
-            Separate dev dependencies
-          </Text>
-        </Box>
-        <Box marginLeft={6}>
-          <Text color="gray">Show dependencies and devDependencies in separate groups</Text>
-        </Box>
-      </Box>
-
-      {/* Toggle: groupByScope */}
-      <Box flexDirection="column" marginBottom={1}>
-        <Box gap={1}>
-          <Text color="greenBright">{groupToggleFocused ? ">" : " "}</Text>
-          <Text color={config.groupByScope ? "greenBright" : "gray"}>[{config.groupByScope ? "x" : " "}]</Text>
-          <Text bold={groupToggleFocused} color={groupToggleFocused ? "whiteBright" : "white"}>
-            Enable scope grouping
-          </Text>
-        </Box>
-        <Box marginLeft={6}>
-          <Text color="gray">Group scoped packages listed below under their scope prefix</Text>
-        </Box>
-      </Box>
-
-      {/* Toggle: groupsOnTop */}
-      <Box flexDirection="column" marginBottom={1}>
-        <Box gap={1}>
-          <Text dimColor={!config.groupByScope} color="greenBright">
-            {groupsTopFocused ? ">" : " "}
-          </Text>
-          <Text
-            dimColor={!config.groupByScope}
-            color={config.groupsOnTop && config.groupByScope ? "greenBright" : "gray"}
-          >
-            [{config.groupsOnTop ? "x" : " "}]
-          </Text>
-          <Text
-            dimColor={!config.groupByScope}
-            bold={groupsTopFocused}
-            color={!config.groupByScope ? "gray" : groupsTopFocused ? "whiteBright" : "white"}
-          >
-            Show grouped scopes on top
-          </Text>
-        </Box>
-        <Box marginLeft={6}>
-          <Text dimColor={!config.groupByScope} color="gray">
-            Grouped scope packages appear before ungrouped ones
-          </Text>
-        </Box>
-      </Box>
+      <SettingsToggle
+        label="Sort by update frequency"
+        description="Packages you update often appear at the top"
+        checked={config.frequencySort}
+        focused={currentRow?.type === "toggle-frequency"}
+      />
+      <SettingsToggle
+        label="Separate dev dependencies"
+        description="Show dependencies and devDependencies in separate groups"
+        checked={config.separateDevDeps}
+        focused={currentRow?.type === "toggle-separate-dev"}
+      />
+      <SettingsToggle
+        label="Enable scope grouping"
+        description="Group scoped packages listed below under their scope prefix"
+        checked={config.groupByScope}
+        focused={currentRow?.type === "toggle-group"}
+      />
+      <SettingsToggle
+        label="Show grouped scopes on top"
+        description="Grouped scope packages appear before ungrouped ones"
+        checked={config.groupsOnTop}
+        focused={currentRow?.type === "toggle-groups-top"}
+        disabled={!config.groupByScope}
+      />
 
       {/* List: groupScopes */}
       <Box flexDirection="column" marginBottom={1}>

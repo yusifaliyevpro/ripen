@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Box, Text } from "ink";
-import type { UpdateResult } from "../executor";
+import type { UpdateResult } from "../types";
 
 type Props = {
   results: UpdateResult[];

@@ -9,6 +9,56 @@ export const metadata: Metadata = {
 export default function ChangelogPage() {
   return (
     <>
+      <ChangelogEntry version="0.3.4" date="March 23, 2026" title="Code Refactoring & Flicker Fix">
+        <p>
+          Major codebase refactoring for better separation of concerns, plus a fix for the package list flicker on
+          initial load.
+        </p>
+        <ul className="mt-2 list-inside list-disc space-y-1">
+          <li>
+            <strong>Package list flicker fix</strong> — eliminated a visible reorder when the package list first appears
+            after checking for updates. Scope groups are now collapsed on the very first render instead of after a
+            delayed effect
+          </li>
+          <li>
+            <strong>Custom hooks</strong> — extracted{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">usePackages</code>
+            ,{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              useTerminalOutput
+            </code>
+            ,{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              useSelfUpdate
+            </code>
+            , and{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              useExitOnScreen
+            </code>{" "}
+            into dedicated hook files
+          </li>
+          <li>
+            <strong>PackageList split</strong> — moved display row building, filtering, and grouping logic into a
+            dedicated{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              package-list/
+            </code>{" "}
+            module with separate types, build-rows, and component files
+          </li>
+          <li>
+            <strong>Utility modules</strong> — created{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              lib/utils.ts
+            </code>{" "}
+            and{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              lib/versions.ts
+            </code>{" "}
+            for shared helpers
+          </li>
+        </ul>
+      </ChangelogEntry>
+
       <ChangelogEntry
         version="0.3.3"
         date="March 22, 2026"

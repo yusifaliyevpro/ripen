@@ -1,35 +1,17 @@
 import { useState, useEffect } from "react";
 import { Box, Text, useApp, useInput } from "ink";
-import type { ProjectInfo } from "../detector";
-import type { OutdatedPackage } from "../fetcher";
-import type { UpdateResult } from "../executor";
+import type { ProjectInfo, RipenConfig, Screen } from "../types";
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
 import { updatePackages } from "../executor";
 import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../config";
-import type { RipenConfig } from "../config";
-import { fetchLatestVersion, isNewerVersion } from "../registry";
-import { execa } from "execa";
-import { PackageList } from "./PackageList";
+import { PackageList } from "./package-list";
 import { VersionPicker } from "./VersionPicker";
 import { ChangelogPanel } from "./ChangelogPanel";
 import { UpdateResults } from "./UpdateResults";
 import { Settings } from "./Settings";
 import { SelfUpdatePrompt } from "./SelfUpdatePrompt";
-
-type Screen =
-  | "self-update-check"
-  | "self-update"
-  | "loading"
-  | "list"
-  | "version-picker"
-  | "changelog"
-  | "updating"
-  | "results"
-  | "empty"
-  | "error"
-  | "settings"
-  | "self-update-done"
-  | "cancelled";
+import { TerminalOutputBox } from "./TerminalOutputBox";
+import { useSelfUpdate, usePackages, useTerminalOutput, useExitOnScreen } from "./hooks";
 
 type Props = {
   project: ProjectInfo;
@@ -41,95 +23,65 @@ type Props = {
 export function App({ project, global, version, installManager }: Props) {
   const { exit } = useApp();
 
-  useInput((_input, key) => {
-    if (key.ctrl && _input === "c") {
-      setScreen("cancelled");
-    }
-  });
-
   const [screen, setScreen] = useState<Screen>("self-update-check");
-  const [latestVersion, setLatestVersion] = useState<string | null>(null);
-  const [selfUpdateError, setSelfUpdateError] = useState<string | null>(null);
-  const [selfUpdating, setSelfUpdating] = useState(false);
   const [config, setConfig] = useState<RipenConfig>(() => loadConfig());
   const [frequency, setFrequency] = useState<Record<string, number>>(() => loadFrequency());
-  const [packages, setPackages] = useState<OutdatedPackage[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [results, setResults] = useState<UpdateResult[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
-  const [loadingMsg, setLoadingMsg] = useState("Checking for outdated packages…");
-  const MAX_TERMINAL_LINES = 3;
-  const [outputLines, setOutputLines] = useState<string[]>([]);
-  const [terminalCmd, setTerminalCmd] = useState(global ? "Checking all package managers…" : "Checking npm registry…");
 
-  // Self-update check on mount
+  const selfUpdate = useSelfUpdate(version, installManager);
+  const { packages, setPackages, toggleOne, toggleMany, chooseVersion } = usePackages();
+  const terminal = useTerminalOutput();
+
+  // ── Ctrl+C ──────────────────────────────────────────────────────────
+  useInput((_input, key) => {
+    if (key.ctrl && _input === "c") setScreen("cancelled");
+  });
+
+  // ── Exit handlers ───────────────────────────────────────────────────
+  useExitOnScreen(screen, ["self-update-done", "empty"], exit);
+  useExitOnScreen(screen, ["cancelled"], exit, {
+    delay: 200,
+    beforeExit: () => console.log("  \x1b[32mCancelled.\x1b[0m\n"),
+  });
+
+  // ── Self-update check → screen transition ──────────────────────────
   useEffect(() => {
-    let cancelled = false;
-    fetchLatestVersion("ripencli").then((latest) => {
-      if (cancelled) return;
-      if (latest && isNewerVersion(version, latest)) {
-        setLatestVersion(latest);
-        setScreen("self-update");
-      } else {
-        setScreen("loading");
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (!selfUpdate.checkComplete) return;
+    if (screen !== "self-update-check") return;
+    setScreen(selfUpdate.hasUpdate ? "self-update" : "loading");
+  }, [selfUpdate.checkComplete]);
 
-  // Exit after self-update completes
-  useEffect(() => {
-    if (screen !== "self-update-done") return;
-    const timer = setTimeout(() => {
-      exit();
-      process.exit(0);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [screen]);
+  const handleSelfUpdate = async () => {
+    const success = await selfUpdate.performUpdate();
+    if (success) {
+      setScreen("self-update-done");
+    } else {
+      // Continue to loading after a brief delay so user can see the error
+      setTimeout(() => setScreen("loading"), 2000);
+    }
+  };
 
-  // Exit when all packages are up to date
-  useEffect(() => {
-    if (screen !== "empty") return;
-    const timer = setTimeout(() => {
-      exit();
-      process.exit(0);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [screen]);
-
-  // Exit on cancel (Ctrl+C)
-  useEffect(() => {
-    if (screen !== "cancelled") return;
-    const timer = setTimeout(() => {
-      exit();
-      console.log("  \x1b[32mCancelled.\x1b[0m\n");
-      process.exit(0);
-    }, 200);
-    return () => clearTimeout(timer);
-  }, [screen]);
-
-  // Fetch outdated packages when entering loading screen
+  // ── Fetch outdated packages ────────────────────────────────────────
   const [fetchStarted, setFetchStarted] = useState(false);
   useEffect(() => {
     if (screen !== "loading" || fetchStarted) return;
     setFetchStarted(true);
 
-    const onLine = (line: string) => {
-      setOutputLines((prev) => [...prev.slice(-(MAX_TERMINAL_LINES - 1)), line]);
-    };
+    terminal.setLoadingMsg("Checking for outdated packages…");
+    terminal.setTerminalCmd(global ? "Checking all package managers…" : "Checking npm registry…");
 
     const fetch = global
-      ? getAllGlobalOutdated(project.cwd, onLine)
-      : getOutdatedPackages(project.manager, project.cwd, false, onLine);
+      ? getAllGlobalOutdated(project.cwd, terminal.onLine)
+      : getOutdatedPackages(project.manager, project.cwd, false, terminal.onLine);
+
     fetch.then((result) => {
       if (!result.ok) {
         setErrorMsg(result.error);
         setScreen("error");
         return;
       }
-      setOutputLines([]);
+      terminal.reset();
       if (result.packages.length === 0) {
         setScreen("empty");
       } else {
@@ -139,79 +91,23 @@ export function App({ project, global, version, installManager }: Props) {
     });
   }, [screen]);
 
-  const handleToggle = (index: number) => {
-    setPackages((prev) => prev.map((p, i) => (i === index ? { ...p, selected: !p.selected } : p)));
-  };
-
-  const handleToggleGroup = (groupType: OutdatedPackage["type"]) => {
-    setPackages((prev) => {
-      const groupPkgs = prev.filter((p) => p.type === groupType);
-      const allSelected = groupPkgs.every((p) => p.selected);
-      return prev.map((p) => (p.type === groupType ? { ...p, selected: !allSelected } : p));
-    });
-  };
-
-  const handleToggleMany = (indices: number[]) => {
-    setPackages((prev) => {
-      const allSelected = indices.every((i) => prev[i]?.selected);
-      return prev.map((p, i) => (indices.includes(i) ? { ...p, selected: !allSelected } : p));
-    });
-  };
-
+  // ── Callbacks ──────────────────────────────────────────────────────
   const handleConfigChange = (newConfig: RipenConfig) => {
     setConfig(newConfig);
     saveConfig(newConfig);
   };
 
-  const handleSelectVersion = (index: number) => {
-    setActiveIndex(index);
-    setScreen("version-picker");
-  };
-
-  const handleViewChangelog = (index: number) => {
-    setActiveIndex(index);
-    setScreen("changelog");
-  };
-
-  const handleVersionChosen = (version: string) => {
-    setPackages((prev) =>
-      prev.map((p, i) => (i === activeIndex ? { ...p, targetVersion: version, selected: true } : p)),
-    );
-    setScreen("list");
-  };
-
-  const handleSelfUpdate = async () => {
-    setSelfUpdating(true);
-    try {
-      const updateArgs =
-        installManager === "yarn"
-          ? ["global", "add", `ripencli@${latestVersion}`]
-          : ["add", "--global", `ripencli@${latestVersion}`];
-      await execa(installManager, updateArgs);
-      setSelfUpdating(false);
-      setScreen("self-update-done");
-    } catch (err: any) {
-      setSelfUpdateError(err.message ?? "Unknown error");
-      setSelfUpdating(false);
-      // Continue to loading after a brief delay so user can see the error
-      setTimeout(() => setScreen("loading"), 2000);
-    }
-  };
+  const [results, setResults] = useState<import("../types").UpdateResult[]>([]);
 
   const handleConfirm = async () => {
     const selected = packages.filter((p) => p.selected);
     if (selected.length === 0) return;
 
-    setLoadingMsg(`Updating ${selected.length} package${selected.length > 1 ? "s" : ""}…`);
-    setTerminalCmd("");
-    setOutputLines([]);
+    terminal.setLoadingMsg(`Updating ${selected.length} package${selected.length > 1 ? "s" : ""}…`);
+    terminal.setTerminalCmd("");
     setScreen("updating");
 
-    const onLine = (line: string) => {
-      setOutputLines((prev) => [...prev.slice(-(MAX_TERMINAL_LINES - 1)), line]);
-    };
-
-    const res = await updatePackages(project.manager, selected, project.cwd, global, onLine);
+    const res = await updatePackages(project.manager, selected, project.cwd, global, terminal.onLine);
     setResults(res);
     setScreen("results");
 
@@ -222,7 +118,8 @@ export function App({ project, global, version, installManager }: Props) {
     }
   };
 
-  // Self-update check screen
+  // ── Render ─────────────────────────────────────────────────────────
+
   if (screen === "self-update-check") {
     return (
       <Box flexDirection="column" padding={1}>
@@ -237,14 +134,13 @@ export function App({ project, global, version, installManager }: Props) {
     );
   }
 
-  // Self-update prompt screen
   if (screen === "self-update") {
     return (
       <SelfUpdatePrompt
         currentVersion={version}
-        latestVersion={latestVersion!}
-        updating={selfUpdating}
-        error={selfUpdateError}
+        latestVersion={selfUpdate.latestVersion!}
+        updating={selfUpdate.selfUpdating}
+        error={selfUpdate.selfUpdateError}
         onUpdate={handleSelfUpdate}
         onSkip={() => setScreen("loading")}
       />
@@ -259,46 +155,20 @@ export function App({ project, global, version, installManager }: Props) {
           ripen
         </Text>
         <Box marginTop={1}>
-          <Text color="green">✓ Updated to v{latestVersion}. Run ripen again to use the new version.</Text>
+          <Text color="green">✓ Updated to v{selfUpdate.latestVersion}. Run ripen again to use the new version.</Text>
         </Box>
       </Box>
     );
   }
 
-  // Loading screen (initial fetch) — PackageList not yet needed
   if (screen === "loading") {
     return (
-      <Box flexDirection="column" padding={1}>
-        <Text color="greenBright" bold>
-          {" "}
-          ripen
-        </Text>
-        <Box marginTop={1}>
-          <Text color="gray">{loadingMsg}</Text>
-        </Box>
-        <Box
-          flexDirection="column"
-          marginTop={1}
-          borderStyle="round"
-          borderColor="gray"
-          paddingX={1}
-          width={64}
-          height={MAX_TERMINAL_LINES + 3}
-          overflow="hidden"
-        >
-          {terminalCmd !== "" && (
-            <Box>
-              <Text color="gray">$ </Text>
-              <Text color="gray">{terminalCmd}</Text>
-            </Box>
-          )}
-          {outputLines.map((line, i) => (
-            <Text key={i} color={line.includes("WARN") || line.includes("ERR") ? "yellow" : "gray"} wrap="truncate">
-              {line}
-            </Text>
-          ))}
-        </Box>
-      </Box>
+      <TerminalOutputBox
+        message={terminal.loadingMsg}
+        command={terminal.terminalCmd}
+        outputLines={terminal.outputLines}
+        maxLines={terminal.maxLines}
+      />
     );
   }
 
@@ -320,9 +190,7 @@ export function App({ project, global, version, installManager }: Props) {
     );
   }
 
-  if (screen === "cancelled") {
-    return <></>;
-  }
+  if (screen === "cancelled") return <></>;
 
   if (screen === "empty") {
     return (
@@ -346,37 +214,12 @@ export function App({ project, global, version, installManager }: Props) {
   return (
     <>
       {screen === "updating" && (
-        <Box flexDirection="column" padding={1}>
-          <Text color="greenBright" bold>
-            {" "}
-            ripen
-          </Text>
-          <Box marginTop={1}>
-            <Text color="gray">{loadingMsg}</Text>
-          </Box>
-          <Box
-            flexDirection="column"
-            marginTop={1}
-            borderStyle="round"
-            borderColor="gray"
-            paddingX={1}
-            width={64}
-            height={MAX_TERMINAL_LINES + 3}
-            overflow="hidden"
-          >
-            {terminalCmd !== "" && (
-              <Box>
-                <Text color="gray">$ </Text>
-                <Text color="gray">{terminalCmd}</Text>
-              </Box>
-            )}
-            {outputLines.map((line, i) => (
-              <Text key={i} color={line.includes("WARN") || line.includes("ERR") ? "yellow" : "gray"} wrap="truncate">
-                {line}
-              </Text>
-            ))}
-          </Box>
-        </Box>
+        <TerminalOutputBox
+          message={terminal.loadingMsg}
+          command={terminal.terminalCmd}
+          outputLines={terminal.outputLines}
+          maxLines={terminal.maxLines}
+        />
       )}
       {screen === "results" && (
         <Box padding={1}>
@@ -398,7 +241,10 @@ export function App({ project, global, version, installManager }: Props) {
         <Box padding={1}>
           <VersionPicker
             pkg={packages[activeIndex]!}
-            onSelect={handleVersionChosen}
+            onSelect={(v) => {
+              chooseVersion(activeIndex, v);
+              setScreen("list");
+            }}
             onCancel={() => setScreen("list")}
           />
         </Box>
@@ -411,11 +257,16 @@ export function App({ project, global, version, installManager }: Props) {
       <Box padding={1} display={isListActive ? "flex" : "none"}>
         <PackageList
           packages={packages}
-          onToggle={handleToggle}
-          onToggleGroup={handleToggleGroup}
-          onToggleMany={handleToggleMany}
-          onSelectVersion={handleSelectVersion}
-          onViewChangelog={handleViewChangelog}
+          onToggle={toggleOne}
+          onToggleMany={toggleMany}
+          onSelectVersion={(i) => {
+            setActiveIndex(i);
+            setScreen("version-picker");
+          }}
+          onViewChangelog={(i) => {
+            setActiveIndex(i);
+            setScreen("changelog");
+          }}
           onConfirm={handleConfirm}
           onOpenSettings={() => setScreen("settings")}
           groupByScope={config.groupByScope}

@@ -1,42 +1,9 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 import { execa } from "execa";
-import type { PackageManager } from "./detector";
+import type { PackageManager, OutdatedPackage, FetchResult } from "./types";
 import { isNewerVersion } from "./registry";
-
-export type OutdatedPackage = {
-  name: string;
-  current: string;
-  wanted: string;
-  latest: string;
-  dependent: string;
-  type: "dependencies" | "devDependencies" | "global";
-  /** Which package manager owns this package (relevant for global packages) */
-  manager?: PackageManager;
-  selected?: boolean;
-  targetVersion?: string;
-  /** Original range prefix from package.json (e.g. "^", "~") */
-  rangePrefix?: string;
-};
-
-export type FetchResult = { ok: true; packages: OutdatedPackage[] } | { ok: false; error: string };
-
-/**
- * Strip semver range prefixes to extract the base version and prefix.
- * e.g. "^9.3.0" → { version: "9.3.0", prefix: "^" }
- * Returns null for unparseable ranges (*, latest, git URLs, file: paths).
- */
-function parseBaseVersion(range: string): { version: string; prefix: string } | null {
-  // Strip workspace: protocol
-  let v = range.replace(/^workspace:/, "");
-  // Extract and strip range prefix
-  const prefixMatch = v.match(/^([~^>=<]+)/);
-  const prefix = prefixMatch ? prefixMatch[1] : "";
-  v = v.replace(/^[~^>=<]+/, "").trim();
-  // Must look like a semver version (digits.digits.digits, optionally with pre-release)
-  if (/^\d+\.\d+\.\d+/.test(v)) return { version: v, prefix };
-  return null;
-}
+import { parseBaseVersion } from "./lib/versions";
 
 type DepEntry = {
   name: string;

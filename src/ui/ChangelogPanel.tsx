@@ -1,21 +1,10 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Box, Text, useInput, useStdout } from "ink";
-import { exec } from "child_process";
-import { useState } from "react";
 import { ScrollView, type ScrollViewRef } from "ink-scroll-view";
+import type { ChangelogEntry, OutdatedPackage } from "../types";
+import { openInBrowser } from "../lib/utils";
 import { MarkdownLine } from "./MarkdownLine";
-import { fetchChangelog, fetchRepoUrl, type ChangelogEntry } from "../registry";
-import type { OutdatedPackage } from "../fetcher";
-
-function openInBrowser(url: string) {
-  const cmd =
-    process.platform === "win32"
-      ? `start "" "${url}"`
-      : process.platform === "darwin"
-        ? `open "${url}"`
-        : `xdg-open "${url}"`;
-  exec(cmd);
-}
+import { fetchChangelog, fetchRepoUrl } from "../registry";
 
 type Props = {
   pkg: OutdatedPackage;
@@ -60,6 +49,15 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
 
   const currentEntry = entries[activeEntry];
 
+  const clampedScrollBy = (delta: number) => {
+    const sv = scrollRef.current;
+    if (!sv) return;
+    const maxOffset = sv.getBottomOffset();
+    const current = sv.getScrollOffset();
+    const target = Math.max(0, Math.min(maxOffset, current + delta));
+    sv.scrollTo(target);
+  };
+
   useInput((input, key) => {
     if (key.escape || input === "q" || input === "c") {
       onClose();
@@ -76,16 +74,10 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
       setActiveEntry((prev) => Math.min(entries.length - 1, prev + 1));
       return;
     }
-    if (key.upArrow) scrollRef.current?.scrollBy(-1);
-    if (key.downArrow) scrollRef.current?.scrollBy(1);
-    if (key.pageUp) {
-      const h = scrollRef.current?.getViewportHeight() ?? 10;
-      scrollRef.current?.scrollBy(-h);
-    }
-    if (key.pageDown) {
-      const h = scrollRef.current?.getViewportHeight() ?? 10;
-      scrollRef.current?.scrollBy(h);
-    }
+    if (key.upArrow) clampedScrollBy(-1);
+    if (key.downArrow) clampedScrollBy(1);
+    if (key.pageUp) clampedScrollBy(-(scrollRef.current?.getViewportHeight() ?? 10));
+    if (key.pageDown) clampedScrollBy(scrollRef.current?.getViewportHeight() ?? 10);
     if (input === "r" && releasesPageUrl) triggerOpen(releasesPageUrl);
     if (input === "o" && currentEntry?.url) triggerOpen(currentEntry.url);
   });
@@ -143,7 +135,7 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
           )}
         </Box>
       ) : currentEntry ? (
-        <Box height={18} flexDirection="column">
+        <Box height={Math.min(currentEntry.body.split("\n").length, 18)} flexDirection="column">
           <ScrollView ref={scrollRef}>
             <Box flexDirection="column">
               {currentEntry.body.split("\n").map((line, j) => (

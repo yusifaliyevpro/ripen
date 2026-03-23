@@ -1,7 +1,7 @@
 {
   "name": "ripencli",
-  "version": "0.3.3",
-  "description": "Interactive dependency updater for npm, pnpm, and yarn",
+  "version": "0.3.4",
+  "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
   "license": "MIT",
   "author": {
     "name": "Yusif Aliyev",
@@ -19,6 +19,9 @@
     }
   ],
   "homepage": "https://ripencli.vercel.app",
+  "bugs": {
+    "url": "https://github.com/yusifaliyevpro/ripen/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yusifaliyevpro/ripen.git"
@@ -35,10 +38,16 @@
     "checks": "node scripts/pr-checks.ts"
   },
   "keywords": [
-    "pnpm",
     "npm",
+    "pnpm",
+    "yarn",
+    "bun",
     "dependencies",
+    "outdated",
     "update",
+    "upgrade",
+    "updater",
+    "package-manager",
     "interactive",
     "cli",
     "tui"
