@@ -258,7 +258,6 @@ export function App({ project, global, version, installManager }: Props) {
         <PackageList
           packages={packages}
           onToggle={toggleOne}
-
           onToggleMany={toggleMany}
           onSelectVersion={(i) => {
             setActiveIndex(i);
