@@ -20,15 +20,19 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
   const scrollRef = useRef<ScrollViewRef>(null);
   const { stdout } = useStdout();
 
+  const isUpToDate = pkg.current === (pkg.targetVersion ?? pkg.latest);
+
   useEffect(() => {
-    Promise.all([fetchChangelog(pkg.name, pkg.current, pkg.targetVersion ?? pkg.latest), fetchRepoUrl(pkg.name)]).then(
-      ([e, repo]) => {
-        setEntries(e);
-        setActiveEntry(0);
-        setRepoUrl(repo);
-        setLoading(false);
-      },
-    );
+    Promise.all([
+      fetchChangelog(pkg.name, isUpToDate ? "" : pkg.current, pkg.targetVersion ?? pkg.latest),
+      fetchRepoUrl(pkg.name),
+    ]).then(([e, repo]) => {
+      setEntries(e);
+      // Up-to-date: start at latest (last entry). Outdated: start at oldest change (first entry).
+      setActiveEntry(isUpToDate ? Math.max(0, e.length - 1) : 0);
+      setRepoUrl(repo);
+      setLoading(false);
+    });
   }, [pkg.name]);
 
   useEffect(() => {
@@ -98,7 +102,6 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
           <Text color="gray"> → </Text>
           <Text color="greenBright">{targetVer}</Text>
         </Text>
-        {repoUrl && <Text color="gray"> {repoUrl}/releases</Text>}
         <Text color="gray">────────────────────────────────────────────────────</Text>
       </Box>
 
@@ -139,7 +142,7 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
           <ScrollView ref={scrollRef}>
             <Box flexDirection="column">
               {currentEntry.body.split("\n").map((line, j) => (
-                <MarkdownLine key={j} line={line} />
+                <MarkdownLine key={j} line={line} repoUrl={repoUrl} />
               ))}
             </Box>
           </ScrollView>

@@ -1,5 +1,5 @@
 import type { RegistryVersion, ChangelogEntry } from "./types";
-import { compareVersions } from "./lib/versions";
+import { compareVersions, parseVersion } from "./lib/versions";
 
 export { isNewerVersion } from "./lib/versions";
 
@@ -61,10 +61,14 @@ export async function fetchChangelog(
 
     const releases = (await ghRes.json()) as any[];
 
+    const toMajor = parseVersion(toVersion)[0];
     const filtered = releases
       .filter((r) => {
         if (r.draft || r.prerelease) return false;
-        // include: from < ver <= to
+        // fromVersion="" = up-to-date case: show history for the same major version only
+        if (fromVersion === "") {
+          return parseVersion(r.tag_name)[0] === toMajor && compareVersions(r.tag_name, toVersion) <= 0;
+        }
         return compareVersions(r.tag_name, fromVersion) > 0 && compareVersions(r.tag_name, toVersion) <= 0;
       })
       .map((r) => ({
@@ -85,7 +89,8 @@ export async function fetchChangelog(
       ];
     }
 
-    return filtered;
+    // Sort ascending: oldest first so callers can start at index 0 (oldest change)
+    return filtered.sort((a, b) => compareVersions(a.version, b.version));
   } catch {
     return [];
   }
