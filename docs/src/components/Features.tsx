@@ -3,6 +3,7 @@ import {
   VscFolderOpened,
   VscGitCommit,
   VscGlobe,
+  VscListFlat,
   VscPackage,
   VscSync,
   VscTag,
@@ -53,6 +54,11 @@ const features: { icon: IconType; title: string; description: string }[] = [
     icon: VscSync,
     title: "Self-Update",
     description: "Automatically notifies you when a newer version of ripen is available and can update itself.",
+  },
+  {
+    icon: VscListFlat,
+    title: "Show All Packages",
+    description: "Run with --all to list every dependency, not just outdated ones. Great for browsing changelogs or downgrading.",
   },
 ];
 

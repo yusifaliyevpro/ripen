@@ -16,11 +16,12 @@ import { useSelfUpdate, usePackages, useTerminalOutput, useExitOnScreen } from "
 type Props = {
   project: ProjectInfo;
   global: boolean;
+  showAll: boolean;
   version: string;
   installManager: ProjectInfo["manager"];
 };
 
-export function App({ project, global, version, installManager }: Props) {
+export function App({ project, global, showAll, version, installManager }: Props) {
   const { exit } = useApp();
 
   const [screen, setScreen] = useState<Screen>("self-update-check");
@@ -73,7 +74,7 @@ export function App({ project, global, version, installManager }: Props) {
 
     const fetch = global
       ? getAllGlobalOutdated(project.cwd, terminal.onLine)
-      : getOutdatedPackages(project.manager, project.cwd, false, terminal.onLine);
+      : getOutdatedPackages(project.manager, project.cwd, false, terminal.onLine, showAll);
 
     fetch.then((result) => {
       if (!result.ok) {
@@ -275,6 +276,7 @@ export function App({ project, global, version, installManager }: Props) {
           frequencySort={config.frequencySort}
           frequency={frequency}
           separateDevDeps={config.separateDevDeps}
+          showAll={showAll}
           isActive={isListActive}
         />
       </Box>

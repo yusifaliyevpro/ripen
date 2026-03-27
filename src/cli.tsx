@@ -9,6 +9,7 @@ const { version: VERSION } = require("../package.json");
 
 const args = process.argv.slice(2);
 const isGlobal = args.includes("--global") || args.includes("-g");
+const showAll = args.includes("--all") || args.includes("-a");
 const showHelp = args.includes("--help") || args.includes("-h");
 const showVersion = args.includes("--version") || args.includes("-V");
 
@@ -24,6 +25,7 @@ if (showHelp) {
   Usage:
     ripen           check current project
     ripen -g        check global packages
+    ripen -a        show all packages, not just outdated ones
     ripen --help    show this help
     ripen --version show version
 
@@ -51,7 +53,7 @@ const project = getProjectInfo(cwd);
 const installManager = detectGlobalInstallManager();
 
 const { waitUntilExit } = render(
-  <App project={project} global={isGlobal} version={VERSION} installManager={installManager} />,
+  <App project={project} global={isGlobal} showAll={showAll} version={VERSION} installManager={installManager} />,
   { exitOnCtrlC: false },
 );
 

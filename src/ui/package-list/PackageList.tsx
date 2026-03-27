@@ -19,6 +19,7 @@ type Props = {
   frequencySort?: boolean;
   frequency?: Record<string, number>;
   separateDevDeps?: boolean;
+  showAll?: boolean;
   isActive?: boolean;
 };
 
@@ -36,6 +37,7 @@ export function PackageList({
   frequencySort = false,
   frequency = {},
   separateDevDeps = true,
+  showAll = false,
   isActive = true,
 }: Props) {
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -167,6 +169,7 @@ export function PackageList({
   );
 
   const selectedCount = packages.filter((p) => p.selected).length;
+  const outdatedCount = packages.filter((p) => p.current !== p.latest).length;
 
   return (
     <Box flexDirection="column">
@@ -211,7 +214,14 @@ export function PackageList({
             </Text>
             <Text color="gray"> selected</Text>
             {"  "}
-            <Text color="gray">{packages.length} outdated</Text>
+            {showAll ? (
+              <Text color="gray">
+                {packages.length} packages{"  "}
+                <Text color={outdatedCount > 0 ? "yellow" : "green"}>{outdatedCount} outdated</Text>
+              </Text>
+            ) : (
+              <Text color="gray">{packages.length} outdated</Text>
+            )}
           </Text>
           {selectedCount > 0 && <Text color="greenBright"> Press enter to update →</Text>}
         </Box>
@@ -303,7 +313,8 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
           // Package row (header rows are never in group.items, so this is safe)
           if (row.kind !== "package") return null;
           const pkg = row.pkg;
-          const isMajorBump = parseInt(pkg.latest) > parseInt(pkg.current);
+          const isUpToDate = pkg.current === pkg.latest;
+          const isMajorBump = !isUpToDate && parseInt(pkg.latest) > parseInt(pkg.current);
 
           return (
             <Box key={pkg.name} gap={2}>
@@ -319,7 +330,7 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
                 </Text>
               </Box>
               <Box width={14}>
-                <Text color="red">{pkg.current}</Text>
+                <Text color={isUpToDate ? "green" : "red"}>{pkg.current}</Text>
               </Box>
               <Box width={14}>
                 <Text color="greenBright">{pkg.targetVersion ?? pkg.latest}</Text>
