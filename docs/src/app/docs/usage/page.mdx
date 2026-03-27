@@ -29,6 +29,18 @@ ripen -g
 
 In global mode, ripen scans npm, pnpm, and yarn in parallel and combines the results.
 
+## Show All Packages
+
+To list every dependency — not just outdated ones:
+
+```bash
+ripen --all
+# or
+ripen -a
+```
+
+Up-to-date packages are shown with their current version in green. This is useful for browsing changelogs or using the version picker to downgrade a package.
+
 ## Keyboard Controls
 
 | Key      | Action                                  |
@@ -66,11 +78,12 @@ After pressing `Enter`, ripen runs the appropriate install commands and shows a 
 
 ## CLI Options
 
-| Flag        | Description           |
-| ----------- | --------------------- |
-| `-g`        | Check global packages |
-| `--help`    | Show help message     |
-| `--version` | Show ripen version    |
+| Flag              | Description                          |
+| ----------------- | ------------------------------------ |
+| `-g`, `--global`  | Check global packages                |
+| `-a`, `--all`     | Show all packages, not just outdated |
+| `--help`          | Show help message                    |
+| `--version`       | Show ripen version                   |
 
 ## Next Steps
 

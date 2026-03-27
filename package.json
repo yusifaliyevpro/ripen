@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "0.3.4",
+  "version": "1.0.0",
   "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
   "license": "MIT",
   "author": {
@@ -35,7 +35,10 @@
     "dev": "tsx src/cli.tsx",
     "typecheck": "tsc --noEmit",
     "start": "node dist/cli.js",
-    "checks": "node scripts/pr-checks.ts"
+    "checks": "node scripts/pr-checks.ts",
+    "docs:dev": "pnpm --prefix docs dev",
+    "docs:build": "pnpm --prefix docs build",
+    "docs:start": "pnpm --prefix docs start"
   },
   "keywords": [
     "npm",
@@ -71,7 +74,7 @@
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "prettier": "^3.8.1",
-    "tsdown": "^0.21.4",
-    "typescript": "^5.9.3"
+    "tsdown": "^0.21.6",
+    "typescript": "^6.0.2"
   }
 }

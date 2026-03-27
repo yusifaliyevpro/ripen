@@ -15,6 +15,7 @@
 - **Changelog viewer** — see GitHub release notes before you update
 - **npm, pnpm, yarn & bun** — auto-detects your package manager
 - **Global packages** — check and update global installs across all* package managers
+- **Show all packages** — `ripen --all` lists every dependency, not just outdated ones (great for checking changelogs or downgrading)
 - **Self-update** — notifies you when a new version of ripen is available
 - **Major bump warnings** — highlights potentially breaking updates
 - **Scope grouping** — optionally group scoped packages (e.g. `@heroui/*`) together
@@ -41,6 +42,9 @@ ripen
 # Check global packages (scans npm, pnpm, and yarn)
 ripen -g
 
+# Show all packages, not just outdated ones
+ripen --all
+
 # Help
 ripen --help
 ```
@@ -61,7 +65,7 @@ ripen --help
 
 1. Reads your `package.json` and checks each dependency against the npm registry directly
 2. Detects your package manager from the lock file (`bun.lock`, `pnpm-lock.yaml`, `package-lock.json`, or `yarn.lock`) for running updates
-3. Shows outdated packages in a colorful interactive list
+3. Shows outdated packages in a colorful interactive list (use `--all` to show every package, including up-to-date ones)
 4. Press `v` on any package to pick a specific version from the npm registry
 5. Press `c` to see GitHub release notes between your current and target version
 6. Select the ones you want and press enter — ripen runs the update commands for you

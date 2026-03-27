@@ -81,6 +81,7 @@ export async function getOutdatedPackages(
   cwd: string,
   global = false,
   onLine?: (line: string) => void,
+  showAll = false,
 ): Promise<FetchResult> {
   // Global mode: use manager's outdated command
   if (global) {
@@ -115,7 +116,7 @@ export async function getOutdatedPackages(
   for (const dep of deps) {
     const latest = latestVersions.get(dep.name);
     if (!latest) continue;
-    if (!isNewerVersion(dep.current, latest)) continue;
+    if (!showAll && !isNewerVersion(dep.current, latest)) continue;
 
     packages.push({
       name: dep.name,

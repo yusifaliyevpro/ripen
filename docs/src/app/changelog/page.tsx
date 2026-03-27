@@ -9,6 +9,36 @@ export const metadata: Metadata = {
 export default function ChangelogPage() {
   return (
     <>
+      <ChangelogEntry 
+        version="1.0.0" 
+        image="/og.png"
+        date="March 27, 2026" title="Show All Packages (--all flag)"
+      >
+        <p>
+          Added <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">--all</code>{" "}
+          (
+          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">-a</code>) flag —
+          show every dependency, not just outdated ones.
+        </p>
+        <ul className="mt-2 list-inside list-disc space-y-1">
+          <li>
+            <strong>--all / -a flag</strong> — run{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">ripen --all</code>{" "}
+            to list all packages regardless of their update status. Useful for browsing changelogs or picking an older
+            version to downgrade to
+          </li>
+          <li>
+            <strong>Green current version</strong> — packages that are already up to date show their current version in
+            green instead of red, making it easy to see what needs attention at a glance
+          </li>
+          <li>
+            <strong>Updated footer</strong> — in{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">--all</code> mode
+            the footer shows total package count alongside the outdated count
+          </li>
+        </ul>
+      </ChangelogEntry>
+
       <ChangelogEntry version="0.3.4" date="March 23, 2026" title="Code Refactoring & Flicker Fix">
         <p>
           Major codebase refactoring for better separation of concerns, plus a fix for the package list flicker on
@@ -63,7 +93,6 @@ export default function ChangelogPage() {
         version="0.3.3"
         date="March 22, 2026"
         title="Documentation Updates"
-        image="/changelog/030_banner.png"
       >
         <p>
           Updated documentation to include the new <strong>separateDevDeps</strong> setting in both the README and the
