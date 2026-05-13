@@ -51,9 +51,11 @@ For global packages (`ripen -g`), ripen shells out to each package manager's `ou
 
 ripen checks **npm**, **pnpm**, and **yarn** in parallel, then combines the results into a single list. This lets you manage all your global tools from one interface regardless of which package manager installed them.
 
-## Version Prefix Handling
+## Version Handling
 
-ripen preserves your version range prefixes. If your `package.json` uses `^1.0.0`, the update will maintain the `^` prefix. Same for `~` and exact versions.
+ripen copies exact version commands — e.g. `pnpm add react@19.1.0` rather than `pnpm add react@^19.1.0`. Package managers preserve whatever range prefix (`^`, `~`, or none) is already in your `package.json`, so passing the prefix again in the install command is redundant.
+
+ripen also recognises partial version ranges like `^6` or `^6.2` — not just the standard three-part `major.minor.patch` form.
 
 ## Next Steps
 

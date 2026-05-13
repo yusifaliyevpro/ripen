@@ -34,18 +34,22 @@ function readPackageJsonDeps(cwd: string): DepEntry[] {
   return entries;
 }
 
-async function fetchLatestWithRetry(packageName: string): Promise<string | null> {
+type RegistryInfo = { version: string; publishedAt: string } | null;
+
+async function fetchRegistryInfoWithRetry(packageName: string): Promise<RegistryInfo> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15_000);
-      const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`, {
+      const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`, {
         signal: controller.signal,
       });
       clearTimeout(timeout);
       if (!res.ok) return null;
       const data = (await res.json()) as any;
-      return data.version ?? null;
+      const version = data["dist-tags"]?.latest ?? null;
+      if (!version) return null;
+      return { version, publishedAt: data.time?.[version] ?? "" };
     } catch {
       if (attempt === 2) return null;
     }
@@ -57,8 +61,8 @@ async function fetchAllLatest(
   names: string[],
   concurrency: number,
   onLine?: (line: string) => void,
-): Promise<Map<string, string | null>> {
-  const results = new Map<string, string | null>();
+): Promise<Map<string, RegistryInfo>> {
+  const results = new Map<string, RegistryInfo>();
   let index = 0;
   let completed = 0;
 
@@ -67,7 +71,7 @@ async function fetchAllLatest(
       const i = index++;
       const name = names[i];
       onLine?.(`Checking ${name} (${completed + 1}/${names.length})...`);
-      results.set(name, await fetchLatestWithRetry(name));
+      results.set(name, await fetchRegistryInfoWithRetry(name));
       completed++;
     }
   }
@@ -114,8 +118,9 @@ export async function getOutdatedPackages(
 
   const packages: OutdatedPackage[] = [];
   for (const dep of deps) {
-    const latest = latestVersions.get(dep.name);
-    if (!latest) continue;
+    const info = latestVersions.get(dep.name);
+    if (!info) continue;
+    const { version: latest, publishedAt } = info;
     if (!showAll && !isNewerVersion(dep.current, latest)) continue;
 
     packages.push({
@@ -128,6 +133,7 @@ export async function getOutdatedPackages(
       selected: false,
       targetVersion: latest,
       rangePrefix: dep.prefix,
+      latestPublishedAt: publishedAt || undefined,
     });
   }
 

@@ -29,16 +29,6 @@ export type OutdatedPackage = {
 
 export type FetchResult = { ok: true; packages: OutdatedPackage[] } | { ok: false; error: string };
 
-// ── Update results ───────────────────────────────────────────────────
-
-export type UpdateResult = {
-  name: string;
-  fromVersion: string;
-  version: string;
-  success: boolean;
-  error?: string;
-};
-
 // ── Config ───────────────────────────────────────────────────────────
 
 export type RipenConfig = {

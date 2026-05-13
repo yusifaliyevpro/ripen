@@ -2,13 +2,12 @@ import { useState, useEffect } from "react";
 import { Box, Text, useApp, useInput } from "ink";
 import type { ProjectInfo, RipenConfig, Screen } from "../types";
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
-import { updatePackages } from "../executor";
-import { fetchPublishedAt } from "../registry";
+import { buildUpdateCommands } from "../executor";
 import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../config";
+import { copyToClipboard } from "../lib/utils";
 import { PackageList } from "./package-list";
 import { VersionPicker } from "./VersionPicker";
 import { ChangelogPanel } from "./ChangelogPanel";
-import { UpdateResults } from "./UpdateResults";
 import { Settings } from "./Settings";
 import { SelfUpdatePrompt } from "./SelfUpdatePrompt";
 import { TerminalOutputBox } from "./TerminalOutputBox";
@@ -20,9 +19,11 @@ type Props = {
   showAll: boolean;
   version: string;
   installManager: ProjectInfo["manager"];
+  onCancelled?: () => void;
+  onCopied?: (commands: string[]) => void;
 };
 
-export function App({ project, global, showAll, version, installManager }: Props) {
+export function App({ project, global, showAll, version, installManager, onCancelled, onCopied }: Props) {
   const { exit } = useApp();
 
   const [screen, setScreen] = useState<Screen>("self-update-check");
@@ -44,7 +45,7 @@ export function App({ project, global, showAll, version, installManager }: Props
   useExitOnScreen(screen, ["self-update-done", "empty"], exit);
   useExitOnScreen(screen, ["cancelled"], exit, {
     delay: 200,
-    beforeExit: () => console.log("  \x1b[32mCancelled.\x1b[0m\n"),
+    beforeExit: () => onCancelled?.(),
   });
 
   // ── Self-update check → screen transition ──────────────────────────
@@ -59,27 +60,9 @@ export function App({ project, global, showAll, version, installManager }: Props
     if (success) {
       setScreen("self-update-done");
     } else {
-      // Continue to loading after a brief delay so user can see the error
       setTimeout(() => setScreen("loading"), 2000);
     }
   };
-
-  // ── Hydrate publish dates lazily after list appears ───────────────
-  const [datesLoaded, setDatesLoaded] = useState(false);
-  useEffect(() => {
-    if (packages.length === 0 || datesLoaded) return;
-    setDatesLoaded(true);
-    Promise.all(packages.map((pkg) => fetchPublishedAt(pkg.name, pkg.latest).then((publishedAt) => ({ name: pkg.name, publishedAt })))).then(
-      (dates) => {
-        setPackages((prev) =>
-          prev.map((pkg) => {
-            const found = dates.find((d) => d.name === pkg.name);
-            return found?.publishedAt ? { ...pkg, latestPublishedAt: found.publishedAt } : pkg;
-          }),
-        );
-      },
-    );
-  }, [packages.length, datesLoaded]);
 
   // ── Fetch outdated packages ────────────────────────────────────────
   const [fetchStarted, setFetchStarted] = useState(false);
@@ -116,25 +99,15 @@ export function App({ project, global, showAll, version, installManager }: Props
     saveConfig(newConfig);
   };
 
-  const [results, setResults] = useState<import("../types").UpdateResult[]>([]);
-
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     const selected = packages.filter((p) => p.selected);
     if (selected.length === 0) return;
-
-    terminal.setLoadingMsg(`Updating ${selected.length} package${selected.length > 1 ? "s" : ""}…`);
-    terminal.setTerminalCmd("");
-    setScreen("updating");
-
-    const res = await updatePackages(project.manager, selected, project.cwd, global, terminal.onLine);
-    setResults(res);
-    setScreen("results");
-
-    const successNames = res.filter((r) => r.success).map((r) => r.name);
-    if (successNames.length > 0) {
-      incrementFrequency(successNames);
-      setFrequency(loadFrequency());
-    }
+    const commands = buildUpdateCommands(project.manager, selected, global);
+    copyToClipboard(commands.join(" && "));
+    incrementFrequency(selected.map((p) => p.name));
+    setFrequency(loadFrequency());
+    onCopied?.(commands);
+    exit();
   };
 
   // ── Render ─────────────────────────────────────────────────────────
@@ -232,25 +205,6 @@ export function App({ project, global, showAll, version, installManager }: Props
 
   return (
     <>
-      {screen === "updating" && (
-        <TerminalOutputBox
-          message={terminal.loadingMsg}
-          command={terminal.terminalCmd}
-          outputLines={terminal.outputLines}
-          maxLines={terminal.maxLines}
-        />
-      )}
-      {screen === "results" && (
-        <Box padding={1}>
-          <UpdateResults
-            results={results}
-            onDone={() => {
-              exit();
-              process.exit(0);
-            }}
-          />
-        </Box>
-      )}
       {screen === "settings" && (
         <Box padding={1}>
           <Settings config={config} onConfigChange={handleConfigChange} onClose={() => setScreen("list")} />

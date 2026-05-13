@@ -10,6 +10,58 @@ export default function ChangelogPage() {
   return (
     <>
       <ChangelogEntry
+        version="1.1.0"
+        date="May 13, 2026"
+        title="Clipboard-first, Publish Age & Partial Version Support"
+      >
+        <p>
+          ripen no longer runs update commands for you — it copies the exact command to your clipboard and exits. This
+          release also adds publish age indicators and fixes detection of partial version ranges.
+        </p>
+        <ul className="mt-2 list-inside list-disc space-y-1">
+          <li>
+            <strong>Clipboard-first workflow</strong> — pressing{" "}
+            <kbd className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">Enter</kbd> now
+            copies the ready-to-run install command to your clipboard and exits. ripen never executes anything in your
+            project — you stay in control
+          </li>
+          <li>
+            <strong>Publish age column</strong> — the package list and version picker now show how long ago each version
+            was published (e.g.{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">21h</code>,{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">3d</code>,{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">1mo</code>).
+            Versions published less than 24 hours ago are highlighted in yellow — a useful signal for pnpm&apos;s default{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">minimumReleaseAge</code> of 1 day
+          </li>
+          <li>
+            <strong>No extra request for ages</strong> — publish dates are now fetched in the same registry request as
+            the version check, so the list appears with ages already populated
+          </li>
+          <li>
+            <strong>Exact versions in commands</strong> — generated install commands use pinned versions (e.g.{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">pkg@1.2.3</code>)
+            rather than range-prefixed ones. Package managers already preserve the existing{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">^</code> or{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">~</code> in your{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">package.json</code>
+          </li>
+          <li>
+            <strong>Partial version ranges</strong> — ranges like{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">^6</code> and{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">^6.2</code> are
+            now detected and shown. Previously only full{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">major.minor.patch</code>{" "}
+            ranges were recognised
+          </li>
+          <li>
+            <strong>Alternate screen</strong> — ripen now renders in the terminal&apos;s alternate buffer so the package
+            list never overwrites your scrollback history
+          </li>
+        </ul>
+      </ChangelogEntry>
+
+      <ChangelogEntry
         version="1.0.1"
         date="March 27, 2026"
         title="Changelog Markdown Improvements"

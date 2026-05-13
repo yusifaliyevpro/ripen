@@ -188,7 +188,7 @@ export function PackageList({
             <Text color="white">v</Text> version{"  "}
             <Text color="white">c</Text> changelog{"  "}
             <Text color="white">s</Text> settings{"  "}
-            <Text color="white">enter</Text> update
+            <Text color="white">enter</Text> copy & exit
           </Text>
         </Box>
       </Box>
@@ -223,7 +223,7 @@ export function PackageList({
               <Text color="gray">{packages.length} outdated</Text>
             )}
           </Text>
-          {selectedCount > 0 && <Text color="greenBright"> Press enter to update →</Text>}
+          {selectedCount > 0 && <Text color="greenBright"> Press enter to copy command →</Text>}
         </Box>
       </Box>
     </Box>
