@@ -28,7 +28,7 @@
   },
   "type": "module",
   "bin": {
-    "ripen": "./dist/cli.js"
+    "ripen": "dist/cli.js"
   },
   "scripts": {
     "build": "tsdown",
