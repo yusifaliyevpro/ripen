@@ -59,7 +59,7 @@ export function parseBaseVersion(range: string): { version: string; prefix: stri
   const prefixMatch = v.match(/^([~^>=<]+)/);
   const prefix = prefixMatch ? prefixMatch[1] : "";
   v = v.replace(/^[~^>=<]+/, "").trim();
-  // Must look like a semver version (digits.digits.digits, optionally with pre-release)
-  if (/^\d+\.\d+\.\d+/.test(v)) return { version: v, prefix };
+  // Accept partial semver: "6", "6.2", "6.2.1" (optionally with pre-release)
+  if (/^\d+(\.\d+(\.\d+)?)?/.test(v)) return { version: v, prefix };
   return null;
 }

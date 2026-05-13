@@ -43,22 +43,25 @@ Up-to-date packages are shown with their current version in green. This is usefu
 
 ## Keyboard Controls
 
-| Key      | Action                                  |
-| -------- | --------------------------------------- |
-| `↑` `↓`  | Navigate through packages               |
-| `Space`  | Toggle package selection                |
-| `V`      | Open version picker for current package |
-| `C`      | View changelog / release notes          |
-| `Enter`  | Update all selected packages            |
-| `S`      | Open settings                           |
-| `Esc`    | Go back / cancel                        |
-| `Ctrl+C` | Exit ripen                              |
+| Key           | Action                                  |
+| ------------- | --------------------------------------- |
+| `↑` `↓`       | Navigate through packages               |
+| `PgUp` `PgDn` | Scroll a full page                      |
+| `Tab`         | Jump to the next group header           |
+| `←` `→`       | Collapse / expand a scope sub-group     |
+| `Space`       | Toggle package selection                |
+| `V`           | Open version picker for current package |
+| `C`           | View changelog / release notes          |
+| `Enter`       | Copy update command to clipboard & exit |
+| `S`           | Open settings                           |
+| `Esc`         | Go back / cancel                        |
+| `Ctrl+C`      | Exit ripen                              |
 
 ## Selecting Packages
 
-Use the arrow keys to move the cursor and press `Space` to toggle selection. Selected packages are marked with a filled circle. Press `Enter` to update all selected packages at once.
+Use the arrow keys to move the cursor and press `Space` to toggle selection. Selected packages are marked with a filled circle. Press `Enter` to copy the update command to your clipboard and exit — ripen never runs commands for you.
 
-ripen groups packages by dependency type (`dependencies` vs `devDependencies`) and runs one install command per group.
+ripen groups packages by dependency type (`dependencies` vs `devDependencies`) and builds one install command per group.
 
 ## Version Picker
 
@@ -72,9 +75,9 @@ Press `C` to view the changelog for the currently highlighted package. ripen fet
 
 This helps you understand what changed before committing to an update.
 
-## Update Results
+## Clipboard Output
 
-After pressing `Enter`, ripen runs the appropriate install commands and shows a summary of what was updated, including any errors that occurred.
+After pressing `Enter`, ripen copies the update command (or commands, one per dependency group) to your clipboard and exits. Just paste and run it in your terminal.
 
 ## CLI Options
 

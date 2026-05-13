@@ -1,5 +1,6 @@
 import { useMemo, useEffect, useState, useRef } from "react";
-import { Box, Text, useInput, useStdout } from "ink";
+import { Box, Text, useInput, useWindowSize } from "ink";
+import { formatAge } from "../../lib/utils";
 import type { OutdatedPackage } from "../../types";
 import type { PackageGroup } from "./types";
 import { TYPE_COLORS } from "./types";
@@ -75,8 +76,7 @@ export function PackageList({
 
   const groups = useMemo(() => buildGroups(visibleRows), [visibleRows]);
 
-  const { stdout } = useStdout();
-  const terminalRows = stdout?.rows ?? 24;
+  const { rows: terminalRows } = useWindowSize();
   const maxVisible = useMemo(() => computeMaxPerGroup(terminalRows, groups.length), [terminalRows, groups.length]);
 
   // Per-group scroll offsets tracked in a ref to avoid a second render per keypress
@@ -188,7 +188,7 @@ export function PackageList({
             <Text color="white">v</Text> version{"  "}
             <Text color="white">c</Text> changelog{"  "}
             <Text color="white">s</Text> settings{"  "}
-            <Text color="white">enter</Text> update
+            <Text color="white">enter</Text> copy & exit
           </Text>
         </Box>
       </Box>
@@ -223,7 +223,7 @@ export function PackageList({
               <Text color="gray">{packages.length} outdated</Text>
             )}
           </Text>
-          {selectedCount > 0 && <Text color="greenBright"> Press enter to update →</Text>}
+          {selectedCount > 0 && <Text color="greenBright"> Press enter to copy command →</Text>}
         </Box>
       </Box>
     </Box>
@@ -283,6 +283,9 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
           <Box width={14}>
             <Text color="gray">latest</Text>
           </Box>
+          <Box width={5}>
+            <Text color="gray">age</Text>
+          </Box>
         </Box>
 
         {/* Scroll indicator top */}
@@ -337,6 +340,15 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
               </Box>
               <Box width={14}>
                 <Text color="gray">{pkg.latest}</Text>
+              </Box>
+              <Box width={5}>
+                {pkg.latestPublishedAt ? (
+                  <Text color={Date.now() - new Date(pkg.latestPublishedAt).getTime() < 86_400_000 ? "yellow" : "gray"}>
+                    {formatAge(pkg.latestPublishedAt)}
+                  </Text>
+                ) : (
+                  <Text color="gray"> </Text>
+                )}
               </Box>
               <Box width={9}>{isMajorBump ? <Text color="yellow">⚠ major</Text> : <Text> </Text>}</Box>
             </Box>

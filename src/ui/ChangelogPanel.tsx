@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { Box, Text, useInput, useStdout } from "ink";
+import { Box, Text, useInput, useWindowSize } from "ink";
 import { ScrollView, type ScrollViewRef } from "ink-scroll-view";
 import type { ChangelogEntry, OutdatedPackage } from "../types";
 import { openInBrowser } from "../lib/utils";
@@ -18,7 +18,7 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
   const [opened, setOpened] = useState(false);
   const [activeEntry, setActiveEntry] = useState(0);
   const scrollRef = useRef<ScrollViewRef>(null);
-  const { stdout } = useStdout();
+  const { columns, rows } = useWindowSize();
 
   const isUpToDate = pkg.current === (pkg.targetVersion ?? pkg.latest);
 
@@ -36,12 +36,8 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
   }, [pkg.name]);
 
   useEffect(() => {
-    const handleResize = () => scrollRef.current?.remeasure();
-    stdout?.on("resize", handleResize);
-    return () => {
-      stdout?.off("resize", handleResize);
-    };
-  }, [stdout]);
+    scrollRef.current?.remeasure();
+  }, [columns, rows]);
 
   const releasesPageUrl = repoUrl ? `${repoUrl}/releases` : "";
 

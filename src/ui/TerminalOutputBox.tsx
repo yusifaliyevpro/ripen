@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text, useWindowSize } from "ink";
 
 type Props = {
   message: string;
@@ -8,6 +8,8 @@ type Props = {
 };
 
 export function TerminalOutputBox({ message, command, outputLines, maxLines }: Props) {
+  const { columns } = useWindowSize();
+  const boxWidth = Math.min(64, columns - 4);
   return (
     <Box flexDirection="column" padding={1}>
       <Text color="greenBright" bold>
@@ -23,7 +25,7 @@ export function TerminalOutputBox({ message, command, outputLines, maxLines }: P
         borderStyle="round"
         borderColor="gray"
         paddingX={1}
-        width={64}
+        width={boxWidth}
         height={maxLines + 3}
         overflow="hidden"
       >

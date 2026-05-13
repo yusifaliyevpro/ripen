@@ -11,10 +11,12 @@
 ## Features
 
 - **Interactive TUI** — navigate packages with arrow keys, select with space
+- **Clipboard-first** — copies the ready-to-run update command to your clipboard, nothing is executed for you
+- **Publish age** — shows how long ago the latest version was published (yellow if < 1 day, useful for pnpm's `minimumReleaseAge`)
 - **Version picker** — choose any specific version from the npm registry, not just latest
 - **Changelog viewer** — see GitHub release notes before you update
 - **npm, pnpm, yarn & bun** — auto-detects your package manager
-- **Global packages** — check and update global installs across all* package managers
+- **Global packages** — check global installs across all* package managers
 - **Show all packages** — `ripen --all` lists every dependency, not just outdated ones (great for checking changelogs or downgrading)
 - **Self-update** — notifies you when a new version of ripen is available
 - **Major bump warnings** — highlights potentially breaking updates
@@ -51,24 +53,27 @@ ripen --help
 
 ## Controls
 
-| Key     | Action                         |
-| ------- | ------------------------------ |
-| `↑ ↓`   | Navigate packages              |
-| `space` | Toggle select                  |
-| `v`     | Pick specific version          |
-| `c`     | View changelog / release notes |
-| `enter` | Update selected packages       |
-| `s`     | Open settings                  |
-| `esc`   | Cancel / go back               |
+| Key          | Action                              |
+| ------------ | ----------------------------------- |
+| `↑ ↓`        | Navigate packages                   |
+| `PgUp PgDn`  | Scroll a full page                  |
+| `Tab`        | Jump between groups                 |
+| `← →`        | Collapse / expand scope groups      |
+| `space`      | Toggle select                       |
+| `v`          | Pick specific version               |
+| `c`          | View changelog / release notes      |
+| `enter`      | Copy update command & exit          |
+| `s`          | Open settings                       |
+| `esc`        | Cancel / go back                    |
 
 ## How it works
 
 1. Reads your `package.json` and checks each dependency against the npm registry directly
-2. Detects your package manager from the lock file (`bun.lock`, `pnpm-lock.yaml`, `package-lock.json`, or `yarn.lock`) for running updates
+2. Detects your package manager from the lock file (`bun.lock`, `pnpm-lock.yaml`, `package-lock.json`, or `yarn.lock`)
 3. Shows outdated packages in a colorful interactive list (use `--all` to show every package, including up-to-date ones)
 4. Press `v` on any package to pick a specific version from the npm registry
 5. Press `c` to see GitHub release notes between your current and target version
-6. Select the ones you want and press enter — ripen runs the update commands for you
+6. Select the ones you want and press `enter` — ripen copies the exact update command to your clipboard and exits
 
 ## Settings
 

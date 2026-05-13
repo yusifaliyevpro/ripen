@@ -34,7 +34,7 @@ if (showHelp) {
     space     toggle select
     v         pick specific version
     c         view changelog / release notes
-    enter     update selected packages
+    enter     copy update command to clipboard & exit
     esc       cancel / go back
 `);
   process.exit(0);
@@ -52,9 +52,32 @@ const project = getProjectInfo(cwd);
 
 const installManager = detectGlobalInstallManager();
 
+let wasCancelled = false;
+let copiedCommands: string[] = [];
+
 const { waitUntilExit } = render(
-  <App project={project} global={isGlobal} showAll={showAll} version={VERSION} installManager={installManager} />,
-  { exitOnCtrlC: false },
+  <App
+    project={project}
+    global={isGlobal}
+    showAll={showAll}
+    version={VERSION}
+    installManager={installManager}
+    onCancelled={() => {
+      wasCancelled = true;
+    }}
+    onCopied={(cmds) => {
+      copiedCommands = cmds;
+    }}
+  />,
+  { exitOnCtrlC: false, alternateScreen: true },
 );
 
 await waitUntilExit();
+
+// Primary buffer is now restored. Print post-exit output here so it appears
+// in the normal scrollback, not the (now-gone) alternate screen.
+if (wasCancelled) {
+  process.stdout.write("  \x1b[32mCancelled.\x1b[0m\n");
+} else if (copiedCommands.length > 0) {
+  process.stdout.write("  \x1b[32mCopied to clipboard.\x1b[0m\n");
+}
