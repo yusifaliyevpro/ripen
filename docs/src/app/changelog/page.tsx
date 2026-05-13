@@ -10,6 +10,35 @@ export default function ChangelogPage() {
   return (
     <>
       <ChangelogEntry
+        version="1.1.1"
+        date="May 13, 2026"
+        title="Global Mode Improvements & Missing Package Fix"
+      >
+        <p>
+          Age indicators now work in global mode, <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">ripen -g -a</code> is now supported, and a bug that caused some packages to silently disappear from the list has been fixed.
+        </p>
+        <ul className="mt-2 list-inside list-disc space-y-1">
+          <li>
+            <strong>Publish age in global mode</strong> — the age column is now populated for{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">ripen -g</code>.
+            Previously the column was visible but always empty because global packages come from the package manager&apos;s
+            CLI output rather than a direct registry fetch
+          </li>
+          <li>
+            <strong>ripen -g -a</strong> — combining global and show-all flags now works. Lists every globally installed
+            package across npm, pnpm, and yarn — not just the outdated ones. Useful for browsing changelogs or picking a
+            specific version of a global tool
+          </li>
+          <li>
+            <strong>Missing package fix</strong> — packages whose registry entry lacks a{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">dist-tags.latest</code>{" "}
+            field (e.g. packages published only as pre-releases or with non-standard registry entries) were silently
+            dropped from the list. They now fall back to the last published version instead
+          </li>
+        </ul>
+      </ChangelogEntry>
+
+      <ChangelogEntry
         version="1.1.0"
         date="May 13, 2026"
         title="Clipboard-first, Publish Age & Partial Version Support"

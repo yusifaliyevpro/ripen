@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
   "license": "MIT",
   "author": {
@@ -68,7 +68,8 @@
     "execa": "9.6.1",
     "ink": "7.0.3",
     "ink-scroll-view": "0.3.7",
-    "react": "19.2.6"
+    "react": "19.2.6",
+    "ripencli": "link:"
   },
   "devDependencies": {
     "@types/node": "24.12.2",

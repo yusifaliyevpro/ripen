@@ -47,6 +47,9 @@ ripen -g
 # Show all packages, not just outdated ones
 ripen --all
 
+# Show all global packages, not just outdated ones
+ripen -g -a
+
 # Help
 ripen --help
 ```

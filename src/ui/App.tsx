@@ -42,7 +42,7 @@ export function App({ project, global, showAll, version, installManager, onCance
   });
 
   // ── Exit handlers ───────────────────────────────────────────────────
-  useExitOnScreen(screen, ["self-update-done", "empty"], exit);
+  useExitOnScreen(screen, ["empty"], exit);
   useExitOnScreen(screen, ["cancelled"], exit, {
     delay: 200,
     beforeExit: () => onCancelled?.(),
@@ -55,13 +55,11 @@ export function App({ project, global, showAll, version, installManager, onCance
     setScreen(selfUpdate.hasUpdate ? "self-update" : "loading");
   }, [selfUpdate.checkComplete]);
 
-  const handleSelfUpdate = async () => {
-    const success = await selfUpdate.performUpdate();
-    if (success) {
-      setScreen("self-update-done");
-    } else {
-      setTimeout(() => setScreen("loading"), 2000);
-    }
+  const handleSelfUpdate = () => {
+    const cmd = selfUpdate.buildUpdateCommand();
+    copyToClipboard(cmd);
+    onCopied?.([cmd]);
+    exit();
   };
 
   // ── Fetch outdated packages ────────────────────────────────────────
@@ -74,7 +72,7 @@ export function App({ project, global, showAll, version, installManager, onCance
     terminal.setTerminalCmd(global ? "Checking all package managers…" : "Checking npm registry…");
 
     const fetch = global
-      ? getAllGlobalOutdated(project.cwd, terminal.onLine)
+      ? getAllGlobalOutdated(project.cwd, terminal.onLine, showAll)
       : getOutdatedPackages(project.manager, project.cwd, false, terminal.onLine, showAll);
 
     fetch.then((result) => {
@@ -131,25 +129,9 @@ export function App({ project, global, showAll, version, installManager, onCance
       <SelfUpdatePrompt
         currentVersion={version}
         latestVersion={selfUpdate.latestVersion!}
-        updating={selfUpdate.selfUpdating}
-        error={selfUpdate.selfUpdateError}
         onUpdate={handleSelfUpdate}
         onSkip={() => setScreen("loading")}
       />
-    );
-  }
-
-  if (screen === "self-update-done") {
-    return (
-      <Box flexDirection="column" padding={1}>
-        <Text color="greenBright" bold>
-          {" "}
-          ripen
-        </Text>
-        <Box marginTop={1}>
-          <Text color="green">✓ Updated to v{selfUpdate.latestVersion}. Run ripen again to use the new version.</Text>
-        </Box>
-      </Box>
     );
   }
 

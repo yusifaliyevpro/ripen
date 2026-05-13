@@ -21,13 +21,19 @@ ripen will:
 
 ## Global Packages
 
-To check and update globally installed packages:
+To check globally installed packages:
 
 ```bash
 ripen -g
 ```
 
 In global mode, ripen scans npm, pnpm, and yarn in parallel and combines the results.
+
+To list every globally installed package — not just outdated ones:
+
+```bash
+ripen -g -a
+```
 
 ## Show All Packages
 

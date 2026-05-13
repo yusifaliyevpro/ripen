@@ -47,7 +47,8 @@ async function fetchRegistryInfoWithRetry(packageName: string): Promise<Registry
       clearTimeout(timeout);
       if (!res.ok) return null;
       const data = (await res.json()) as any;
-      const version = data["dist-tags"]?.latest ?? null;
+      const version: string | null =
+        data["dist-tags"]?.latest ?? Object.keys(data.versions ?? {}).at(-1) ?? null;
       if (!version) return null;
       return { version, publishedAt: data.time?.[version] ?? "" };
     } catch {
@@ -140,6 +141,93 @@ export async function getOutdatedPackages(
   return { ok: true, packages };
 }
 
+/** Fetch publish dates from the registry and attach them to existing packages in-place. */
+async function hydratePublishDates(packages: OutdatedPackage[]): Promise<void> {
+  if (packages.length === 0) return;
+  const info = await fetchAllLatest(packages.map((p) => p.name), 8);
+  for (const pkg of packages) {
+    const r = info.get(pkg.name);
+    if (r?.publishedAt) pkg.latestPublishedAt = r.publishedAt;
+  }
+}
+
+/**
+ * List all globally installed packages for a manager.
+ * Returns name + currently installed version.
+ */
+async function listGlobalPackages(
+  manager: PackageManager,
+  cwd: string,
+): Promise<Array<{ name: string; current: string }>> {
+  try {
+    if (manager === "npm") {
+      const { stdout } = await execa("npm", ["list", "-g", "--depth=0", "--json"], { cwd, reject: false });
+      const data = JSON.parse(stdout) as any;
+      return Object.entries(data.dependencies ?? {}).map(([name, info]: [string, any]) => ({
+        name,
+        current: info.version ?? "N/A",
+      }));
+    }
+    if (manager === "pnpm") {
+      const { stdout } = await execa("pnpm", ["list", "-g", "--json"], { cwd, reject: false });
+      const data = JSON.parse(stdout) as any;
+      const deps = Array.isArray(data) ? (data[0]?.dependencies ?? {}) : (data.dependencies ?? {});
+      return Object.entries(deps).map(([name, info]: [string, any]) => ({
+        name,
+        current: (info as any).version ?? "N/A",
+      }));
+    }
+    if (manager === "yarn") {
+      const { stdout } = await execa("yarn", ["global", "list", "--depth=0", "--json"], { cwd, reject: false });
+      const pkgs: Array<{ name: string; current: string }> = [];
+      for (const line of stdout.trim().split("\n")) {
+        try {
+          const obj = JSON.parse(line) as any;
+          if (obj.type === "tree" && obj.data?.trees) {
+            for (const tree of obj.data.trees) {
+              const match = (tree.name as string)?.match(/^(.+)@([^@]+)$/);
+              if (match) pkgs.push({ name: match[1]!, current: match[2]! });
+            }
+          }
+        } catch {}
+      }
+      return pkgs;
+    }
+  } catch {}
+  return [];
+}
+
+/** Global mode, showAll=true: list all installed packages then check registry for latest. */
+async function getGlobalAllPackages(
+  manager: PackageManager,
+  cwd: string,
+  onLine?: (line: string) => void,
+): Promise<FetchResult> {
+  const installed = await listGlobalPackages(manager, cwd);
+  if (installed.length === 0) return { ok: true, packages: [] };
+
+  const registryInfo = await fetchAllLatest(installed.map((p) => p.name), 8, onLine);
+
+  const packages: OutdatedPackage[] = [];
+  for (const dep of installed) {
+    const info = registryInfo.get(dep.name);
+    if (!info) continue;
+    packages.push({
+      name: dep.name,
+      current: dep.current,
+      wanted: info.version,
+      latest: info.version,
+      dependent: "",
+      type: "global",
+      selected: false,
+      targetVersion: info.version,
+      latestPublishedAt: info.publishedAt || undefined,
+    });
+  }
+
+  return { ok: true, packages };
+}
+
 /** Global mode: shell out to manager's outdated command */
 async function getGlobalOutdatedPackages(
   manager: PackageManager,
@@ -186,27 +274,30 @@ async function getGlobalOutdatedPackages(
   const raw = stdout.trim();
   if (!raw) return { ok: true, packages: [] };
 
+  let packages: OutdatedPackage[];
+
   if (manager === "yarn") {
     try {
-      return { ok: true, packages: parseYarnOutdated(raw, true) };
+      packages = parseYarnOutdated(raw, true);
     } catch {
       return { ok: false, error: "Failed to parse yarn outdated output. Try again." };
     }
+  } else {
+    const jsonStr = extractJson(raw);
+    if (!jsonStr) {
+      const errMsg = stderr.trim() || raw.slice(0, 120);
+      return { ok: false, error: errMsg };
+    }
+    try {
+      const data = JSON.parse(jsonStr);
+      packages = manager === "pnpm" ? parsePnpmOutdated(data) : parseNpmOutdated(data);
+    } catch {
+      return { ok: false, error: "Failed to parse outdated output. Try again." };
+    }
   }
 
-  const jsonStr = extractJson(raw);
-  if (!jsonStr) {
-    const errMsg = stderr.trim() || raw.slice(0, 120);
-    return { ok: false, error: errMsg };
-  }
-
-  try {
-    const data = JSON.parse(jsonStr);
-    const packages = manager === "pnpm" ? parsePnpmOutdated(data) : parseNpmOutdated(data);
-    return { ok: true, packages };
-  } catch {
-    return { ok: false, error: "Failed to parse outdated output. Try again." };
-  }
+  await hydratePublishDates(packages);
+  return { ok: true, packages };
 }
 
 /**
@@ -265,14 +356,21 @@ async function isManagerAvailable(manager: PackageManager): Promise<boolean> {
 const ALL_MANAGERS: PackageManager[] = ["npm", "pnpm", "yarn"];
 
 /**
- * Check all available package managers for global outdated packages in parallel.
+ * Check all available package managers for global packages in parallel.
  * Each returned package is tagged with its owning manager.
+ * showAll=true lists every installed package, not just outdated ones.
  */
-export async function getAllGlobalOutdated(cwd: string, onLine?: (line: string) => void): Promise<FetchResult> {
+export async function getAllGlobalOutdated(
+  cwd: string,
+  onLine?: (line: string) => void,
+  showAll = false,
+): Promise<FetchResult> {
   const available = await Promise.all(ALL_MANAGERS.map(async (m) => ({ manager: m, ok: await isManagerAvailable(m) })));
   const managers = available.filter((a) => a.ok).map((a) => a.manager);
 
-  const results = await Promise.all(managers.map((m) => getOutdatedPackages(m, cwd, true, onLine)));
+  const results = await Promise.all(
+    managers.map((m) => (showAll ? getGlobalAllPackages(m, cwd, onLine) : getOutdatedPackages(m, cwd, true, onLine))),
+  );
 
   const allPackages: OutdatedPackage[] = [];
   for (let i = 0; i < managers.length; i++) {

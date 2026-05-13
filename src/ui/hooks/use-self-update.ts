@@ -1,24 +1,16 @@
 import { useState, useEffect } from "react";
-import { execa } from "execa";
 import type { PackageManager } from "../../types";
 import { fetchLatestVersion, isNewerVersion } from "../../registry";
 
 export type SelfUpdateState = {
   latestVersion: string | null;
-  selfUpdating: boolean;
-  selfUpdateError: string | null;
-  /** True once the initial version check finishes */
   checkComplete: boolean;
-  /** True when a newer version is available */
   hasUpdate: boolean;
-  /** Trigger the self-update install. Returns true on success. */
-  performUpdate: () => Promise<boolean>;
+  buildUpdateCommand: () => string;
 };
 
 export function useSelfUpdate(currentVersion: string, installManager: PackageManager): SelfUpdateState {
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
-  const [selfUpdating, setSelfUpdating] = useState(false);
-  const [selfUpdateError, setSelfUpdateError] = useState<string | null>(null);
   const [checkComplete, setCheckComplete] = useState(false);
   const [hasUpdate, setHasUpdate] = useState(false);
 
@@ -37,22 +29,12 @@ export function useSelfUpdate(currentVersion: string, installManager: PackageMan
     };
   }, []);
 
-  const performUpdate = async (): Promise<boolean> => {
-    setSelfUpdating(true);
-    try {
-      const updateArgs =
-        installManager === "yarn"
-          ? ["global", "add", `ripencli@${latestVersion}`]
-          : ["add", "--global", `ripencli@${latestVersion}`];
-      await execa(installManager, updateArgs);
-      setSelfUpdating(false);
-      return true;
-    } catch (err: any) {
-      setSelfUpdateError(err.message ?? "Unknown error");
-      setSelfUpdating(false);
-      return false;
-    }
+  const buildUpdateCommand = (): string => {
+    const version = latestVersion ?? "latest";
+    if (installManager === "yarn") return `yarn global add ripencli@${version}`;
+    if (installManager === "bun") return `bun add -g ripencli@${version}`;
+    return `${installManager} add -g ripencli@${version}`;
   };
 
-  return { latestVersion, selfUpdating, selfUpdateError, checkComplete, hasUpdate, performUpdate };
+  return { latestVersion, checkComplete, hasUpdate, buildUpdateCommand };
 }

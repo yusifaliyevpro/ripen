@@ -72,5 +72,4 @@ export type Screen =
   | "empty"
   | "error"
   | "settings"
-  | "self-update-done"
   | "cancelled";
