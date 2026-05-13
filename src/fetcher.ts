@@ -47,8 +47,7 @@ async function fetchRegistryInfoWithRetry(packageName: string): Promise<Registry
       clearTimeout(timeout);
       if (!res.ok) return null;
       const data = (await res.json()) as any;
-      const version: string | null =
-        data["dist-tags"]?.latest ?? Object.keys(data.versions ?? {}).at(-1) ?? null;
+      const version: string | null = data["dist-tags"]?.latest ?? Object.keys(data.versions ?? {}).at(-1) ?? null;
       if (!version) return null;
       return { version, publishedAt: data.time?.[version] ?? "" };
     } catch {
@@ -144,7 +143,10 @@ export async function getOutdatedPackages(
 /** Fetch publish dates from the registry and attach them to existing packages in-place. */
 async function hydratePublishDates(packages: OutdatedPackage[]): Promise<void> {
   if (packages.length === 0) return;
-  const info = await fetchAllLatest(packages.map((p) => p.name), 8);
+  const info = await fetchAllLatest(
+    packages.map((p) => p.name),
+    8,
+  );
   for (const pkg of packages) {
     const r = info.get(pkg.name);
     if (r?.publishedAt) pkg.latestPublishedAt = r.publishedAt;
@@ -206,7 +208,11 @@ async function getGlobalAllPackages(
   const installed = await listGlobalPackages(manager, cwd);
   if (installed.length === 0) return { ok: true, packages: [] };
 
-  const registryInfo = await fetchAllLatest(installed.map((p) => p.name), 8, onLine);
+  const registryInfo = await fetchAllLatest(
+    installed.map((p) => p.name),
+    8,
+    onLine,
+  );
 
   const packages: OutdatedPackage[] = [];
   for (const dep of installed) {
