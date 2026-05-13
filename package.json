@@ -65,16 +65,16 @@
     "dist"
   ],
   "dependencies": {
-    "execa": "^9.6.1",
-    "ink": "^7.0.2",
-    "ink-scroll-view": "^0.3.6",
-    "react": "^19.2.6"
+    "execa": "9.6.1",
+    "ink": "7.0.3",
+    "ink-scroll-view": "0.3.7",
+    "react": "19.2.6"
   },
   "devDependencies": {
-    "@types/node": "^24.12.2",
-    "@types/react": "^19.2.14",
-    "prettier": "^3.8.3",
-    "tsdown": "^0.22.0",
-    "typescript": "^6.0.3"
+    "@types/node": "24.12.2",
+    "@types/react": "19.2.14",
+    "prettier": "3.8.3",
+    "tsdown": "0.22.0",
+    "typescript": "6.0.3"
   }
 }

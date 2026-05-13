@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState, useRef } from "react";
-import { Box, Text, useInput, useStdout } from "ink";
+import { Box, Text, useInput, useWindowSize } from "ink";
 import type { OutdatedPackage } from "../../types";
 import type { PackageGroup } from "./types";
 import { TYPE_COLORS } from "./types";
@@ -75,8 +75,7 @@ export function PackageList({
 
   const groups = useMemo(() => buildGroups(visibleRows), [visibleRows]);
 
-  const { stdout } = useStdout();
-  const terminalRows = stdout?.rows ?? 24;
+  const { rows: terminalRows } = useWindowSize();
   const maxVisible = useMemo(() => computeMaxPerGroup(terminalRows, groups.length), [terminalRows, groups.length]);
 
   // Per-group scroll offsets tracked in a ref to avoid a second render per keypress
