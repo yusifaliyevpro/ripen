@@ -1,5 +1,6 @@
 import { useMemo, useEffect, useState, useRef } from "react";
 import { Box, Text, useInput, useWindowSize } from "ink";
+import { formatAge } from "../../lib/utils";
 import type { OutdatedPackage } from "../../types";
 import type { PackageGroup } from "./types";
 import { TYPE_COLORS } from "./types";
@@ -282,6 +283,9 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
           <Box width={14}>
             <Text color="gray">latest</Text>
           </Box>
+          <Box width={5}>
+            <Text color="gray">age</Text>
+          </Box>
         </Box>
 
         {/* Scroll indicator top */}
@@ -336,6 +340,15 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
               </Box>
               <Box width={14}>
                 <Text color="gray">{pkg.latest}</Text>
+              </Box>
+              <Box width={5}>
+                {pkg.latestPublishedAt ? (
+                  <Text color={Date.now() - new Date(pkg.latestPublishedAt).getTime() < 86_400_000 ? "yellow" : "gray"}>
+                    {formatAge(pkg.latestPublishedAt)}
+                  </Text>
+                ) : (
+                  <Text color="gray"> </Text>
+                )}
               </Box>
               <Box width={9}>{isMajorBump ? <Text color="yellow">⚠ major</Text> : <Text> </Text>}</Box>
             </Box>

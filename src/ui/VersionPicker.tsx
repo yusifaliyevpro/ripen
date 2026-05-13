@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Box, Text, useInput } from "ink";
 import type { RegistryVersion, OutdatedPackage } from "../types";
 import { fetchVersions } from "../registry";
+import { formatAge } from "../lib/utils";
 
 type Props = {
   pkg: OutdatedPackage;
@@ -87,8 +88,10 @@ export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
                     {v.version}
                   </Text>
                 </Box>
-                <Box width={10}>
-                  <Text color="gray">{v.date}</Text>
+                <Box width={6}>
+                  <Text color={v.date && Date.now() - new Date(v.date).getTime() < 86_400_000 ? "yellow" : "gray"}>
+                    {formatAge(v.date)}
+                  </Text>
                 </Box>
                 {isLatest && <Text color="greenBright">latest</Text>}
                 {isCurrent && <Text color="red">current</Text>}

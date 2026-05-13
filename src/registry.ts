@@ -119,6 +119,17 @@ export async function fetchRepoUrl(packageName: string): Promise<string> {
   }
 }
 
+export async function fetchPublishedAt(packageName: string, version: string): Promise<string> {
+  try {
+    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`);
+    if (!res.ok) return "";
+    const data = (await res.json()) as any;
+    return data.time?.[version] ?? "";
+  } catch {
+    return "";
+  }
+}
+
 /**
  * Extract "owner/repo" from npm registry package data.
  * Handles both string and object repository fields.

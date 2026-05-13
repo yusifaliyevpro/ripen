@@ -3,6 +3,7 @@ import { Box, Text, useApp, useInput } from "ink";
 import type { ProjectInfo, RipenConfig, Screen } from "../types";
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
 import { updatePackages } from "../executor";
+import { fetchPublishedAt } from "../registry";
 import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../config";
 import { PackageList } from "./package-list";
 import { VersionPicker } from "./VersionPicker";
@@ -62,6 +63,23 @@ export function App({ project, global, showAll, version, installManager }: Props
       setTimeout(() => setScreen("loading"), 2000);
     }
   };
+
+  // ── Hydrate publish dates lazily after list appears ───────────────
+  const [datesLoaded, setDatesLoaded] = useState(false);
+  useEffect(() => {
+    if (packages.length === 0 || datesLoaded) return;
+    setDatesLoaded(true);
+    Promise.all(packages.map((pkg) => fetchPublishedAt(pkg.name, pkg.latest).then((publishedAt) => ({ name: pkg.name, publishedAt })))).then(
+      (dates) => {
+        setPackages((prev) =>
+          prev.map((pkg) => {
+            const found = dates.find((d) => d.name === pkg.name);
+            return found?.publishedAt ? { ...pkg, latestPublishedAt: found.publishedAt } : pkg;
+          }),
+        );
+      },
+    );
+  }, [packages.length, datesLoaded]);
 
   // ── Fetch outdated packages ────────────────────────────────────────
   const [fetchStarted, setFetchStarted] = useState(false);

@@ -23,6 +23,8 @@ export type OutdatedPackage = {
   targetVersion?: string;
   /** Original range prefix from package.json (e.g. "^", "~") */
   rangePrefix?: string;
+  /** ISO date when the `latest` version was published (fetched lazily) */
+  latestPublishedAt?: string;
 };
 
 export type FetchResult = { ok: true; packages: OutdatedPackage[] } | { ok: false; error: string };
