@@ -2,11 +2,13 @@ import Link from "next/link";
 import { Features } from "@/components/Features";
 import { Hero } from "@/components/Hero";
 import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
+import { SecuritySection } from "@/components/SecuritySection";
 
 export default function Home() {
   return (
     <>
       <Hero />
+      <SecuritySection />
       <Features />
       <KeyboardShortcuts />
 

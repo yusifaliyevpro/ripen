@@ -22,6 +22,7 @@ You can modify settings through the in-app settings screen (press `S`) or by edi
 | `groupsOnTop`     | `boolean`  | `false` | Display grouped scopes before ungrouped packages               |
 | `frequencySort`   | `boolean`  | `false` | Sort packages by how often you update them                     |
 | `separateDevDeps` | `boolean`  | `true`  | Show dependencies and devDependencies in separate groups       |
+| `sfwFirewall`     | `boolean`  | `false` | Prepend `sfw` before every generated install command           |
 
 ## Example Configuration
 
@@ -31,7 +32,8 @@ You can modify settings through the in-app settings screen (press `S`) or by edi
   "groupScopes": ["@heroui", "@radix-ui", "@types"],
   "groupsOnTop": true,
   "frequencySort": false,
-  "separateDevDeps": true
+  "separateDevDeps": true,
+  "sfwFirewall": false
 }
 ```
 
@@ -46,6 +48,22 @@ The `groupsOnTop` option controls whether grouped scopes appear at the top of th
 ### Managing Scopes in Settings
 
 Press `S` to open the settings screen. You can add new scopes, toggle grouping options, and delete existing scopes using the keyboard.
+
+## SFW Firewall
+
+When `sfwFirewall` is enabled, ripen prepends `sfw` to every install command it copies to your clipboard. For example, instead of:
+
+```
+npm install react@19.2.6
+```
+
+it copies:
+
+```
+sfw npm install react@19.2.6
+```
+
+This is useful when using [sfw](https://github.com/nicolo-ribaudo/sfw) to sandbox package installations and prevent supply-chain attacks. Enable it in the settings screen (`S`) under **SFW firewall**.
 
 ## Frequency Tracking
 

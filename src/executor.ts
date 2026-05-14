@@ -1,6 +1,11 @@
 import type { PackageManager, OutdatedPackage } from "./types";
 
-export function buildUpdateCommands(manager: PackageManager, packages: OutdatedPackage[], global = false): string[] {
+export function buildUpdateCommands(
+  manager: PackageManager,
+  packages: OutdatedPackage[],
+  global = false,
+  sfwFirewall = false,
+): string[] {
   const commands: string[] = [];
 
   const deps = packages.filter((p) => !global && p.type === "dependencies");
@@ -14,7 +19,8 @@ export function buildUpdateCommands(manager: PackageManager, packages: OutdatedP
     });
     const isYarnGlobal = mgr === "yarn" && global;
     const args = isYarnGlobal ? ["global", "add", ...pkgArgs] : ["add", ...flags, ...pkgArgs];
-    return `${mgr} ${args.join(" ")}`;
+    const cmd = `${mgr} ${args.join(" ")}`;
+    return sfwFirewall ? `sfw ${cmd}` : cmd;
   };
 
   if (deps.length > 0) commands.push(makeCmd(manager, deps, []));

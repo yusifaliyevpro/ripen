@@ -5,6 +5,7 @@ import {
   VscGlobe,
   VscListFlat,
   VscPackage,
+  VscShield,
   VscSync,
   VscTag,
   VscTerminal,
@@ -59,6 +60,12 @@ const features: { icon: IconType; title: string; description: string }[] = [
     icon: VscListFlat,
     title: "Show All Packages",
     description: "Run with --all to list every dependency, not just outdated ones. Great for browsing changelogs or downgrading.",
+  },
+  {
+    icon: VscShield,
+    title: "Security First",
+    description:
+      "ripen never executes commands. It copies them to your clipboard so you review before running. Enable SFW Firewall to prepend sfw to every command for an extra layer of protection.",
   },
 ];
 

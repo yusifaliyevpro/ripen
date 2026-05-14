@@ -56,7 +56,8 @@ export function App({ project, global, showAll, version, installManager, onCance
   }, [selfUpdate.checkComplete]);
 
   const handleSelfUpdate = () => {
-    const cmd = selfUpdate.buildUpdateCommand();
+    const raw = selfUpdate.buildUpdateCommand();
+    const cmd = config.sfwFirewall ? `sfw ${raw}` : raw;
     copyToClipboard(cmd);
     onCopied?.([cmd]);
     exit();
@@ -100,7 +101,7 @@ export function App({ project, global, showAll, version, installManager, onCance
   const handleConfirm = () => {
     const selected = packages.filter((p) => p.selected);
     if (selected.length === 0) return;
-    const commands = buildUpdateCommands(project.manager, selected, global);
+    const commands = buildUpdateCommands(project.manager, selected, global, config.sfwFirewall);
     copyToClipboard(commands.join(" && "));
     incrementFrequency(selected.map((p) => p.name));
     setFrequency(loadFrequency());

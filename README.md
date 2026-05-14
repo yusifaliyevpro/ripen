@@ -1,6 +1,6 @@
 # ripen
 
-> Interactive dependency updater for npm, pnpm, yarn, and bun
+> Security-first interactive dependency updater for npm, pnpm, yarn, and bun
 
 ![npm version](https://img.shields.io/npm/v/ripencli) ![node](https://img.shields.io/node/v/ripencli) ![GitHub License](https://img.shields.io/github/license/yusifaliyevpro/ripen)
 
@@ -10,9 +10,9 @@
 
 ## Features
 
+- **Security first** — ripen never executes commands. Everything goes to your clipboard; you review and run it yourself
 - **Interactive TUI** — navigate packages with arrow keys, select with space
-- **Clipboard-first** — copies the ready-to-run update command to your clipboard, nothing is executed for you
-- **Publish age** — shows how long ago the latest version was published (yellow if < 1 day, useful for pnpm's `minimumReleaseAge`)
+- **Publish age** — shows how long ago the latest version was published (yellow if < 1 day, useful for spotting freshly published packages before trusting them)
 - **Version picker** — choose any specific version from the npm registry, not just latest
 - **Changelog viewer** — see GitHub release notes before you update
 - **npm, pnpm, yarn & bun** — auto-detects your package manager
@@ -89,6 +89,7 @@ Press `s` to open the settings screen. Settings are persisted at `~/.config/ripe
 | Enable scope grouping        | Off     | Group scoped packages under their scope prefix               |
 | Show grouped scopes on top   | Off     | Grouped scopes appear before ungrouped packages              |
 | Grouped scopes               | —       | List of scopes to group (e.g. `@heroui`, `@radix-ui`)       |
+| SFW Firewall                 | Off     | Prepend `sfw` before every generated command (requires [sfw](https://github.com/nicolo-ribaudo/sfw)) |
 
 When using `ripen -g`, all available package managers (npm, pnpm, yarn) are checked in parallel so you see every global package in one place. Bun is not included in global checking because it doesn't provide a JSON output for its outdated command.
 

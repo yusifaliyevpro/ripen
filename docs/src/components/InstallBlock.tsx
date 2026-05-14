@@ -4,10 +4,10 @@ import { useState } from "react";
 import { CopyButton } from "./CopyButton";
 
 const managers = [
-  { id: "npm", label: "npm", command: "npm install -g ripencli" },
-  { id: "pnpm", label: "pnpm", command: "pnpm add -g ripencli" },
-  { id: "yarn", label: "yarn", command: "yarn global add ripencli" },
-  { id: "bun", label: "bun", command: "bun add -g ripencli" },
+  { id: "pnpm", label: "pnpm", command: "pnpm add -g ripencli@latest" },
+  { id: "npm", label: "npm", command: "npm install -g ripencli@latest" },
+  { id: "yarn", label: "yarn", command: "yarn global add ripencli@latest" },
+  { id: "bun", label: "bun", command: "bun add -g ripencli@latest" },
 ] as const;
 
 export function InstallBlock() {
@@ -33,7 +33,7 @@ export function InstallBlock() {
 
       {/* Command */}
       <div className="flex items-center gap-3 rounded-b-xl border border-t-0 border-border bg-surface px-4 py-3">
-        <code className="min-w-[280px] flex-1 overflow-x-auto text-left font-mono text-sm text-text-muted">
+        <code className="min-w-70 flex-1 overflow-x-auto text-left font-mono text-sm text-text-muted">
           <span className="text-green select-none">$ </span>
           {managers[active].command}
         </code>

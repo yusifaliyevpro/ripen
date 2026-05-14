@@ -10,6 +10,47 @@ export default function ChangelogPage() {
   return (
     <>
       <ChangelogEntry
+        version="1.2.0"
+        date="May 14, 2026"
+        title="Security-First Website & SFW Firewall Setting"
+      >
+        <p>
+          Introduced the SFW Firewall setting and repositioned ripen as a security-first tool, with an updated website,
+          improved terminal demo, and new documentation.
+        </p>
+        <ul className="mt-2 list-inside list-disc space-y-1">
+          <li>
+            <strong>SFW Firewall setting</strong> — new toggle in the settings screen that prepends{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">sfw</code> to
+            every generated install command. Works with all package managers. Enable it to route installs through a
+            sandboxed environment via{" "}
+            <a href="https://github.com/nicolo-ribaudo/sfw" className="text-orange hover:underline">
+              sfw
+            </a>
+          </li>
+          <li>
+            <strong>Security-first homepage section</strong> — new &ldquo;Security first, always&rdquo; section on the
+            website explaining ripen&apos;s clipboard-only model and Socket integration
+          </li>
+          <li>
+            <strong>Age column in terminal demo</strong> — the homepage demo now shows the publish age column, matching
+            the real ripen UI
+          </li>
+          <li>
+            <strong>Single dependency group in demo</strong> — the homepage demo now reflects the default{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              separateDevDeps: false
+            </code>{" "}
+            behaviour, showing all packages under a single &ldquo;All Dependencies&rdquo; group
+          </li>
+          <li>
+            <strong>SFW Firewall docs</strong> — added the setting to the configuration reference, example JSON, and a
+            dedicated section explaining how it works
+          </li>
+        </ul>
+      </ChangelogEntry>
+
+      <ChangelogEntry
         version="1.1.1"
         date="May 13, 2026"
         title="Global Mode Improvements & Missing Package Fix"

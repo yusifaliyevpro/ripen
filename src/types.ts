@@ -42,6 +42,8 @@ export type RipenConfig = {
   frequencySort: boolean;
   /** Separate dependencies and devDependencies into separate groups (default: true) */
   separateDevDeps: boolean;
+  /** Prepend "sfw" before every generated install command (default: false) */
+  sfwFirewall: boolean;
 };
 
 // ── Registry ─────────────────────────────────────────────────────────

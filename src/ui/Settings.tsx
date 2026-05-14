@@ -20,14 +20,16 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
   // Row 1: separateDevDeps toggle
   // Row 2: groupByScope toggle
   // Row 3: groupsOnTop toggle
-  // Row 4: list-header
-  // Row 5+: each scope item
+  // Row 4: sfwFirewall toggle
+  // Row 5: list-header
+  // Row 6+: each scope item
   const rows: {
     type:
       | "toggle-frequency"
       | "toggle-group"
       | "toggle-groups-top"
       | "toggle-separate-dev"
+      | "toggle-sfw"
       | "list-header"
       | "list-item";
     listItemIndex?: number;
@@ -36,6 +38,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
     { type: "toggle-separate-dev" },
     { type: "toggle-group" },
     { type: "toggle-groups-top" },
+    { type: "toggle-sfw" },
     { type: "list-header" },
     ...scopes.map((_, i) => ({ type: "list-item" as const, listItemIndex: i })),
   ];
@@ -95,6 +98,8 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
         onConfigChange({ ...config, separateDevDeps: !config.separateDevDeps });
       } else if (currentRow?.type === "toggle-groups-top") {
         onConfigChange({ ...config, groupsOnTop: !config.groupsOnTop });
+      } else if (currentRow?.type === "toggle-sfw") {
+        onConfigChange({ ...config, sfwFirewall: !config.sfwFirewall });
       } else if (currentRow?.type === "list-header") {
         setInputMode(true);
         setInputValue("");
@@ -161,6 +166,12 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
         focused={currentRow?.type === "toggle-groups-top"}
         disabled={!config.groupByScope}
       />
+      <SettingsToggle
+        label="SFW firewall"
+        description='Prepend "sfw" before every generated install command'
+        checked={config.sfwFirewall}
+        focused={currentRow?.type === "toggle-sfw"}
+      />
 
       {/* List: groupScopes */}
       <Box flexDirection="column" marginBottom={1}>
@@ -186,7 +197,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
 
         {/* Scope items */}
         {scopes.map((scope, i) => {
-          const itemFocused = flatCursor === 5 + i;
+          const itemFocused = flatCursor === 6 + i;
           return (
             <Box key={scope} marginLeft={4} gap={1}>
               <Text dimColor={!config.groupByScope} color="greenBright">

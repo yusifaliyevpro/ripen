@@ -9,6 +9,7 @@ export const DEFAULT_CONFIG: RipenConfig = {
   groupsOnTop: false,
   frequencySort: false,
   separateDevDeps: true,
+  sfwFirewall: false,
 };
 
 const CONFIG_DIR = join(homedir(), ".config", "ripen");
