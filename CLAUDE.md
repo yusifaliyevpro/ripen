@@ -53,26 +53,26 @@ loading → list ←→ version-picker
 
 ### UI components
 
-| File | Role |
-|---|---|
-| `ui/App.tsx` | Screen state machine, all data-fetching side-effects |
-| `ui/package-list/PackageList.tsx` | Main interactive list with keyboard navigation, scope collapsing |
-| `ui/package-list/build-rows.ts` | Row building: grouping by scope/type, filtering, frequency sorting |
-| `ui/package-list/types.ts` | Row types, color constants |
-| `ui/VersionPicker.tsx` | Scrollable version picker (fetches from npm registry) |
-| `ui/ChangelogPanel.tsx` | GitHub release notes viewer |
-| `ui/UpdateResults.tsx` | Post-update summary |
-| `ui/Settings.tsx` | Settings screen with toggles |
-| `ui/SettingsToggle.tsx` | Reusable toggle component |
-| `ui/SelfUpdatePrompt.tsx` | Prompts user to update ripen itself |
-| `ui/TerminalOutputBox.tsx` | Displays terminal output during loading/updating |
-| `ui/MarkdownLine.tsx` | Minimal inline markdown renderer for changelog bodies |
+| File                              | Role                                                               |
+| --------------------------------- | ------------------------------------------------------------------ |
+| `ui/App.tsx`                      | Screen state machine, all data-fetching side-effects               |
+| `ui/package-list/PackageList.tsx` | Main interactive list with keyboard navigation, scope collapsing   |
+| `ui/package-list/build-rows.ts`   | Row building: grouping by scope/type, filtering, frequency sorting |
+| `ui/package-list/types.ts`        | Row types, color constants                                         |
+| `ui/VersionPicker.tsx`            | Scrollable version picker (fetches from npm registry)              |
+| `ui/ChangelogPanel.tsx`           | GitHub release notes viewer                                        |
+| `ui/UpdateResults.tsx`            | Post-update summary                                                |
+| `ui/Settings.tsx`                 | Settings screen with toggles                                       |
+| `ui/SettingsToggle.tsx`           | Reusable toggle component                                          |
+| `ui/SelfUpdatePrompt.tsx`         | Prompts user to update ripen itself                                |
+| `ui/TerminalOutputBox.tsx`        | Displays terminal output during loading/updating                   |
+| `ui/MarkdownLine.tsx`             | Minimal inline markdown renderer for changelog bodies              |
 
 ### UI hooks (`ui/hooks/`)
 
-| File | Role |
-|---|---|
-| `use-packages.ts` | Package selection, toggling, version picking state |
-| `use-self-update.ts` | Self-update check and installation |
-| `use-terminal-output.ts` | Terminal output buffer and line handling |
-| `use-exit-on-screen.ts` | Auto-exit logic for specific screens |
+| File                     | Role                                               |
+| ------------------------ | -------------------------------------------------- |
+| `use-packages.ts`        | Package selection, toggling, version picking state |
+| `use-self-update.ts`     | Self-update check and installation                 |
+| `use-terminal-output.ts` | Terminal output buffer and line handling           |
+| `use-exit-on-screen.ts`  | Auto-exit logic for specific screens               |

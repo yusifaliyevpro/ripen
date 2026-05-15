@@ -23,9 +23,6 @@ importers:
       react:
         specifier: 19.2.6
         version: 19.2.6
-      ripencli:
-        specifier: 'link:'
-        version: 'link:'
     devDependencies:
       '@types/node':
         specifier: 24.12.2

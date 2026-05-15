@@ -4,9 +4,7 @@
 
 ![npm version](https://img.shields.io/npm/v/ripencli) ![node](https://img.shields.io/node/v/ripencli) ![GitHub License](https://img.shields.io/github/license/yusifaliyevpro/ripen)
 
-
 ![ripen banner](https://raw.githubusercontent.com/yusifaliyevpro/ripen/main/docs/public/og.svg)
-
 
 ## Features
 
@@ -16,7 +14,7 @@
 - **Version picker** — choose any specific version from the npm registry, not just latest
 - **Changelog viewer** — see GitHub release notes before you update
 - **npm, pnpm, yarn & bun** — auto-detects your package manager
-- **Global packages** — check global installs across all* package managers
+- **Global packages** — check global installs across all\* package managers
 - **Show all packages** — `ripen --all` lists every dependency, not just outdated ones (great for checking changelogs or downgrading)
 - **Self-update** — notifies you when a new version of ripen is available
 - **Major bump warnings** — highlights potentially breaking updates
@@ -56,18 +54,18 @@ ripen --help
 
 ## Controls
 
-| Key          | Action                              |
-| ------------ | ----------------------------------- |
-| `↑ ↓`        | Navigate packages                   |
-| `PgUp PgDn`  | Scroll a full page                  |
-| `Tab`        | Jump between groups                 |
-| `← →`        | Collapse / expand scope groups      |
-| `space`      | Toggle select                       |
-| `v`          | Pick specific version               |
-| `c`          | View changelog / release notes      |
-| `enter`      | Copy update command & exit          |
-| `s`          | Open settings                       |
-| `esc`        | Cancel / go back                    |
+| Key         | Action                         |
+| ----------- | ------------------------------ |
+| `↑ ↓`       | Navigate packages              |
+| `PgUp PgDn` | Scroll a full page             |
+| `Tab`       | Jump between groups            |
+| `← →`       | Collapse / expand scope groups |
+| `space`     | Toggle select                  |
+| `v`         | Pick specific version          |
+| `c`         | View changelog / release notes |
+| `enter`     | Copy update command & exit     |
+| `s`         | Open settings                  |
+| `esc`       | Cancel / go back               |
 
 ## How it works
 
@@ -82,14 +80,14 @@ ripen --help
 
 Press `s` to open the settings screen. Settings are persisted at `~/.config/ripen/config.json`.
 
-| Setting                      | Default | Description                                                  |
-| ---------------------------- | ------- | ------------------------------------------------------------ |
-| Sort by update frequency     | Off     | Packages you update often appear at the top                  |
-| Separate dev dependencies    | On      | Show dependencies and devDependencies in separate groups     |
-| Enable scope grouping        | Off     | Group scoped packages under their scope prefix               |
-| Show grouped scopes on top   | Off     | Grouped scopes appear before ungrouped packages              |
-| Grouped scopes               | —       | List of scopes to group (e.g. `@heroui`, `@radix-ui`)       |
-| SFW Firewall                 | Off     | Prepend `sfw` before every generated command (requires [sfw](https://github.com/nicolo-ribaudo/sfw)) |
+| Setting                    | Default | Description                                                                                          |
+| -------------------------- | ------- | ---------------------------------------------------------------------------------------------------- |
+| Sort by update frequency   | Off     | Packages you update often appear at the top                                                          |
+| Separate dev dependencies  | On      | Show dependencies and devDependencies in separate groups                                             |
+| Enable scope grouping      | Off     | Group scoped packages under their scope prefix                                                       |
+| Show grouped scopes on top | Off     | Grouped scopes appear before ungrouped packages                                                      |
+| Grouped scopes             | —       | List of scopes to group (e.g. `@heroui`, `@radix-ui`)                                                |
+| SFW Firewall               | Off     | Prepend `sfw` before every generated command (requires [sfw](https://github.com/nicolo-ribaudo/sfw)) |
 
 When using `ripen -g`, all available package managers (npm, pnpm, yarn) are checked in parallel so you see every global package in one place. Bun is not included in global checking because it doesn't provide a JSON output for its outdated command.
 

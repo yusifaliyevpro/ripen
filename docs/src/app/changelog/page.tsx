@@ -9,11 +9,12 @@ export const metadata: Metadata = {
 export default function ChangelogPage() {
   return (
     <>
-      <ChangelogEntry
-        version="1.2.0"
-        date="May 14, 2026"
-        title="Security-First Website & SFW Firewall Setting"
-      >
+      <ChangelogEntry version="1.2.1" date="May 15, 2026" title="Removed redundant ripen link">
+        <ul className="mt-2 list-inside list-disc space-y-1">
+          <li>Fixed a minor issue in package.json</li>
+        </ul>
+      </ChangelogEntry>
+      <ChangelogEntry version="1.2.0" date="May 14, 2026" title="Security-First Website & SFW Firewall Setting">
         <p>
           Introduced the SFW Firewall setting and repositioned ripen as a security-first tool, with an updated website,
           improved terminal demo, and new documentation.
@@ -50,20 +51,18 @@ export default function ChangelogPage() {
         </ul>
       </ChangelogEntry>
 
-      <ChangelogEntry
-        version="1.1.1"
-        date="May 13, 2026"
-        title="Global Mode Improvements & Missing Package Fix"
-      >
+      <ChangelogEntry version="1.1.1" date="May 13, 2026" title="Global Mode Improvements & Missing Package Fix">
         <p>
-          Age indicators now work in global mode, <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">ripen -g -a</code> is now supported, and a bug that caused some packages to silently disappear from the list has been fixed.
+          Age indicators now work in global mode,{" "}
+          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">ripen -g -a</code>{" "}
+          is now supported, and a bug that caused some packages to silently disappear from the list has been fixed.
         </p>
         <ul className="mt-2 list-inside list-disc space-y-1">
           <li>
             <strong>Publish age in global mode</strong> — the age column is now populated for{" "}
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">ripen -g</code>.
-            Previously the column was visible but always empty because global packages come from the package manager&apos;s
-            CLI output rather than a direct registry fetch
+            Previously the column was visible but always empty because global packages come from the package
+            manager&apos;s CLI output rather than a direct registry fetch
           </li>
           <li>
             <strong>ripen -g -a</strong> — combining global and show-all flags now works. Lists every globally installed
@@ -72,7 +71,9 @@ export default function ChangelogPage() {
           </li>
           <li>
             <strong>Missing package fix</strong> — packages whose registry entry lacks a{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">dist-tags.latest</code>{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              dist-tags.latest
+            </code>{" "}
             field (e.g. packages published only as pre-releases or with non-standard registry entries) were silently
             dropped from the list. They now fall back to the last published version instead
           </li>
@@ -101,8 +102,12 @@ export default function ChangelogPage() {
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">21h</code>,{" "}
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">3d</code>,{" "}
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">1mo</code>).
-            Versions published less than 24 hours ago are highlighted in yellow — a useful signal for pnpm&apos;s default{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">minimumReleaseAge</code> of 1 day
+            Versions published less than 24 hours ago are highlighted in yellow — a useful signal for pnpm&apos;s
+            default{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              minimumReleaseAge
+            </code>{" "}
+            of 1 day
           </li>
           <li>
             <strong>No extra request for ages</strong> — publish dates are now fetched in the same registry request as
@@ -114,14 +119,18 @@ export default function ChangelogPage() {
             rather than range-prefixed ones. Package managers already preserve the existing{" "}
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">^</code> or{" "}
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">~</code> in your{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">package.json</code>
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              package.json
+            </code>
           </li>
           <li>
             <strong>Partial version ranges</strong> — ranges like{" "}
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">^6</code> and{" "}
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">^6.2</code> are
             now detected and shown. Previously only full{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">major.minor.patch</code>{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              major.minor.patch
+            </code>{" "}
             ranges were recognised
           </li>
           <li>
@@ -131,64 +140,79 @@ export default function ChangelogPage() {
         </ul>
       </ChangelogEntry>
 
-      <ChangelogEntry
-        version="1.0.1"
-        date="March 27, 2026"
-        title="Changelog Markdown Improvements"
-      >
+      <ChangelogEntry version="1.0.1" date="March 27, 2026" title="Changelog Markdown Improvements">
         <p>
           Significantly improved markdown rendering in the changelog panel, with smarter navigation for up-to-date
           packages.
         </p>
         <ul className="mt-2 list-inside list-disc space-y-1">
           <li>
-            <strong>Clickable links</strong> — <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">[text](url)</code> links now render as blue underlined text only (no URL clutter). Clicking opens the browser via OSC 8 hyperlinks in supported terminals (Windows Terminal, iTerm2, etc.)
+            <strong>Clickable links</strong> —{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">[text](url)</code>{" "}
+            links now render as blue underlined text only (no URL clutter). Clicking opens the browser via OSC 8
+            hyperlinks in supported terminals (Windows Terminal, iTerm2, etc.)
           </li>
           <li>
-            <strong>@mentions</strong> — GitHub username mentions render as blue clickable links to the user&apos;s GitHub profile
+            <strong>@mentions</strong> — GitHub username mentions render as blue clickable links to the user&apos;s
+            GitHub profile
           </li>
           <li>
             <strong>#number references</strong> — issue and PR references like{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">#123</code> render as clickable links to the repository
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">#123</code> render
+            as clickable links to the repository
           </li>
           <li>
             <strong>More inline formatting</strong> — added{" "}
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">*italic*</code>,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">~~strikethrough~~</code>, and inline HTML tags:{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&lt;strong&gt;</code>,{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              ~~strikethrough~~
+            </code>
+            , and inline HTML tags:{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              &lt;strong&gt;
+            </code>
+            ,{" "}
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&lt;em&gt;</code>,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&lt;del&gt;</code>,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&lt;code&gt;</code>,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&lt;samp&gt;</code>,{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&lt;del&gt;</code>
+            ,{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              &lt;code&gt;
+            </code>
+            ,{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              &lt;samp&gt;
+            </code>
+            ,{" "}
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&lt;kbd&gt;</code>
           </li>
           <li>
             <strong>HTML entities</strong> — decoded correctly (e.g.{" "}
             <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&amp;nbsp;</code>,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&amp;mdash;</code>, numeric references)
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&amp;mdash;</code>
+            , numeric references)
           </li>
           <li>
             <strong>h4–h6 headings</strong> — now rendered correctly instead of appearing as raw text
           </li>
           <li>
             <strong>Inline markdown in headings</strong> — links inside headings like{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">## [1.0.0](url) (date)</code> are now parsed and rendered
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              ## [1.0.0](url) (date)
+            </code>{" "}
+            are now parsed and rendered
           </li>
           <li>
-            <strong>Smarter navigation for up-to-date packages</strong> — opens at the latest release and lets you navigate{" "}
-            <kbd className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">←</kbd> through history. Outdated packages start at the oldest relevant change. History is filtered to the current major version, excluding unrelated patches from older version lines
+            <strong>Smarter navigation for up-to-date packages</strong> — opens at the latest release and lets you
+            navigate <kbd className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">←</kbd>{" "}
+            through history. Outdated packages start at the oldest relevant change. History is filtered to the current
+            major version, excluding unrelated patches from older version lines
           </li>
         </ul>
       </ChangelogEntry>
 
-      <ChangelogEntry
-        version="1.0.0"
-        image="/og.png"
-        date="March 27, 2026" title="Show All Packages (--all flag)"
-      >
+      <ChangelogEntry version="1.0.0" image="/og.png" date="March 27, 2026" title="Show All Packages (--all flag)">
         <p>
-          Added <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">--all</code>{" "}
-          (
+          Added <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">--all</code> (
           <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">-a</code>) flag —
           show every dependency, not just outdated ones.
         </p>
@@ -261,11 +285,7 @@ export default function ChangelogPage() {
         </ul>
       </ChangelogEntry>
 
-      <ChangelogEntry
-        version="0.3.3"
-        date="March 22, 2026"
-        title="Documentation Updates"
-      >
+      <ChangelogEntry version="0.3.3" date="March 22, 2026" title="Documentation Updates">
         <p>
           Updated documentation to include the new <strong>separateDevDeps</strong> setting in both the README and the
           configuration docs page.
