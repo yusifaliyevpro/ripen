@@ -8,8 +8,7 @@ export function buildUpdateCommands(
 ): string[] {
   const commands: string[] = [];
 
-  const deps = packages.filter((p) => !global && p.type === "dependencies");
-  const devDeps = packages.filter((p) => !global && p.type === "devDependencies");
+  const localPkgs = packages.filter((p) => !global && p.type !== "global");
   const globalPkgs = packages.filter((p) => global || p.type === "global");
 
   const makeCmd = (mgr: PackageManager, pkgs: OutdatedPackage[], flags: string[]): string => {
@@ -23,8 +22,7 @@ export function buildUpdateCommands(
     return sfwFirewall ? `sfw ${cmd}` : cmd;
   };
 
-  if (deps.length > 0) commands.push(makeCmd(manager, deps, []));
-  if (devDeps.length > 0) commands.push(makeCmd(manager, devDeps, [manager === "bun" ? "-d" : "-D"]));
+  if (localPkgs.length > 0) commands.push(makeCmd(manager, localPkgs, []));
 
   if (globalPkgs.length > 0) {
     const byManager = new Map<PackageManager, OutdatedPackage[]>();
