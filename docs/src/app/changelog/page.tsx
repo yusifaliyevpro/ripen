@@ -9,6 +9,26 @@ export const metadata: Metadata = {
 export default function ChangelogPage() {
   return (
     <>
+      <ChangelogEntry version="1.2.2" date="May 25, 2026" title="Single update command for all dependency types">
+        <p>
+          Mixed selections of regular and dev dependencies are now updated with a single{" "}
+          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">add</code> command
+          instead of two separate ones.
+        </p>
+        <ul className="mt-2 list-inside list-disc space-y-1">
+          <li>
+            <strong>Unified install command</strong> — running{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
+              pnpm add dep@x devDep@y
+            </code>{" "}
+            without a{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">-D</code> flag is
+            safe — package managers preserve each package&apos;s existing location in{" "}
+            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">package.json</code>
+            . The redundant split into two commands has been removed
+          </li>
+        </ul>
+      </ChangelogEntry>
       <ChangelogEntry version="1.2.1" date="May 15, 2026" title="Removed redundant ripen link">
         <ul className="mt-2 list-inside list-disc space-y-1">
           <li>Fixed a minor issue in package.json</li>
