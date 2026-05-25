@@ -12,11 +12,11 @@ importers:
         specifier: 9.6.1
         version: 9.6.1
       ink:
-        specifier: 7.0.4
-        version: 7.0.4(@types/react@19.2.14)(react@19.2.6)
+        specifier: 7.0.3
+        version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
       ink-scroll-view:
         specifier: 0.3.7
-        version: 0.3.7(ink@7.0.4(@types/react@19.2.14)(react@19.2.6))(react@19.2.6)
+        version: 0.3.7(ink@7.0.3(@types/react@19.2.14)(react@19.2.6))(react@19.2.6)
       react:
         specifier: 19.2.6
         version: 19.2.6
@@ -360,8 +360,8 @@ packages:
       ink: ^5 || ^6 || ^7
       react: ^18 || ^19
 
-  ink@7.0.4:
-    resolution: {integrity: sha512-4wsM/gMKOT2ZANNTJibI6I9IcwBfobqv/CgaDcwvOaCREZIQxo3iGQS7qPHa2hmA67NYltZWCMtBDELB/mcbJQ==}
+  ink@7.0.3:
+    resolution: {integrity: sha512-5kxHkIj9+RuqCU3zyvP4qvYWNOSHP2TW/SHayHGHOmk87KwfVcZwvJGemi9ch+ci2gXUqerK/Eh2DGEDt5q45g==}
     engines: {node: '>=22'}
     peerDependencies:
       '@types/react': '>=19.2.0'
@@ -895,12 +895,12 @@ snapshots:
 
   indent-string@5.0.0: {}
 
-  ink-scroll-view@0.3.7(ink@7.0.4(@types/react@19.2.14)(react@19.2.6))(react@19.2.6):
+  ink-scroll-view@0.3.7(ink@7.0.3(@types/react@19.2.14)(react@19.2.6))(react@19.2.6):
     dependencies:
-      ink: 7.0.4(@types/react@19.2.14)(react@19.2.6)
+      ink: 7.0.3(@types/react@19.2.14)(react@19.2.6)
       react: 19.2.6
 
-  ink@7.0.4(@types/react@19.2.14)(react@19.2.6):
+  ink@7.0.3(@types/react@19.2.14)(react@19.2.6):
     dependencies:
       '@alcalzone/ansi-tokenize': 0.3.0
       ansi-escapes: 7.3.0
