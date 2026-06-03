@@ -66,15 +66,15 @@
   ],
   "dependencies": {
     "execa": "9.6.1",
-    "ink": "7.0.3",
+    "ink": "7.0.5",
     "ink-scroll-view": "0.3.7",
-    "react": "19.2.6"
+    "react": "19.2.7"
   },
   "devDependencies": {
     "@types/node": "24.12.2",
-    "@types/react": "19.2.14",
+    "@types/react": "19.2.16",
     "prettier": "3.8.3",
-    "tsdown": "0.22.0",
+    "tsdown": "0.22.1",
     "typescript": "6.0.3"
   }
 }
