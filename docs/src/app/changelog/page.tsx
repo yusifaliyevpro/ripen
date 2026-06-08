@@ -1,476 +1,76 @@
 import type { Metadata } from "next";
-import { ChangelogEntry } from "@/components/ChangelogEntry";
+import { cacheLife, cacheTag } from "next/cache";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export const metadata: Metadata = {
   title: "Changelog",
   description: "Version history and release notes for ripen.",
 };
 
-export default function ChangelogPage() {
+const REPO = "yusifaliyevpro/ripen";
+
+type Release = {
+  tag_name: string;
+  body: string | null;
+  published_at: string | null;
+  draft: boolean;
+};
+
+async function getReleases(): Promise<Release[]> {
+  "use cache";
+  // Cache for a long time and rely on tag-based invalidation: the publish
+  // workflow pings /api/revalidate-changelog after each release.
+  cacheLife("weeks");
+  cacheTag("changelog");
+
+  const res = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=100`, {
+    headers: {
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+    },
+  });
+
+  if (!res.ok) return [];
+
+  const releases: Release[] = await res.json();
+  return releases.filter((release) => !release.draft);
+}
+
+function formatDate(iso: string | null): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+}
+
+export default async function ChangelogPage() {
+  const releases = await getReleases();
+
+  if (releases.length === 0) {
+    return <p className="text-text-muted">No releases yet.</p>;
+  }
+
   return (
     <>
-      <ChangelogEntry version="1.2.2" date="May 25, 2026" title="Single update command for all dependency types">
-        <p>
-          Mixed selections of regular and dev dependencies are now updated with a single{" "}
-          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">add</code> command
-          instead of two separate ones.
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>Unified install command</strong> — running{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              pnpm add dep@x devDep@y
-            </code>{" "}
-            without a{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">-D</code> flag is
-            safe — package managers preserve each package&apos;s existing location in{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">package.json</code>
-            . The redundant split into two commands has been removed
-          </li>
-        </ul>
-      </ChangelogEntry>
-      <ChangelogEntry version="1.2.1" date="May 15, 2026" title="Removed redundant ripen link">
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>Fixed a minor issue in package.json</li>
-        </ul>
-      </ChangelogEntry>
-      <ChangelogEntry version="1.2.0" date="May 14, 2026" title="Security-First Website & SFW Firewall Setting">
-        <p>
-          Introduced the SFW Firewall setting and repositioned ripen as a security-first tool, with an updated website,
-          improved terminal demo, and new documentation.
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>SFW Firewall setting</strong> — new toggle in the settings screen that prepends{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">sfw</code> to
-            every generated install command. Works with all package managers. Enable it to route installs through a
-            sandboxed environment via{" "}
-            <a href="https://github.com/nicolo-ribaudo/sfw" className="text-orange hover:underline">
-              sfw
-            </a>
-          </li>
-          <li>
-            <strong>Security-first homepage section</strong> — new &ldquo;Security first, always&rdquo; section on the
-            website explaining ripen&apos;s clipboard-only model and Socket integration
-          </li>
-          <li>
-            <strong>Age column in terminal demo</strong> — the homepage demo now shows the publish age column, matching
-            the real ripen UI
-          </li>
-          <li>
-            <strong>Single dependency group in demo</strong> — the homepage demo now reflects the default{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              separateDevDeps: false
-            </code>{" "}
-            behaviour, showing all packages under a single &ldquo;All Dependencies&rdquo; group
-          </li>
-          <li>
-            <strong>SFW Firewall docs</strong> — added the setting to the configuration reference, example JSON, and a
-            dedicated section explaining how it works
-          </li>
-        </ul>
-      </ChangelogEntry>
+      {releases.map((release) => (
+        <article key={release.tag_name} className="border-t border-border py-12 first:border-t-0 sm:py-16">
+          <div className="flex flex-col gap-6 sm:flex-row sm:gap-12">
+            {/* Left column — version + date */}
+            <div className="shrink-0 sm:w-40">
+              <span className="inline-block rounded-lg border border-border bg-surface px-3 py-1 font-mono text-sm text-text-muted">
+                {release.tag_name}
+              </span>
+              <p className="mt-2 text-sm text-text-dim">{formatDate(release.published_at)}</p>
+            </div>
 
-      <ChangelogEntry version="1.1.1" date="May 13, 2026" title="Global Mode Improvements & Missing Package Fix">
-        <p>
-          Age indicators now work in global mode,{" "}
-          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">ripen -g -a</code>{" "}
-          is now supported, and a bug that caused some packages to silently disappear from the list has been fixed.
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>Publish age in global mode</strong> — the age column is now populated for{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">ripen -g</code>.
-            Previously the column was visible but always empty because global packages come from the package
-            manager&apos;s CLI output rather than a direct registry fetch
-          </li>
-          <li>
-            <strong>ripen -g -a</strong> — combining global and show-all flags now works. Lists every globally installed
-            package across npm, pnpm, and yarn — not just the outdated ones. Useful for browsing changelogs or picking a
-            specific version of a global tool
-          </li>
-          <li>
-            <strong>Missing package fix</strong> — packages whose registry entry lacks a{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              dist-tags.latest
-            </code>{" "}
-            field (e.g. packages published only as pre-releases or with non-standard registry entries) were silently
-            dropped from the list. They now fall back to the last published version instead
-          </li>
-        </ul>
-      </ChangelogEntry>
-
-      <ChangelogEntry
-        version="1.1.0"
-        date="May 13, 2026"
-        title="Clipboard-first, Publish Age & Partial Version Support"
-      >
-        <p>
-          ripen no longer runs update commands for you — it copies the exact command to your clipboard and exits. This
-          release also adds publish age indicators and fixes detection of partial version ranges.
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>Clipboard-first workflow</strong> — pressing{" "}
-            <kbd className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">Enter</kbd> now
-            copies the ready-to-run install command to your clipboard and exits. ripen never executes anything in your
-            project — you stay in control
-          </li>
-          <li>
-            <strong>Publish age column</strong> — the package list and version picker now show how long ago each version
-            was published (e.g.{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">21h</code>,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">3d</code>,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">1mo</code>).
-            Versions published less than 24 hours ago are highlighted in yellow — a useful signal for pnpm&apos;s
-            default{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              minimumReleaseAge
-            </code>{" "}
-            of 1 day
-          </li>
-          <li>
-            <strong>No extra request for ages</strong> — publish dates are now fetched in the same registry request as
-            the version check, so the list appears with ages already populated
-          </li>
-          <li>
-            <strong>Exact versions in commands</strong> — generated install commands use pinned versions (e.g.{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">pkg@1.2.3</code>)
-            rather than range-prefixed ones. Package managers already preserve the existing{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">^</code> or{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">~</code> in your{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              package.json
-            </code>
-          </li>
-          <li>
-            <strong>Partial version ranges</strong> — ranges like{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">^6</code> and{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">^6.2</code> are
-            now detected and shown. Previously only full{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              major.minor.patch
-            </code>{" "}
-            ranges were recognised
-          </li>
-          <li>
-            <strong>Alternate screen</strong> — ripen now renders in the terminal&apos;s alternate buffer so the package
-            list never overwrites your scrollback history
-          </li>
-        </ul>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="1.0.1" date="March 27, 2026" title="Changelog Markdown Improvements">
-        <p>
-          Significantly improved markdown rendering in the changelog panel, with smarter navigation for up-to-date
-          packages.
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>Clickable links</strong> —{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">[text](url)</code>{" "}
-            links now render as blue underlined text only (no URL clutter). Clicking opens the browser via OSC 8
-            hyperlinks in supported terminals (Windows Terminal, iTerm2, etc.)
-          </li>
-          <li>
-            <strong>@mentions</strong> — GitHub username mentions render as blue clickable links to the user&apos;s
-            GitHub profile
-          </li>
-          <li>
-            <strong>#number references</strong> — issue and PR references like{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">#123</code> render
-            as clickable links to the repository
-          </li>
-          <li>
-            <strong>More inline formatting</strong> — added{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">*italic*</code>,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              ~~strikethrough~~
-            </code>
-            , and inline HTML tags:{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              &lt;strong&gt;
-            </code>
-            ,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&lt;em&gt;</code>,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&lt;del&gt;</code>
-            ,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              &lt;code&gt;
-            </code>
-            ,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              &lt;samp&gt;
-            </code>
-            ,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&lt;kbd&gt;</code>
-          </li>
-          <li>
-            <strong>HTML entities</strong> — decoded correctly (e.g.{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&amp;nbsp;</code>,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">&amp;mdash;</code>
-            , numeric references)
-          </li>
-          <li>
-            <strong>h4–h6 headings</strong> — now rendered correctly instead of appearing as raw text
-          </li>
-          <li>
-            <strong>Inline markdown in headings</strong> — links inside headings like{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              ## [1.0.0](url) (date)
-            </code>{" "}
-            are now parsed and rendered
-          </li>
-          <li>
-            <strong>Smarter navigation for up-to-date packages</strong> — opens at the latest release and lets you
-            navigate <kbd className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">←</kbd>{" "}
-            through history. Outdated packages start at the oldest relevant change. History is filtered to the current
-            major version, excluding unrelated patches from older version lines
-          </li>
-        </ul>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="1.0.0" image="/og.png" date="March 27, 2026" title="Show All Packages (--all flag)">
-        <p>
-          Added <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">--all</code> (
-          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">-a</code>) flag —
-          show every dependency, not just outdated ones.
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>--all / -a flag</strong> — run{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">ripen --all</code>{" "}
-            to list all packages regardless of their update status. Useful for browsing changelogs or picking an older
-            version to downgrade to
-          </li>
-          <li>
-            <strong>Green current version</strong> — packages that are already up to date show their current version in
-            green instead of red, making it easy to see what needs attention at a glance
-          </li>
-          <li>
-            <strong>Updated footer</strong> — in{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">--all</code> mode
-            the footer shows total package count alongside the outdated count
-          </li>
-        </ul>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.3.4" date="March 23, 2026" title="Code Refactoring & Flicker Fix">
-        <p>
-          Major codebase refactoring for better separation of concerns, plus a fix for the package list flicker on
-          initial load.
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>Package list flicker fix</strong> — eliminated a visible reorder when the package list first appears
-            after checking for updates. Scope groups are now collapsed on the very first render instead of after a
-            delayed effect
-          </li>
-          <li>
-            <strong>Custom hooks</strong> — extracted{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">usePackages</code>
-            ,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              useTerminalOutput
-            </code>
-            ,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              useSelfUpdate
-            </code>
-            , and{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              useExitOnScreen
-            </code>{" "}
-            into dedicated hook files
-          </li>
-          <li>
-            <strong>PackageList split</strong> — moved display row building, filtering, and grouping logic into a
-            dedicated{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              package-list/
-            </code>{" "}
-            module with separate types, build-rows, and component files
-          </li>
-          <li>
-            <strong>Utility modules</strong> — created{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              lib/utils.ts
-            </code>{" "}
-            and{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              lib/versions.ts
-            </code>{" "}
-            for shared helpers
-          </li>
-        </ul>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.3.3" date="March 22, 2026" title="Documentation Updates">
-        <p>
-          Updated documentation to include the new <strong>separateDevDeps</strong> setting in both the README and the
-          configuration docs page.
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>README settings table</strong> — added the Separate dev dependencies row
-          </li>
-          <li>
-            <strong>Configuration docs</strong> — added{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-              separateDevDeps
-            </code>{" "}
-            to the settings table and example JSON
-          </li>
-        </ul>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.3.2" date="March 22, 2026" title="Grouping Fixes & Separate Dev Dependencies Setting">
-        <p>
-          Fixed the <strong>groupsOnTop</strong> setting not being respected and added a new setting to merge dependency
-          groups.
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>groupsOnTop fix</strong> — scope groups now correctly appear at their natural position when the
-            setting is turned off. Previously, frequency sorting was forcing groups to the top regardless of the
-            groupsOnTop value
-          </li>
-          <li>
-            <strong>Separate dev dependencies</strong> — new setting to merge dependencies and devDependencies into a
-            single {'"'}All Dependencies{'"'} group. Enabled by default (separate groups), can be toggled off in
-            settings
-          </li>
-        </ul>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.3.1" date="March 22, 2026" title="Add Home Page Link to package.json">
-        <p>
-          Added a <strong>homepage</strong> field to the package.json metadata, linking to the ripen homepage at{" "}
-          <a href="https://ripencli.vercel.app" className="text-orange hover:underline">
-            https://ripencli.vercel.app
-          </a>
-          . This provides users with an easy way to find more information about ripen and access the documentation
-          directly from the npm registry.
-        </p>
-      </ChangelogEntry>
-      <ChangelogEntry version="0.3.0" date="March 22, 2026" title="Enhanced MetaData and Website Redesign">
-        <p>Welcome to ripen 0.3.0! This major release includes several exciting features and improvements:</p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>Enhanced MetaData</strong> — Redesigned Website interface with improved usability and visual appeal
-          </li>
-        </ul>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.2.9" date="March 22, 2026" title="Pre-release Version Support">
-        <p>
-          Fixed version comparison for <strong>pre-release versions</strong> (e.g.,{" "}
-          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">3.0.0-beta.8</code>
-          ). Packages with pre-release current versions were previously ignored during the outdated check.
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>Version comparison fix</strong> — pre-release suffixes are now stripped before comparing semver
-            bases, and a pre-release is correctly detected as older than its stable release
-          </li>
-          <li>
-            <strong>Wider version columns</strong> — increased column width from 10 to 14 characters to prevent long
-            version strings from wrapping to two lines
-          </li>
-          <li>
-            <strong>Version sorting fix</strong> — version picker now correctly sorts pre-release versions relative to
-            their stable counterparts
-          </li>
-        </ul>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.2.8" date="March 2026" title="Settings Delete Shortcut">
-        <p>
-          Enhanced the Settings screen with a new delete shortcut for removing grouped scopes directly from the settings
-          UI.
-        </p>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.2.7" date="March 2026" title="Frequency Sorting">
-        <p>
-          Added <strong>frequency sorting</strong> — packages you update often can now be surfaced to the top of the
-          list. Enhanced README with settings documentation.
-        </p>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.2.6" date="March 2026" title="Configuration System">
-        <p>
-          Introduced the <strong>configuration system</strong> with support for:
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>
-            <strong>Frequency tracking</strong> — tracks how many times each package is updated
-          </li>
-          <li>
-            <strong>Scope grouping</strong> — group scoped packages (e.g.,{" "}
-            <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">@heroui/*</code>)
-            together
-          </li>
-          <li>
-            <strong>Groups on top</strong> — option to display grouped scopes before ungrouped packages
-          </li>
-          <li>
-            <strong>Custom scopes</strong> — user-configurable list of scopes to group
-          </li>
-        </ul>
-        <p className="mt-2">
-          Settings are persisted at{" "}
-          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">
-            ~/.config/ripen/config.json
-          </code>
-          .
-        </p>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.2.5" date="March 2026" title="Codebase Refactoring">
-        <p>
-          Refactored all{" "}
-          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">interface</code>{" "}
-          declarations to{" "}
-          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">type</code> across
-          the entire codebase for consistency and better TypeScript patterns.
-        </p>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.2.4" date="March 2026" title="TypeScript & Exit Handling">
-        <p>
-          TypeScript improvements and optimization pass. Better{" "}
-          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">Ctrl+C</code>{" "}
-          handling for cleaner process exits.
-        </p>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.2.2" date="March 2026" title="Performance Improvements">
-        <p>
-          Performance improvements with reduced UI flickering during package list rendering. Smoother scrolling and
-          selection experience.
-        </p>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.1.9" date="March 2026" title="Self-Update Flow">
-        <p>
-          Added <strong>self-update flow</strong> with process restart. ripen now notifies you when a newer version is
-          available and can update itself, then automatically restarts with the new version.
-        </p>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.1.8" date="March 2026" title="Bun Support">
-        <p>
-          Added <strong>Bun support</strong>. ripen now detects{" "}
-          <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">bun.lock</code> and
-          uses <code className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-xs">bun add</code>{" "}
-          for updates. The package manager family is now complete: npm, pnpm, yarn, and bun.
-        </p>
-      </ChangelogEntry>
-
-      <ChangelogEntry version="0.1.7" date="March 2026" title="Dependency Updates">
-        <p>Dependency updates and added funding links to the package metadata.</p>
-      </ChangelogEntry>
+            {/* Right column — release notes */}
+            <div className="min-w-0 flex-1">
+              <div className="prose max-w-none prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-orange prose-a:no-underline hover:prose-a:underline prose-code:rounded prose-code:border prose-code:border-border prose-code:bg-surface prose-code:px-1.5 prose-code:py-0.5 prose-code:font-mono prose-code:text-xs prose-code:before:content-none prose-code:after:content-none">
+                <Markdown remarkPlugins={[remarkGfm]}>{release.body || "_No release notes._"}</Markdown>
+              </div>
+            </div>
+          </div>
+        </article>
+      ))}
     </>
   );
 }

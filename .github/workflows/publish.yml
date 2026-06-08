@@ -24,10 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24"
-
-      - name: Update npm
-        run: npm install -g npm@latest
+          node-version: 24
 
       - name: Install dependencies
         run: pnpm install
@@ -58,27 +55,9 @@ jobs:
             echo "version_changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check changelog entry exists
-        if: steps.check.outputs.version_changed == 'true'
-        run: |
-          VERSION="${{ steps.check.outputs.new_version }}"
-          if ! grep -q "version=\"$VERSION\"" docs/src/app/changelog/page.tsx; then
-            echo "::error::No changelog entry found for version $VERSION in docs/src/app/changelog/page.tsx"
-            echo "Please add a <ChangelogEntry version=\"$VERSION\" ...> before publishing."
-            exit 1
-          fi
-          echo "Changelog entry found for v$VERSION"
-
-      - name: Extract release notes
-        if: steps.check.outputs.version_changed == 'true'
-        run: node scripts/extract-release-notes.cjs "${{ steps.check.outputs.new_version }}" /tmp/release-notes.md
-
       - name: Build
         if: steps.check.outputs.version_changed == 'true'
         run: pnpm build
-
-      - name: Print npm version
-        run: npm --version
 
       - name: Publish
         if: steps.check.outputs.version_changed == 'true'
@@ -99,5 +78,11 @@ jobs:
         run: |
           gh release create "v${{ steps.check.outputs.new_version }}" \
             --title "v${{ steps.check.outputs.new_version }}" \
-            --notes-file /tmp/release-notes.md \
+            --generate-notes \
             --latest
+
+      - name: Revalidate docs changelog
+        if: steps.check.outputs.version_changed == 'true'
+        run: |
+          curl -fsSL -X POST "https://ripencli.vercel.app/api/revalidate-changelog" \
+            -H "x-webhook-secret: ${{ secrets.CHANGELOG_REVALIDATE_SECRET }}"

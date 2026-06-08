@@ -14,6 +14,14 @@ pnpm checks       # Check locally before PR
 
 There is no test suite.
 
+## Releases
+
+Releases are fully automated — there is **no changelog file to maintain**.
+
+1. Bump `version` in `package.json` and push to `main`.
+2. `.github/workflows/publish.yml` detects the version change, publishes to npm, creates a `v<version>` git tag, and creates a GitHub Release with **auto-generated notes** (`gh release create --generate-notes`).
+3. The docs changelog page (`docs/src/app/changelog/page.tsx`) fetches GitHub Releases at runtime (cached hourly), so published releases appear there automatically — no manual entry.
+
 ## Architecture
 
 `ripen` is a CLI tool built with **Ink** (React for terminal UIs). Source lives in `src/`, bundled to `dist/cli.js` via tsdown (ESM, Node platform). Runtime deps — `ink`, `ink-scroll-view`, `react`, `execa` — are never bundled and must be installed alongside the package.
@@ -35,7 +43,7 @@ cli.tsx  →  detector.ts  →  fetcher.ts  →  App.tsx  →  executor.ts
 6. **`src/config.ts`** — Persists settings and update-frequency tracking to `~/.config/ripen/config.json`.
 7. **`src/lib/versions.ts`** — Semver parsing, version comparison, range prefix parsing (`^`, `~`, etc.).
 8. **`src/lib/utils.ts`** — Cross-platform browser opener (Windows: `start`, macOS: `open`, Linux: `xdg-open`).
-9. **`src/types.ts`** — All shared TypeScript types: `PackageManager`, `ProjectInfo`, `OutdatedPackage`, `RipenConfig`, `Screen`, `UpdateResult`, `ChangelogEntry`, `RegistryVersion`.
+9. **`src/types.ts`** — All shared TypeScript types: `PackageManager`, `ProjectInfo`, `OutdatedPackage`, `RipenConfig`, `Screen`, `UpdateResult`, `RegistryVersion`.
 
 ### UI / screen state machine
 

@@ -35,7 +35,7 @@
     "dev": "tsx src/cli.tsx",
     "typecheck": "tsc --noEmit",
     "start": "node dist/cli.js",
-    "check": "node scripts/pr-checks.ts",
+    "check": "node --no-warnings scripts/pr-checks.ts",
     "docs:dev": "pnpm --prefix docs dev",
     "docs:build": "pnpm --prefix docs build",
     "docs:start": "pnpm --prefix docs start"
