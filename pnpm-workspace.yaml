@@ -2,3 +2,5 @@ allowBuilds:
   esbuild: true
 packages:
   - "."
+trustPolicy: "no-downgrade"
+minimumReleaseAge: 1440
