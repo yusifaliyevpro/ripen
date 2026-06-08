@@ -87,7 +87,7 @@ Press `s` to open the settings screen. Settings are persisted at `~/.config/ripe
 | Enable scope grouping      | Off     | Group scoped packages under their scope prefix                                                       |
 | Show grouped scopes on top | Off     | Grouped scopes appear before ungrouped packages                                                      |
 | Grouped scopes             | —       | List of scopes to group (e.g. `@heroui`, `@radix-ui`)                                                |
-| SFW Firewall               | Off     | Prepend `sfw` before every generated command (requires [sfw](https://github.com/nicolo-ribaudo/sfw)) |
+| SFW Firewall               | Off     | Prepend `sfw` before every generated command (requires [sfw](https://github.com/SocketDev/sfw-free)) |
 
 When using `ripen -g`, all available package managers (npm, pnpm, yarn) are checked in parallel so you see every global package in one place. Bun is not included in global checking because it doesn't provide a JSON output for its outdated command.
 
