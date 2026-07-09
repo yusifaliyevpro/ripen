@@ -13,6 +13,7 @@ type Props = {
 
 export function ChangelogPanel({ pkg, onClose }: Props) {
   const [entries, setEntries] = useState<ChangelogEntry[]>([]);
+  const [rateLimited, setRateLimited] = useState(false);
   const [repoUrl, setRepoUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [opened, setOpened] = useState(false);
@@ -26,10 +27,11 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
     Promise.all([
       fetchChangelog(pkg.name, isUpToDate ? "" : pkg.current, pkg.targetVersion ?? pkg.latest),
       fetchRepoUrl(pkg.name),
-    ]).then(([e, repo]) => {
-      setEntries(e);
+    ]).then(([result, repo]) => {
+      setEntries(result.entries);
+      setRateLimited(result.rateLimited ?? false);
       // Up-to-date: start at latest (last entry). Outdated: start at oldest change (first entry).
-      setActiveEntry(isUpToDate ? Math.max(0, e.length - 1) : 0);
+      setActiveEntry(isUpToDate ? Math.max(0, result.entries.length - 1) : 0);
       setRepoUrl(repo);
       setLoading(false);
     });
@@ -121,6 +123,21 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
       {/* Scrollable body */}
       {loading ? (
         <Text color="gray"> fetching release notes…</Text>
+      ) : rateLimited ? (
+        <Box flexDirection="column">
+          <Text color="yellow"> GitHub rate limit reached (60 requests/hour for unauthenticated use).</Text>
+          <Text color="gray"> Install the GitHub CLI and log in to raise the limit to 5,000/hour:</Text>
+          <Text color="gray">
+            {"   "}
+            <Text color="white">gh auth login</Text> — https://cli.github.com
+          </Text>
+          {releasesPageUrl && (
+            <Text color="gray">
+              {" "}
+              Or press <Text color="white">r</Text> to open the releases page in browser.
+            </Text>
+          )}
+        </Box>
       ) : entries.length === 0 ? (
         <Box flexDirection="column">
           <Text color="gray"> No GitHub release notes found between these versions.</Text>

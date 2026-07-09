@@ -1,7 +1,27 @@
-import type { RegistryVersion, ChangelogEntry } from "./types";
+import { execa } from "execa";
+import type { RegistryVersion, ChangelogResult } from "./types";
 import { compareVersions, parseVersion } from "./lib/versions";
 
 export { isNewerVersion } from "./lib/versions";
+
+let cachedToken: string | null | undefined;
+
+/**
+ * Get a GitHub token from the `gh` CLI (`gh auth token`). Unauthenticated
+ * requests are limited to 60/hour per IP and are easily exhausted; an
+ * authenticated request raises the limit to 5,000/hour. Returns null when
+ * `gh` is not installed or the user is not logged in. Cached per process.
+ */
+async function githubToken(): Promise<string | null> {
+  if (cachedToken !== undefined) return cachedToken;
+  try {
+    const { stdout, exitCode } = await execa("gh", ["auth", "token"], { reject: false });
+    cachedToken = exitCode === 0 && stdout.trim() ? stdout.trim() : null;
+  } catch {
+    cachedToken = null;
+  }
+  return cachedToken;
+}
 
 export async function fetchVersions(packageName: string): Promise<RegistryVersion[]> {
   try {
@@ -45,19 +65,26 @@ export async function fetchChangelog(
   packageName: string,
   fromVersion: string,
   toVersion: string,
-): Promise<ChangelogEntry[]> {
+): Promise<ChangelogResult> {
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
-    if (!res.ok) return [];
+    if (!res.ok) return { entries: [] };
     const data = (await res.json()) as any;
 
     const repo = extractGitHubRepo(data);
-    if (!repo) return [];
+    if (!repo) return { entries: [] };
 
-    const ghRes = await fetch(`https://api.github.com/repos/${repo}/releases?per_page=30`, {
-      headers: { Accept: "application/vnd.github+json" },
-    });
-    if (!ghRes.ok) return [];
+    const token = await githubToken();
+    const headers: Record<string, string> = { Accept: "application/vnd.github+json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const ghRes = await fetch(`https://api.github.com/repos/${repo}/releases?per_page=30`, { headers });
+    if (!ghRes.ok) {
+      // 403/429 without a token means the unauthenticated rate limit is exhausted —
+      // tell the UI so it can suggest logging in with `gh`.
+      const rateLimited = (ghRes.status === 403 || ghRes.status === 429) && !token;
+      return { entries: [], rateLimited };
+    }
 
     const releases = (await ghRes.json()) as any[];
 
@@ -80,19 +107,21 @@ export async function fetchChangelog(
     // if nothing found with strict filter, return latest release as fallback
     if (filtered.length === 0 && releases.length > 0) {
       const latest = releases[0];
-      return [
-        {
-          version: latest.tag_name,
-          body: latest.body?.trim() ?? "No release notes.",
-          url: latest.html_url,
-        },
-      ];
+      return {
+        entries: [
+          {
+            version: latest.tag_name,
+            body: latest.body?.trim() ?? "No release notes.",
+            url: latest.html_url,
+          },
+        ],
+      };
     }
 
     // Sort ascending: oldest first so callers can start at index 0 (oldest change)
-    return filtered.sort((a, b) => compareVersions(a.version, b.version));
+    return { entries: filtered.sort((a, b) => compareVersions(a.version, b.version)) };
   } catch {
-    return [];
+    return { entries: [] };
   }
 }
 

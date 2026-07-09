@@ -60,6 +60,15 @@ export type ChangelogEntry = {
   url: string;
 };
 
+export type ChangelogResult = {
+  entries: ChangelogEntry[];
+  /**
+   * True when GitHub refused the request due to rate limiting AND no auth token
+   * was available — the UI uses this to suggest installing / logging into `gh`.
+   */
+  rateLimited?: boolean;
+};
+
 // ── UI screens ───────────────────────────────────────────────────────
 
 export type Screen =

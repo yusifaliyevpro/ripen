@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
   "license": "MIT",
   "author": {
