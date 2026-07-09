@@ -342,13 +342,17 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
                 <Text color="gray">{pkg.latest}</Text>
               </Box>
               <Box width={5}>
-                {pkg.latestPublishedAt ? (
-                  <Text color={Date.now() - new Date(pkg.latestPublishedAt).getTime() < 86_400_000 ? "yellow" : "gray"}>
-                    {formatAge(pkg.latestPublishedAt)}
-                  </Text>
-                ) : (
-                  <Text color="gray"> </Text>
-                )}
+                {(() => {
+                  // Age reflects the version being installed (target), not always the latest.
+                  const agePublishedAt = pkg.targetPublishedAt ?? pkg.latestPublishedAt;
+                  return agePublishedAt ? (
+                    <Text color={Date.now() - new Date(agePublishedAt).getTime() < 86_400_000 ? "yellow" : "gray"}>
+                      {formatAge(agePublishedAt)}
+                    </Text>
+                  ) : (
+                    <Text color="gray"> </Text>
+                  );
+                })()}
               </Box>
               <Box width={9}>{isMajorBump ? <Text color="yellow">⚠ major</Text> : <Text> </Text>}</Box>
             </Box>

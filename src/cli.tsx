@@ -1,17 +1,15 @@
 #!/usr/bin/env node
 import { render } from "ink";
-import { createRequire } from "module";
 import { getProjectInfo, hasPackageJson, detectGlobalInstallManager } from "./detector";
+import { prewarmGitHubToken } from "./registry";
 import { App } from "./ui/App";
-
-const require = createRequire(import.meta.url);
-const { version: VERSION } = require("../package.json");
+import { version as VERSION } from "../package.json";
 
 const args = process.argv.slice(2);
 const isGlobal = args.includes("--global") || args.includes("-g");
 const showAll = args.includes("--all") || args.includes("-a");
 const showHelp = args.includes("--help") || args.includes("-h");
-const showVersion = args.includes("--version") || args.includes("-V");
+const showVersion = args.includes("--version") || args.includes("-v");
 
 if (showVersion) {
   console.log(VERSION);
@@ -26,8 +24,8 @@ if (showHelp) {
     ripen           check current project
     ripen -g        check global packages
     ripen -a        show all packages, not just outdated ones
-    ripen --help    show this help
-    ripen --version show version
+    ripen -h       show this help
+    ripen -v        show version
 
   Controls (inside TUI):
     ↑ ↓       navigate packages
@@ -49,6 +47,11 @@ if (!isGlobal && !hasPackageJson(cwd)) {
 }
 
 const project = getProjectInfo(cwd);
+
+// Warm the `gh auth token` cache now (fire-and-forget) so the token is ready
+// by the time the user opens a changelog, instead of paying the `gh` spawn
+// latency on first view.
+prewarmGitHubToken();
 
 const installManager = detectGlobalInstallManager();
 

@@ -15,9 +15,11 @@ export function usePackages() {
     });
   }, []);
 
-  const chooseVersion = useCallback((activeIndex: number, version: string) => {
+  const chooseVersion = useCallback((activeIndex: number, version: string, publishedAt?: string) => {
     setPackages((prev) =>
-      prev.map((p, i) => (i === activeIndex ? { ...p, targetVersion: version, selected: true } : p)),
+      prev.map((p, i) =>
+        i === activeIndex ? { ...p, targetVersion: version, targetPublishedAt: publishedAt, selected: true } : p,
+      ),
     );
   }, []);
 
