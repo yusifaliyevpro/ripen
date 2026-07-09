@@ -197,8 +197,8 @@ export function App({ project, global, showAll, version, installManager, onCance
         <Box padding={1}>
           <VersionPicker
             pkg={packages[activeIndex]!}
-            onSelect={(v) => {
-              chooseVersion(activeIndex, v);
+            onSelect={(v, publishedAt) => {
+              chooseVersion(activeIndex, v, publishedAt);
               setScreen("list");
             }}
             onCancel={() => setScreen("list")}

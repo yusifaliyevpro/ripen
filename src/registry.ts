@@ -4,23 +4,36 @@ import { compareVersions, parseVersion } from "./lib/versions";
 
 export { isNewerVersion } from "./lib/versions";
 
-let cachedToken: string | null | undefined;
+let tokenPromise: Promise<string | null> | undefined;
 
 /**
  * Get a GitHub token from the `gh` CLI (`gh auth token`). Unauthenticated
  * requests are limited to 60/hour per IP and are easily exhausted; an
  * authenticated request raises the limit to 5,000/hour. Returns null when
- * `gh` is not installed or the user is not logged in. Cached per process.
+ * `gh` is not installed or the user is not logged in.
+ *
+ * Spawning `gh` is slow, so the *promise* is cached (not just the resolved
+ * value): the first call kicks off one `gh` process and every later caller —
+ * including a fire-and-forget prewarm at startup — shares that same result.
+ * Call `prewarmGitHubToken()` when the app boots so the token is ready by the
+ * time the user opens a changelog.
  */
-async function githubToken(): Promise<string | null> {
-  if (cachedToken !== undefined) return cachedToken;
-  try {
-    const { stdout, exitCode } = await execa("gh", ["auth", "token"], { reject: false });
-    cachedToken = exitCode === 0 && stdout.trim() ? stdout.trim() : null;
-  } catch {
-    cachedToken = null;
-  }
-  return cachedToken;
+export function githubToken(): Promise<string | null> {
+  if (tokenPromise) return tokenPromise;
+  tokenPromise = (async () => {
+    try {
+      const { stdout, exitCode } = await execa("gh", ["auth", "token"], { reject: false });
+      return exitCode === 0 && stdout.trim() ? stdout.trim() : null;
+    } catch {
+      return null;
+    }
+  })();
+  return tokenPromise;
+}
+
+/** Fire-and-forget: warm the `gh auth token` cache without blocking. */
+export function prewarmGitHubToken(): void {
+  void githubToken();
 }
 
 export async function fetchVersions(packageName: string): Promise<RegistryVersion[]> {

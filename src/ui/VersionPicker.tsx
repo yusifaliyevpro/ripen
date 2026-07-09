@@ -6,7 +6,7 @@ import { formatAge } from "../lib/utils";
 
 type Props = {
   pkg: OutdatedPackage;
-  onSelect: (version: string) => void;
+  onSelect: (version: string, publishedAt: string) => void;
   onCancel: () => void;
 };
 
@@ -47,7 +47,7 @@ export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
       if (next >= scroll + PAGE) setScroll(next - PAGE + 1);
     }
     if (key.return && versions[cursor]) {
-      onSelect(versions[cursor].version);
+      onSelect(versions[cursor].version, versions[cursor].date);
     }
   });
 

@@ -25,6 +25,8 @@ export type OutdatedPackage = {
   rangePrefix?: string;
   /** ISO date when the `latest` version was published (fetched lazily) */
   latestPublishedAt?: string;
+  /** ISO date when the chosen `targetVersion` was published (set by the version picker) */
+  targetPublishedAt?: string;
 };
 
 export type FetchResult = { ok: true; packages: OutdatedPackage[] } | { ok: false; error: string };
