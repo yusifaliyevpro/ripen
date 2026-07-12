@@ -14,6 +14,20 @@ function osc8(text: string, url: string): string {
   return `\x1b]8;;${url}\x07${text}\x1b]8;;\x07`;
 }
 
+/** Strip inline HTML tags (e.g. `<samp>`) from a string, keeping the inner text. */
+function stripHtmlTags(s: string): string {
+  return s.replace(/<\/?[a-zA-Z][^>]*>/g, "");
+}
+
+/** Shorten bare GitHub issue/PR/commit URLs to `#123` / short SHA, matching GitHub's own rendering. */
+function prettyUrl(url: string): string {
+  const ref = url.match(/github\.com\/[^/]+\/[^/]+\/(?:issues|pull)\/(\d+)(?:[#?].*)?$/);
+  if (ref) return `#${ref[1]}`;
+  const commit = url.match(/github\.com\/[^/]+\/[^/]+\/commit\/([0-9a-f]{7,40})(?:[#?].*)?$/i);
+  if (commit) return commit[1]!.slice(0, 7);
+  return url;
+}
+
 function parseInline(raw: string, repoUrl?: string): Segment[] {
   const segments: Segment[] = [];
   // Order matters: ** before *, ~~ before bare ~, HTML tags use non-capturing groups (no backrefs)
@@ -37,7 +51,7 @@ function parseInline(raw: string, repoUrl?: string): Segment[] {
     } else if (m[5] !== undefined) {
       segments.push({ text: m[5]!, code: true });
     } else if (m[6] !== undefined) {
-      const linkText = m[6]!.trim() || m[7]!;
+      const linkText = stripHtmlTags(m[6]!).trim() || prettyUrl(m[7]!);
       segments.push({ text: linkText, link: m[7]! });
     } else if (m[8] !== undefined) {
       segments.push({ text: m[8]!, bold: true });
@@ -57,7 +71,7 @@ function parseInline(raw: string, repoUrl?: string): Segment[] {
       const user = m[13]!;
       segments.push({ text: `@${user}`, link: `https://github.com/${user}` });
     } else if (m[14] !== undefined) {
-      segments.push({ text: m[14]!, link: m[14]! });
+      segments.push({ text: prettyUrl(m[14]!), link: m[14]! });
     }
     last = m.index + m[0].length;
   }

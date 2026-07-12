@@ -86,6 +86,14 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
 
   const targetVer = pkg.targetVersion ?? pkg.latest;
 
+  // Reserve rows for the surrounding chrome so the scrollable body fits the terminal:
+  //   header (3 lines + 1 margin) + release navigator (1 line + 1 margin, only when >1 entry)
+  //   + footer (divider + hints, 2 lines + 1 margin) + 1 safety row.
+  const navigatorHeight = entries.length > 1 ? 2 : 0;
+  const chromeHeight = 4 + navigatorHeight + 3 + 1;
+  const maxBodyHeight = Math.max(3, rows - chromeHeight);
+  const bodyHeight = currentEntry ? Math.min(currentEntry.body.split("\n").length, maxBodyHeight) : 0;
+
   return (
     <Box flexDirection="column">
       {/* Header */}
@@ -151,7 +159,7 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
           )}
         </Box>
       ) : currentEntry ? (
-        <Box height={Math.min(currentEntry.body.split("\n").length, 18)} flexDirection="column">
+        <Box height={bodyHeight} flexDirection="column">
           <ScrollView ref={scrollRef}>
             <Box flexDirection="column">
               {currentEntry.body.split("\n").map((line, j) => (
