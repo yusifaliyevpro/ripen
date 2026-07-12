@@ -4,3 +4,5 @@ packages:
   - "."
 trustPolicy: "no-downgrade"
 minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - tsdown@0.22.5
