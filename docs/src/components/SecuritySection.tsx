@@ -1,4 +1,3 @@
-
 import Image from "next/image";
 
 export function SecuritySection() {
@@ -8,15 +7,14 @@ export function SecuritySection() {
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background:
-            "radial-gradient(ellipse at center, rgba(249,115,22,0.04) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse at center, rgba(249,115,22,0.04) 0%, transparent 70%)",
         }}
       />
 
       <div className="relative mx-auto max-w-6xl px-6">
         {/* Logo lockup */}
         <div className="mb-10 flex items-center justify-center gap-4">
-          <div className="flex items-center gap-2.5 p-3 rounded-xl border border-border bg-surface px-4 py-2.5 shadow-lg shadow-black/20">
+          <div className="flex items-center gap-2.5 rounded-xl border border-border bg-surface p-3 px-4 py-2.5 shadow-lg shadow-black/20">
             <Image src="/icon.png" alt="ripen" width={36} height={36} unoptimized />
             <span className="font-mono text-lg font-semibold text-text">ripen</span>
           </div>
@@ -29,15 +27,13 @@ export function SecuritySection() {
         </div>
 
         {/* Headline */}
-        <h2 className="mb-5 text-center text-3xl font-bold tracking-tight sm:text-4xl">
-          Security first, always
-        </h2>
+        <h2 className="mb-5 text-center text-3xl font-bold tracking-tight sm:text-4xl">Security first, always</h2>
 
         {/* Description */}
         <p className="mx-auto mb-14 max-w-xl text-center text-lg leading-relaxed text-text-muted">
           In a world where supply chain attacks hide inside everyday dependency updates,{" "}
-          <span className="font-medium text-text">ripen never runs a command for you.</span>{" "}
-          Every update goes to your clipboard first. You review it, you run it. Pair it with{" "}
+          <span className="font-medium text-text">ripen never runs a command for you.</span> Every update goes to your
+          clipboard first. You review it, you run it. Pair it with{" "}
           <a
             href="https://socket.dev"
             target="_blank"
@@ -72,15 +68,7 @@ export function SecuritySection() {
   );
 }
 
-function Pillar({
-  emoji,
-  title,
-  description,
-}: {
-  emoji: string;
-  title: string;
-  description: string;
-}) {
+function Pillar({ emoji, title, description }: { emoji: string; title: string; description: string }) {
   return (
     <div className="group relative rounded-xl border border-border bg-surface p-6 transition-colors hover:border-border-bright">
       <div className="absolute top-6 bottom-6 left-0 w-0.5 rounded-full bg-orange/0 transition-colors group-hover:bg-orange" />

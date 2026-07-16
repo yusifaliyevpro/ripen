@@ -1,6 +1,6 @@
-import { readFileSync, writeFileSync, mkdirSync } from "fs";
-import { join } from "path";
-import { homedir } from "os";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import type { RipenConfig } from "./types";
 
 export const DEFAULT_CONFIG: RipenConfig = {

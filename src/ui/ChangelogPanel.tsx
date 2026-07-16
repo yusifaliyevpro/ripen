@@ -1,10 +1,10 @@
-import { useRef, useEffect, useState } from "react";
 import { Box, Text, useInput, useWindowSize } from "ink";
 import { ScrollView, type ScrollViewRef } from "ink-scroll-view";
-import type { ChangelogEntry, OutdatedPackage } from "../types";
+import { useRef, useEffect, useState } from "react";
 import { openInBrowser } from "../lib/utils";
-import { MarkdownLine } from "./MarkdownLine";
 import { fetchChangelog, fetchRepoUrl } from "../registry";
+import type { ChangelogEntry, OutdatedPackage } from "../types";
+import { MarkdownLine } from "./MarkdownLine";
 
 type Props = {
   pkg: OutdatedPackage;

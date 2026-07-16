@@ -211,7 +211,7 @@ export function buildDisplayRows(
         }
       }
     } else {
-      const sorted = frequencySort ? [...items].sort(freqSort) : [...items].sort(nameSort);
+      const sorted = frequencySort ? items.toSorted(freqSort) : items.toSorted(nameSort);
       for (const item of sorted) {
         rows.push({ kind: "package", pkg: item.pkg, packageIndex: item.index, indented: false, scopeKey: null });
       }

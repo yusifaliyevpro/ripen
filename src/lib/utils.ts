@@ -1,4 +1,4 @@
-import { exec, execSync } from "child_process";
+import { exec, execSync } from "node:child_process";
 
 /** Open a URL in the user's default browser (cross-platform). */
 export function openInBrowser(url: string) {

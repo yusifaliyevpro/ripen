@@ -1,8 +1,7 @@
+saveExact: true
+minimumReleaseAge: 1440
+trustPolicy: "no-downgrade"
 allowBuilds:
   esbuild: true
 packages:
   - "."
-trustPolicy: "no-downgrade"
-minimumReleaseAge: 1440
-minimumReleaseAgeExclude:
-  - tsdown@0.22.5

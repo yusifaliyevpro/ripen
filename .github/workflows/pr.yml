@@ -20,9 +20,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Prettier check
-        run: pnpm prettier --check .
+      - name: Format check
+        run: pnpm fmt:check
 
-      - run: pnpm typecheck
+      - name: Lint check
+        run: pnpm lint
 
-      - run: pnpm build
+      - name: Build
+        run: pnpm build
