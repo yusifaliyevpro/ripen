@@ -84,8 +84,8 @@ function GroupHeader({
 function ColumnHeaders() {
   return (
     <div className="flex gap-4 py-0.5 text-[11px] text-text-dim">
-      <span className="w-5 shrink-0" />  {/* cursor */}
-      <span className="w-5 shrink-0" />  {/* checkbox */}
+      <span className="w-5 shrink-0" /> {/* cursor */}
+      <span className="w-5 shrink-0" /> {/* checkbox */}
       <span className="w-32">package</span>
       <span className="w-20">current</span>
       <span className="w-20">target</span>
@@ -117,9 +117,7 @@ function PackageRow({
 }) {
   return (
     <div className={`flex items-center gap-4 py-0.5 ${cursor ? "-mx-1 rounded bg-white/4 px-1" : ""}`}>
-      <span className="w-5 shrink-0 text-center">
-        {cursor ? <span className="text-green">❯</span> : null}
-      </span>
+      <span className="w-5 shrink-0 text-center">{cursor ? <span className="text-green">❯</span> : null}</span>
       <span className="w-5 shrink-0 text-center">
         <span className={selected ? "text-green" : "text-text-dim"}>{selected ? "◉" : "○"}</span>
       </span>

@@ -1,9 +1,9 @@
-import { readFileSync } from "fs";
-import { join } from "path";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { execa } from "execa";
-import type { PackageManager, OutdatedPackage, FetchResult } from "./types";
-import { isNewerVersion } from "./registry";
 import { parseBaseVersion } from "./lib/versions";
+import { isNewerVersion } from "./registry";
+import type { PackageManager, OutdatedPackage, FetchResult } from "./types";
 
 type DepEntry = {
   name: string;
@@ -284,7 +284,7 @@ async function getGlobalOutdatedPackages(
 
   if (manager === "yarn") {
     try {
-      packages = parseYarnOutdated(raw, true);
+      packages = parseYarnOutdated(raw);
     } catch {
       return { ok: false, error: "Failed to parse yarn outdated output. Try again." };
     }
@@ -396,7 +396,7 @@ export async function getAllGlobalOutdated(
  * Yarn classic outputs ndjson — one JSON object per line.
  * The table data is in a line like: {"type":"table","data":{"head":...,"body":[[name, current, wanted, latest, workspace, type],...]}}
  */
-function parseYarnOutdated(raw: string, global: boolean): OutdatedPackage[] {
+function parseYarnOutdated(raw: string): OutdatedPackage[] {
   const lines = raw.split("\n");
   for (const line of lines) {
     const trimmed = line.trim();

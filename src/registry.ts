@@ -1,6 +1,6 @@
 import { execa } from "execa";
-import type { RegistryVersion, ChangelogResult } from "./types";
 import { compareVersions, parseVersion } from "./lib/versions";
+import type { RegistryVersion, ChangelogResult } from "./types";
 
 export { isNewerVersion } from "./lib/versions";
 
@@ -57,7 +57,7 @@ export async function fetchVersions(packageName: string): Promise<RegistryVersio
         date: times[v] ? new Date(times[v]).toISOString().split("T")[0] : "",
         tag: tagByVersion[v],
       }))
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         const cmp = compareVersions(b.version, a.version);
         if (cmp !== 0) return cmp;
         // Same base version: stable (no prerelease) sorts before prerelease
@@ -132,7 +132,7 @@ export async function fetchChangelog(
     }
 
     // Sort ascending: oldest first so callers can start at index 0 (oldest change)
-    return { entries: filtered.sort((a, b) => compareVersions(a.version, b.version)) };
+    return { entries: filtered.toSorted((a, b) => compareVersions(a.version, b.version)) };
   } catch {
     return { entries: [] };
   }

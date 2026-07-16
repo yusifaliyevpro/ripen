@@ -2,14 +2,15 @@
   "name": "docs",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "format:check": "prettier --check .",
-    "format:fix": "prettier --write .",
-    "check-types": "pnpm tsc --noEmit --incremental false",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
     "install:skills": "pnpx skills@latest experimental_install",
     "install:heroui_docs": "pnpx heroui-cli@latest agents-md --react --output AGENTS.md"
   },
@@ -30,15 +31,12 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.2",
-    "@trivago/prettier-plugin-sort-imports": "6.0.2",
     "@types/node": "24.12.4",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "9.39.4",
-    "eslint-config-next": "16.2.10",
-    "prettier": "3.9.5",
-    "prettier-plugin-tailwindcss": "0.8.0",
+    "oxfmt": "0.59.0",
+    "oxlint": "1.74.0",
     "tailwindcss": "4.3.2",
     "typescript": "5.9.3"
   }

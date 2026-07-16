@@ -1,12 +1,35 @@
 {
   "name": "ripencli",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
+  "keywords": [
+    "bun",
+    "cli",
+    "dependencies",
+    "interactive",
+    "npm",
+    "outdated",
+    "package-manager",
+    "pnpm",
+    "tui",
+    "update",
+    "updater",
+    "upgrade",
+    "yarn"
+  ],
+  "homepage": "https://ripencli.vercel.app",
+  "bugs": {
+    "url": "https://github.com/yusifaliyevpro/ripen/issues"
+  },
   "license": "MIT",
   "author": {
     "name": "Yusif Aliyev",
     "email": "yusifaliyevpro@gmail.com",
     "url": "https://yusifaliyevpro.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusifaliyevpro/ripen.git"
   },
   "funding": [
     {
@@ -18,52 +41,28 @@
       "url": "https://kofe.al/@yusifaliyevpro"
     }
   ],
-  "homepage": "https://ripencli.vercel.app",
-  "bugs": {
-    "url": "https://github.com/yusifaliyevpro/ripen/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/yusifaliyevpro/ripen.git"
-  },
-  "type": "module",
   "bin": {
     "ripen": "dist/cli.js"
-  },
-  "scripts": {
-    "build": "tsdown",
-    "dev": "tsx src/cli.tsx",
-    "typecheck": "tsc --noEmit",
-    "start": "node dist/cli.js",
-    "check": "node --no-warnings scripts/pr-checks.ts",
-    "docs:dev": "pnpm --prefix docs dev",
-    "docs:build": "pnpm --prefix docs build",
-    "docs:start": "pnpm --prefix docs start"
-  },
-  "keywords": [
-    "npm",
-    "pnpm",
-    "yarn",
-    "bun",
-    "dependencies",
-    "outdated",
-    "update",
-    "upgrade",
-    "updater",
-    "package-manager",
-    "interactive",
-    "cli",
-    "tui"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "engines": {
-    "node": ">=18"
   },
   "files": [
     "dist"
   ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "check": "node --no-warnings scripts/pr-checks.ts",
+    "start": "node dist/cli.js",
+    "docs:dev": "pnpm --prefix docs dev",
+    "docs:build": "pnpm --prefix docs build",
+    "docs:start": "pnpm --prefix docs start"
+  },
   "dependencies": {
     "execa": "9.6.1",
     "ink": "7.1.0",
@@ -73,8 +72,12 @@
   "devDependencies": {
     "@types/node": "24.12.2",
     "@types/react": "19.2.17",
-    "prettier": "3.9.5",
-    "tsdown": "0.22.5",
+    "oxfmt": "0.59.0",
+    "oxlint": "1.74.0",
+    "tsdown": "0.22.8",
     "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

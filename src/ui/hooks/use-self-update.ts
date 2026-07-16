@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import type { PackageManager } from "../../types";
 import { fetchLatestVersion, isNewerVersion } from "../../registry";
+import type { PackageManager } from "../../types";
 
 export type SelfUpdateState = {
   latestVersion: string | null;

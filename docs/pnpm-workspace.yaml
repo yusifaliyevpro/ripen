@@ -1,5 +1,8 @@
-packages:
-  - '.'
+saveExact: true
+minimumReleaseAge: 1440
+trustPolicy: no-downgrade
 allowBuilds:
   sharp: true
   unrs-resolver: true
+packages:
+  - "."

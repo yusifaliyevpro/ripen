@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Box, Text, useInput } from "ink";
+import { useState } from "react";
 import type { RipenConfig } from "../types";
 import { SettingsToggle } from "./SettingsToggle";
 

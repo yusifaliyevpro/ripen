@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { render } from "ink";
+import { version as VERSION } from "../package.json";
 import { getProjectInfo, hasPackageJson, detectGlobalInstallManager } from "./detector";
 import { prewarmGitHubToken } from "./registry";
 import { App } from "./ui/App";
-import { version as VERSION } from "../package.json";
 
 const args = process.argv.slice(2);
 const isGlobal = args.includes("--global") || args.includes("-g");

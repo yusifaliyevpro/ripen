@@ -59,7 +59,8 @@ const features: { icon: IconType; title: string; description: string }[] = [
   {
     icon: VscListFlat,
     title: "Show All Packages",
-    description: "Run with --all to list every dependency, not just outdated ones. Great for browsing changelogs or downgrading.",
+    description:
+      "Run with --all to list every dependency, not just outdated ones. Great for browsing changelogs or downgrading.",
   },
   {
     icon: VscShield,

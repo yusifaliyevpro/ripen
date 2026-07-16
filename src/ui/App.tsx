@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
 import { Box, Text, useApp, useInput } from "ink";
-import type { ProjectInfo, RipenConfig, Screen } from "../types";
-import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
-import { buildUpdateCommands } from "../executor";
+import { useState, useEffect } from "react";
 import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../config";
+import { buildUpdateCommands } from "../executor";
+import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
 import { copyToClipboard } from "../lib/utils";
-import { PackageList } from "./package-list";
-import { VersionPicker } from "./VersionPicker";
+import type { ProjectInfo, RipenConfig, Screen } from "../types";
 import { ChangelogPanel } from "./ChangelogPanel";
-import { Settings } from "./Settings";
-import { SelfUpdatePrompt } from "./SelfUpdatePrompt";
-import { TerminalOutputBox } from "./TerminalOutputBox";
 import { useSelfUpdate, usePackages, useTerminalOutput, useExitOnScreen } from "./hooks";
+import { PackageList } from "./package-list";
+import { SelfUpdatePrompt } from "./SelfUpdatePrompt";
+import { Settings } from "./Settings";
+import { TerminalOutputBox } from "./TerminalOutputBox";
+import { VersionPicker } from "./VersionPicker";
 
 type Props = {
   project: ProjectInfo;
