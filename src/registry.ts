@@ -1,5 +1,5 @@
 import { execa } from "execa";
-import { compareVersions, parseVersion } from "./lib/versions";
+import { compareFullVersions, compareVersions, parseVersion, prereleaseChannel } from "./lib/versions";
 import type { RegistryVersion, ChangelogResult } from "./types";
 
 export { isNewerVersion } from "./lib/versions";
@@ -36,7 +36,15 @@ export function prewarmGitHubToken(): void {
   void githubToken();
 }
 
-export async function fetchVersions(packageName: string): Promise<RegistryVersion[]> {
+/**
+ * List versions for the picker.
+ *
+ * Pre-releases are noisy (`next` has hundreds of canaries), so they are hidden
+ * unless they carry a dist-tag — *or* they belong to the same channel as
+ * `currentVersion`. Someone sitting on `16.3.0-preview.5` needs to see every
+ * `preview.*` to move within that channel.
+ */
+export async function fetchVersions(packageName: string, currentVersion = ""): Promise<RegistryVersion[]> {
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`);
     if (!res.ok) return [];
@@ -50,23 +58,20 @@ export async function fetchVersions(packageName: string): Promise<RegistryVersio
       tagByVersion[ver as string] = tag;
     }
 
+    const channel = prereleaseChannel(currentVersion);
+
     const versions: RegistryVersion[] = Object.keys(data.versions ?? {})
-      .filter((v) => !v.includes("-") || tagByVersion[v])
+      .filter((v) => {
+        if (!v.includes("-")) return true;
+        if (tagByVersion[v]) return true;
+        return channel !== "" && prereleaseChannel(v) === channel;
+      })
       .map((v) => ({
         version: v,
         date: times[v] ? new Date(times[v]).toISOString().split("T")[0] : "",
         tag: tagByVersion[v],
       }))
-      .toSorted((a, b) => {
-        const cmp = compareVersions(b.version, a.version);
-        if (cmp !== 0) return cmp;
-        // Same base version: stable (no prerelease) sorts before prerelease
-        const aHas = a.version.includes("-");
-        const bHas = b.version.includes("-");
-        if (aHas && !bHas) return 1;
-        if (!aHas && bHas) return -1;
-        return 0;
-      });
+      .toSorted((a, b) => compareFullVersions(b.version, a.version));
 
     return versions;
   } catch {

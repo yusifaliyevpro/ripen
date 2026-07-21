@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
   "keywords": [
     "bun",
@@ -64,8 +64,8 @@
     "docs:start": "pnpm --prefix docs start"
   },
   "dependencies": {
-    "execa": "9.6.1",
-    "ink": "7.1.0",
+    "execa": "10.0.0",
+    "ink": "7.1.1",
     "ink-scroll-view": "0.3.7",
     "react": "19.2.7"
   },
@@ -74,7 +74,7 @@
     "@types/react": "19.2.17",
     "oxfmt": "0.59.0",
     "oxlint": "1.74.0",
-    "tsdown": "0.22.8",
+    "tsdown": "0.22.12",
     "typescript": "7.0.2"
   },
   "engines": {
