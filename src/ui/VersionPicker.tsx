@@ -20,7 +20,7 @@ export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
   const PAGE = Math.max(1, rows - 11);
 
   useEffect(() => {
-    fetchVersions(pkg.name).then((v) => {
+    fetchVersions(pkg.name, pkg.current).then((v) => {
       setVersions(v);
       const idx = v.findIndex((x) => x.version === (pkg.targetVersion ?? pkg.latest));
       if (idx >= 0) {

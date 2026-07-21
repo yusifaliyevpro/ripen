@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
-import { parseBaseVersion } from "./lib/versions";
+import { parseBaseVersion, prereleaseChannel } from "./lib/versions";
 import { isNewerVersion } from "./registry";
 import type { PackageManager, OutdatedPackage, FetchResult } from "./types";
 
@@ -36,7 +36,18 @@ function readPackageJsonDeps(cwd: string): DepEntry[] {
 
 type RegistryInfo = { version: string; publishedAt: string } | null;
 
-async function fetchRegistryInfoWithRetry(packageName: string): Promise<RegistryInfo> {
+/** A package to check, plus the pre-release channel it should be checked against. */
+type Target = { name: string; channel?: string };
+
+/**
+ * Resolve the version a dependency should be compared against.
+ *
+ * Normally that is the `latest` dist-tag, but a dependency pinned to a
+ * pre-release channel ("16.3.0-preview.5") must be compared against that
+ * channel's own dist-tag — otherwise it is measured against a *lower* stable
+ * version and never reports as outdated.
+ */
+async function fetchRegistryInfoWithRetry(packageName: string, channel?: string): Promise<RegistryInfo> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const controller = new AbortController();
@@ -47,7 +58,9 @@ async function fetchRegistryInfoWithRetry(packageName: string): Promise<Registry
       clearTimeout(timeout);
       if (!res.ok) return null;
       const data = (await res.json()) as any;
-      const version: string | null = data["dist-tags"]?.latest ?? Object.keys(data.versions ?? {}).at(-1) ?? null;
+      const distTags = data["dist-tags"] ?? {};
+      const version: string | null =
+        (channel ? distTags[channel] : null) ?? distTags.latest ?? Object.keys(data.versions ?? {}).at(-1) ?? null;
       if (!version) return null;
       return { version, publishedAt: data.time?.[version] ?? "" };
     } catch {
@@ -58,7 +71,7 @@ async function fetchRegistryInfoWithRetry(packageName: string): Promise<Registry
 }
 
 async function fetchAllLatest(
-  names: string[],
+  targets: Target[],
   concurrency: number,
   onLine?: (line: string) => void,
 ): Promise<Map<string, RegistryInfo>> {
@@ -67,16 +80,16 @@ async function fetchAllLatest(
   let completed = 0;
 
   async function worker() {
-    while (index < names.length) {
+    while (index < targets.length) {
       const i = index++;
-      const name = names[i];
-      onLine?.(`Checking ${name} (${completed + 1}/${names.length})...`);
-      results.set(name, await fetchRegistryInfoWithRetry(name));
+      const target = targets[i];
+      onLine?.(`Checking ${target.name} (${completed + 1}/${targets.length})...`);
+      results.set(target.name, await fetchRegistryInfoWithRetry(target.name, target.channel));
       completed++;
     }
   }
 
-  await Promise.all(Array.from({ length: Math.min(concurrency, names.length) }, () => worker()));
+  await Promise.all(Array.from({ length: Math.min(concurrency, targets.length) }, () => worker()));
   return results;
 }
 
@@ -105,7 +118,7 @@ export async function getOutdatedPackages(
   }
 
   const latestVersions = await fetchAllLatest(
-    deps.map((d) => d.name),
+    deps.map((d) => ({ name: d.name, channel: prereleaseChannel(d.current) })),
     8,
     onLine,
   );
@@ -144,7 +157,7 @@ export async function getOutdatedPackages(
 async function hydratePublishDates(packages: OutdatedPackage[]): Promise<void> {
   if (packages.length === 0) return;
   const info = await fetchAllLatest(
-    packages.map((p) => p.name),
+    packages.map((p) => ({ name: p.name, channel: prereleaseChannel(p.current) })),
     8,
   );
   for (const pkg of packages) {
@@ -209,7 +222,7 @@ async function getGlobalAllPackages(
   if (installed.length === 0) return { ok: true, packages: [] };
 
   const registryInfo = await fetchAllLatest(
-    installed.map((p) => p.name),
+    installed.map((p) => ({ name: p.name, channel: prereleaseChannel(p.current) })),
     8,
     onLine,
   );
