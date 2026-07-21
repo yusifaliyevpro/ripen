@@ -5,14 +5,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-pnpm dev          # Run directly with tsx (no build step, good for development)
 pnpm build        # Bundle with tsdown → dist/cli.js
-pnpm typecheck    # Type-check without emitting
 pnpm start        # Run the built dist/cli.js
-pnpm checks       # Check locally before PR
+pnpm fmt          # Auto-format with oxfmt
+pnpm fmt:check    # Check formatting without writing
+pnpm lint         # Lint with oxlint
+pnpm lint:fix     # Auto-fix lint issues
+pnpm check        # All of the above, interactively — HUMANS ONLY, see below
 ```
 
-There is no test suite.
+There is no test suite. Note there is no `pnpm dev` and no `pnpm typecheck` script.
+
+### Verifying a change
+
+`pnpm check` is **for humans, not agents.** On a format failure it prompts "Run pnpm fmt to
+auto-fix?" and waits on stdin; without an interactive stdin that prompt can never be answered
+and the script hangs until it is killed.
+
+Agents should run the four underlying checks directly instead. These are exactly what
+`pnpm check` wraps, in the same order as CI, and all four are non-interactive:
+
+```bash
+pnpm tsc --noEmit   # 1. TypeScript — type check
+pnpm fmt:check      # 2. Oxfmt — format check   (on failure: pnpm fmt)
+pnpm lint           # 3. Oxlint — lint check    (on failure: pnpm lint:fix)
+pnpm build          # 4. tsdown — build errors
+```
 
 ## Releases
 
