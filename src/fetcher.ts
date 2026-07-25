@@ -347,9 +347,9 @@ function extractJson(raw: string): string | null {
   return null;
 }
 
-function parsePnpmOutdated(data: unknown): OutdatedPackage[] {
+function parsePnpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPackage[] {
   if (data === null || typeof data !== "object" || Array.isArray(data)) return [];
-  return Object.entries(data as Record<string, OutdatedInfo>).map(([name, info]) => ({
+  return Object.entries(data).map(([name, info]) => ({
     name,
     current: info.current ?? "N/A",
     wanted: info.wanted ?? info.latest,
@@ -361,9 +361,9 @@ function parsePnpmOutdated(data: unknown): OutdatedPackage[] {
   }));
 }
 
-function parseNpmOutdated(data: unknown): OutdatedPackage[] {
+function parseNpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPackage[] {
   if (data === null || typeof data !== "object") return [];
-  return Object.entries(data as Record<string, OutdatedInfo>).map(([name, info]) => ({
+  return Object.entries(data).map(([name, info]) => ({
     name,
     current: info.current ?? "N/A",
     wanted: info.wanted ?? info.latest,
