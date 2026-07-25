@@ -16,14 +16,20 @@ export function useSelfUpdate(currentVersion: string, installManager: PackageMan
 
   useEffect(() => {
     let cancelled = false;
-    fetchLatestVersion("ripencli").then((latest) => {
-      if (cancelled) return;
-      if (latest && isNewerVersion(currentVersion, latest)) {
-        setLatestVersion(latest);
-        setHasUpdate(true);
-      }
-      setCheckComplete(true);
-    });
+    fetchLatestVersion("ripencli")
+      .then((latest) => {
+        if (cancelled) return;
+        if (latest && isNewerVersion(currentVersion, latest)) {
+          setLatestVersion(latest);
+          setHasUpdate(true);
+        }
+        setCheckComplete(true);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("Error checking for updates:", err);
+        setCheckComplete(true);
+      });
     return () => {
       cancelled = true;
     };

@@ -118,7 +118,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
       currentRow?.type === "list-item" &&
       currentRow.listItemIndex !== undefined
     ) {
-      const scope = scopes[currentRow.listItemIndex]!;
+      const scope = scopes[currentRow.listItemIndex];
       removeScope(scope);
       if (flatCursor >= rows.length - 1) {
         setFlatCursor(Math.max(0, flatCursor - 1));

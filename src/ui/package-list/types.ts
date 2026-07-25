@@ -46,7 +46,7 @@ export const GROUP_LABELS: Record<string, string> = {
   global: "Global Packages",
 };
 
-export const GROUP_ORDER = ["dependencies", "devDependencies", "global"];
+export const GROUP_ORDER: OutdatedPackage["type"][] = ["dependencies", "devDependencies", "global"];
 
 /** Header (1) + controls (1) + margin (1) + footer (1) + group headers/borders overhead */
 export const CHROME_LINES = 8;

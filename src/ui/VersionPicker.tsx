@@ -20,15 +20,20 @@ export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
   const PAGE = Math.max(1, rows - 11);
 
   useEffect(() => {
-    fetchVersions(pkg.name, pkg.current).then((v) => {
-      setVersions(v);
-      const idx = v.findIndex((x) => x.version === (pkg.targetVersion ?? pkg.latest));
-      if (idx >= 0) {
-        setCursor(idx);
-        setScroll(Math.max(0, idx - Math.floor(PAGE / 2)));
-      }
-      setLoading(false);
-    });
+    fetchVersions(pkg.name, pkg.current)
+      .then((v) => {
+        setVersions(v);
+        const idx = v.findIndex((x) => x.version === (pkg.targetVersion ?? pkg.latest));
+        if (idx >= 0) {
+          setCursor(idx);
+          setScroll(Math.max(0, idx - Math.floor(PAGE / 2)));
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setLoading(false);
+        console.error("Error fetching versions:", err);
+      });
   }, [pkg.name]);
 
   useInput((input, key) => {

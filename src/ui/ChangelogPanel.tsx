@@ -27,14 +27,19 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
     Promise.all([
       fetchChangelog(pkg.name, isUpToDate ? "" : pkg.current, pkg.targetVersion ?? pkg.latest),
       fetchRepoUrl(pkg.name),
-    ]).then(([result, repo]) => {
-      setEntries(result.entries);
-      setRateLimited(result.rateLimited ?? false);
-      // Up-to-date: start at latest (last entry). Outdated: start at oldest change (first entry).
-      setActiveEntry(isUpToDate ? Math.max(0, result.entries.length - 1) : 0);
-      setRepoUrl(repo);
-      setLoading(false);
-    });
+    ])
+      .then(([result, repo]) => {
+        setEntries(result.entries);
+        setRateLimited(result.rateLimited ?? false);
+        // Up-to-date: start at latest (last entry). Outdated: start at oldest change (first entry).
+        setActiveEntry(isUpToDate ? Math.max(0, result.entries.length - 1) : 0);
+        setRepoUrl(repo);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setLoading(false);
+        console.error("Error fetching changelog:", err);
+      });
   }, [pkg.name]);
 
   useEffect(() => {

@@ -76,20 +76,25 @@ export function App({ project, global, showAll, version, installManager, onCance
       ? getAllGlobalOutdated(project.cwd, terminal.onLine, showAll)
       : getOutdatedPackages(project.manager, project.cwd, false, terminal.onLine, showAll);
 
-    fetch.then((result) => {
-      if (!result.ok) {
-        setErrorMsg(result.error);
+    fetch
+      .then((result) => {
+        if (!result.ok) {
+          setErrorMsg(result.error);
+          setScreen("error");
+          return;
+        }
+        terminal.reset();
+        if (result.packages.length === 0) {
+          setScreen("empty");
+        } else {
+          setPackages(result.packages);
+          setScreen("list");
+        }
+      })
+      .catch((err) => {
+        setErrorMsg(err instanceof Error ? err.message : String(err));
         setScreen("error");
-        return;
-      }
-      terminal.reset();
-      if (result.packages.length === 0) {
-        setScreen("empty");
-      } else {
-        setPackages(result.packages);
-        setScreen("list");
-      }
-    });
+      });
   }, [screen]);
 
   // ── Callbacks ──────────────────────────────────────────────────────
@@ -196,7 +201,7 @@ export function App({ project, global, showAll, version, installManager, onCance
       {screen === "version-picker" && packages[activeIndex] && (
         <Box padding={1}>
           <VersionPicker
-            pkg={packages[activeIndex]!}
+            pkg={packages[activeIndex]}
             onSelect={(v, publishedAt) => {
               chooseVersion(activeIndex, v, publishedAt);
               setScreen("list");
@@ -207,7 +212,7 @@ export function App({ project, global, showAll, version, installManager, onCance
       )}
       {screen === "changelog" && packages[activeIndex] && (
         <Box padding={1}>
-          <ChangelogPanel pkg={packages[activeIndex]!} onClose={() => setScreen("list")} />
+          <ChangelogPanel pkg={packages[activeIndex]} onClose={() => setScreen("list")} />
         </Box>
       )}
       <Box padding={1} display={isListActive ? "flex" : "none"}>

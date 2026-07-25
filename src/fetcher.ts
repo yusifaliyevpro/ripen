@@ -57,7 +57,11 @@ async function fetchRegistryInfoWithRetry(packageName: string, channel?: string)
       });
       clearTimeout(timeout);
       if (!res.ok) return null;
-      const data = (await res.json()) as any;
+      const data: {
+        "dist-tags"?: Record<string, string>;
+        versions?: Record<string, any>;
+        time?: Record<string, string>;
+      } = await res.json();
       const distTags = data["dist-tags"] ?? {};
       const version: string | null =
         (channel ? distTags[channel] : null) ?? distTags.latest ?? Object.keys(data.versions ?? {}).at(-1) ?? null;
@@ -177,7 +181,7 @@ async function listGlobalPackages(
   try {
     if (manager === "npm") {
       const { stdout } = await execa("npm", ["list", "-g", "--depth=0", "--json"], { cwd, reject: false });
-      const data = JSON.parse(stdout) as any;
+      const data: { dependencies?: Record<string, any> } = JSON.parse(stdout);
       return Object.entries(data.dependencies ?? {}).map(([name, info]: [string, any]) => ({
         name,
         current: info.version ?? "N/A",
@@ -185,11 +189,11 @@ async function listGlobalPackages(
     }
     if (manager === "pnpm") {
       const { stdout } = await execa("pnpm", ["list", "-g", "--json"], { cwd, reject: false });
-      const data = JSON.parse(stdout) as any;
+      const data: { dependencies?: Record<string, any> } = JSON.parse(stdout);
       const deps = Array.isArray(data) ? (data[0]?.dependencies ?? {}) : (data.dependencies ?? {});
       return Object.entries(deps).map(([name, info]: [string, any]) => ({
         name,
-        current: (info as any).version ?? "N/A",
+        current: info.version ?? "N/A",
       }));
     }
     if (manager === "yarn") {
@@ -197,11 +201,11 @@ async function listGlobalPackages(
       const pkgs: Array<{ name: string; current: string }> = [];
       for (const line of stdout.trim().split("\n")) {
         try {
-          const obj = JSON.parse(line) as any;
+          const obj: { type: string; data?: { trees: Array<{ name: string }> } } = JSON.parse(line);
           if (obj.type === "tree" && obj.data?.trees) {
             for (const tree of obj.data.trees) {
-              const match = (tree.name as string)?.match(/^(.+)@([^@]+)$/);
-              if (match) pkgs.push({ name: match[1]!, current: match[2]! });
+              const match = tree.name?.match(/^(.+)@([^@]+)$/);
+              if (match) pkgs.push({ name: match[1], current: match[2] });
             }
           }
         } catch {}
