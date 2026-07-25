@@ -31,6 +31,13 @@ export function App({ project, global, showAll, version, installManager, onCance
   const [frequency, setFrequency] = useState<Record<string, number>>(() => loadFrequency());
   const [activeIndex, setActiveIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
+  const [errorTitle, setErrorTitle] = useState("Could not fetch outdated packages");
+
+  const showError = (message: string, title = "Could not fetch outdated packages") => {
+    setErrorTitle(title);
+    setErrorMsg(message);
+    setScreen("error");
+  };
 
   const selfUpdate = useSelfUpdate(version, installManager);
   const { packages, setPackages, toggleOne, toggleMany, chooseVersion } = usePackages();
@@ -79,8 +86,7 @@ export function App({ project, global, showAll, version, installManager, onCance
     fetch
       .then((result) => {
         if (!result.ok) {
-          setErrorMsg(result.error);
-          setScreen("error");
+          showError(result.error);
           return;
         }
         terminal.reset();
@@ -92,8 +98,7 @@ export function App({ project, global, showAll, version, installManager, onCance
         }
       })
       .catch((err) => {
-        setErrorMsg(err instanceof Error ? err.message : String(err));
-        setScreen("error");
+        showError(err instanceof Error ? err.message : String(err));
       });
   }, [screen]);
 
@@ -160,7 +165,7 @@ export function App({ project, global, showAll, version, installManager, onCance
           ripen
         </Text>
         <Box marginTop={1} flexDirection="column" gap={1}>
-          <Text color="red">✗ Could not fetch outdated packages</Text>
+          <Text color="red">✗ {errorTitle}</Text>
           <Text color="gray">{errorMsg}</Text>
           <Box marginTop={1}>
             <Text color="gray">This usually means a network issue. Check your connection and try again.</Text>
@@ -207,12 +212,17 @@ export function App({ project, global, showAll, version, installManager, onCance
               setScreen("list");
             }}
             onCancel={() => setScreen("list")}
+            onError={(msg) => showError(msg, "Could not fetch versions")}
           />
         </Box>
       )}
       {screen === "changelog" && packages[activeIndex] && (
         <Box padding={1}>
-          <ChangelogPanel pkg={packages[activeIndex]} onClose={() => setScreen("list")} />
+          <ChangelogPanel
+            pkg={packages[activeIndex]}
+            onClose={() => setScreen("list")}
+            onError={(msg) => showError(msg, "Could not fetch changelog")}
+          />
         </Box>
       )}
       <Box padding={1} display={isListActive ? "flex" : "none"}>

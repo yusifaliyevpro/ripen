@@ -8,9 +8,10 @@ type Props = {
   pkg: OutdatedPackage;
   onSelect: (version: string, publishedAt: string) => void;
   onCancel: () => void;
+  onError: (message: string) => void;
 };
 
-export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
+export function VersionPicker({ pkg, onSelect, onCancel, onError }: Props) {
   const [versions, setVersions] = useState<RegistryVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [cursor, setCursor] = useState(0);
@@ -30,9 +31,8 @@ export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
         }
         setLoading(false);
       })
-      .catch((err) => {
-        setLoading(false);
-        console.error("Error fetching versions:", err);
+      .catch((err: unknown) => {
+        onError(err instanceof Error ? err.message : String(err));
       });
   }, [pkg.name]);
 

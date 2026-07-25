@@ -1,6 +1,13 @@
 import { execa } from "execa";
 import { compareFullVersions, compareVersions, parseVersion, prereleaseChannel } from "./lib/versions";
-import type { RegistryVersion, ChangelogResult } from "./types";
+import type {
+  RegistryVersion,
+  ChangelogResult,
+  NpmPackument,
+  NpmVersionManifest,
+  NpmRepository,
+  GitHubRelease,
+} from "./types";
 
 export { isNewerVersion } from "./lib/versions";
 
@@ -48,11 +55,7 @@ export async function fetchVersions(packageName: string, currentVersion = ""): P
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`);
     if (!res.ok) return [];
-    const data: {
-      time?: Record<string, string>;
-      "dist-tags"?: Record<string, string>;
-      versions?: Record<string, unknown>;
-    } = await res.json();
+    const data: NpmPackument = await res.json();
 
     const times: Record<string, string> = data.time ?? {};
     const distTags: Record<string, string> = data["dist-tags"] ?? {};
@@ -91,7 +94,7 @@ export async function fetchChangelog(
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
     if (!res.ok) return { entries: [] };
-    const data: { repository?: string | { url?: string } } = await res.json();
+    const data: NpmVersionManifest = await res.json();
 
     const repo = extractGitHubRepo(data);
     if (!repo) return { entries: [] };
@@ -108,8 +111,7 @@ export async function fetchChangelog(
       return { entries: [], rateLimited };
     }
 
-    const releases: { draft?: boolean; prerelease?: boolean; tag_name: string; body?: string; html_url: string }[] =
-      await ghRes.json();
+    const releases: GitHubRelease[] = await ghRes.json();
 
     const toMajor = parseVersion(toVersion)[0];
     const filtered = releases
@@ -152,7 +154,7 @@ export async function fetchLatestVersion(packageName: string): Promise<string | 
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
     if (!res.ok) return null;
-    const data: { version?: string } = await res.json();
+    const data: NpmVersionManifest = await res.json();
     return data.version ?? null;
   } catch {
     return null;
@@ -163,7 +165,7 @@ export async function fetchRepoUrl(packageName: string): Promise<string> {
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
     if (!res.ok) return "";
-    const data: { repository?: string | { url?: string } } = await res.json();
+    const data: NpmVersionManifest = await res.json();
     const repo = extractGitHubRepo(data);
     return repo ? `https://github.com/${repo}` : "";
   } catch {
@@ -175,7 +177,7 @@ export async function fetchPublishedAt(packageName: string, version: string): Pr
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`);
     if (!res.ok) return "";
-    const data: { time?: Record<string, string> } = await res.json();
+    const data: NpmPackument = await res.json();
     return data.time?.[version] ?? "";
   } catch {
     return "";
@@ -186,7 +188,7 @@ export async function fetchPublishedAt(packageName: string, version: string): Pr
  * Extract "owner/repo" from npm registry package data.
  * Handles both string and object repository fields.
  */
-function extractGitHubRepo(data: any): string | null {
+function extractGitHubRepo(data: { repository?: NpmRepository }): string | null {
   const repoUrl: string = typeof data.repository === "string" ? data.repository : (data.repository?.url ?? "");
   const match = repoUrl.match(/github\.com[/:]([^/]+\/[^/]+)/);
   if (!match) return null;

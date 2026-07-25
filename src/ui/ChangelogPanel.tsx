@@ -9,9 +9,10 @@ import { MarkdownLine } from "./MarkdownLine";
 type Props = {
   pkg: OutdatedPackage;
   onClose: () => void;
+  onError: (message: string) => void;
 };
 
-export function ChangelogPanel({ pkg, onClose }: Props) {
+export function ChangelogPanel({ pkg, onClose, onError }: Props) {
   const [entries, setEntries] = useState<ChangelogEntry[]>([]);
   const [rateLimited, setRateLimited] = useState(false);
   const [repoUrl, setRepoUrl] = useState<string>("");
@@ -36,9 +37,8 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
         setRepoUrl(repo);
         setLoading(false);
       })
-      .catch((err) => {
-        setLoading(false);
-        console.error("Error fetching changelog:", err);
+      .catch((err: unknown) => {
+        onError(err instanceof Error ? err.message : String(err));
       });
   }, [pkg.name]);
 

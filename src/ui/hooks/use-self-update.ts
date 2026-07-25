@@ -25,9 +25,10 @@ export function useSelfUpdate(currentVersion: string, installManager: PackageMan
         }
         setCheckComplete(true);
       })
-      .catch((err) => {
+      .catch(() => {
+        // A failed self-update check must never block the app — silently
+        // proceed as if we're already up to date.
         if (cancelled) return;
-        console.error("Error checking for updates:", err);
         setCheckComplete(true);
       });
     return () => {
