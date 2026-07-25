@@ -9,9 +9,10 @@ import { MarkdownLine } from "./MarkdownLine";
 type Props = {
   pkg: OutdatedPackage;
   onClose: () => void;
+  onError: (message: string) => void;
 };
 
-export function ChangelogPanel({ pkg, onClose }: Props) {
+export function ChangelogPanel({ pkg, onClose, onError }: Props) {
   const [entries, setEntries] = useState<ChangelogEntry[]>([]);
   const [rateLimited, setRateLimited] = useState(false);
   const [repoUrl, setRepoUrl] = useState<string>("");
@@ -27,14 +28,18 @@ export function ChangelogPanel({ pkg, onClose }: Props) {
     Promise.all([
       fetchChangelog(pkg.name, isUpToDate ? "" : pkg.current, pkg.targetVersion ?? pkg.latest),
       fetchRepoUrl(pkg.name),
-    ]).then(([result, repo]) => {
-      setEntries(result.entries);
-      setRateLimited(result.rateLimited ?? false);
-      // Up-to-date: start at latest (last entry). Outdated: start at oldest change (first entry).
-      setActiveEntry(isUpToDate ? Math.max(0, result.entries.length - 1) : 0);
-      setRepoUrl(repo);
-      setLoading(false);
-    });
+    ])
+      .then(([result, repo]) => {
+        setEntries(result.entries);
+        setRateLimited(result.rateLimited ?? false);
+        // Up-to-date: start at latest (last entry). Outdated: start at oldest change (first entry).
+        setActiveEntry(isUpToDate ? Math.max(0, result.entries.length - 1) : 0);
+        setRepoUrl(repo);
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        onError(err instanceof Error ? err.message : String(err));
+      });
   }, [pkg.name]);
 
   useEffect(() => {

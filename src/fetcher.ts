@@ -3,7 +3,16 @@ import { join } from "node:path";
 import { execa } from "execa";
 import { parseBaseVersion, prereleaseChannel } from "./lib/versions";
 import { isNewerVersion } from "./registry";
-import type { PackageManager, OutdatedPackage, FetchResult } from "./types";
+import type {
+  PackageManager,
+  OutdatedPackage,
+  FetchResult,
+  NpmPackument,
+  GlobalListOutput,
+  YarnListLine,
+  OutdatedInfo,
+  YarnOutdatedLine,
+} from "./types";
 
 type DepEntry = {
   name: string;
@@ -14,7 +23,7 @@ type DepEntry = {
 
 function readPackageJsonDeps(cwd: string): DepEntry[] {
   const raw = readFileSync(join(cwd, "package.json"), "utf-8");
-  const pkg = JSON.parse(raw);
+  const pkg: { dependencies?: Record<string, unknown>; devDependencies?: Record<string, unknown> } = JSON.parse(raw);
   const entries: DepEntry[] = [];
 
   for (const [depType, section] of [
@@ -57,7 +66,7 @@ async function fetchRegistryInfoWithRetry(packageName: string, channel?: string)
       });
       clearTimeout(timeout);
       if (!res.ok) return null;
-      const data = (await res.json()) as any;
+      const data: NpmPackument = await res.json();
       const distTags = data["dist-tags"] ?? {};
       const version: string | null =
         (channel ? distTags[channel] : null) ?? distTags.latest ?? Object.keys(data.versions ?? {}).at(-1) ?? null;
@@ -177,19 +186,21 @@ async function listGlobalPackages(
   try {
     if (manager === "npm") {
       const { stdout } = await execa("npm", ["list", "-g", "--depth=0", "--json"], { cwd, reject: false });
-      const data = JSON.parse(stdout) as any;
-      return Object.entries(data.dependencies ?? {}).map(([name, info]: [string, any]) => ({
+      const data: GlobalListOutput = JSON.parse(stdout);
+      return Object.entries(data.dependencies ?? {}).map(([name, info]) => ({
         name,
         current: info.version ?? "N/A",
       }));
     }
     if (manager === "pnpm") {
       const { stdout } = await execa("pnpm", ["list", "-g", "--json"], { cwd, reject: false });
-      const data = JSON.parse(stdout) as any;
-      const deps = Array.isArray(data) ? (data[0]?.dependencies ?? {}) : (data.dependencies ?? {});
-      return Object.entries(deps).map(([name, info]: [string, any]) => ({
+      const data: GlobalListOutput | GlobalListOutput[] = JSON.parse(stdout);
+      const deps: Record<string, { version?: string }> = Array.isArray(data)
+        ? (data[0]?.dependencies ?? {})
+        : (data.dependencies ?? {});
+      return Object.entries(deps).map(([name, info]) => ({
         name,
-        current: (info as any).version ?? "N/A",
+        current: info.version ?? "N/A",
       }));
     }
     if (manager === "yarn") {
@@ -197,11 +208,11 @@ async function listGlobalPackages(
       const pkgs: Array<{ name: string; current: string }> = [];
       for (const line of stdout.trim().split("\n")) {
         try {
-          const obj = JSON.parse(line) as any;
+          const obj: YarnListLine = JSON.parse(line);
           if (obj.type === "tree" && obj.data?.trees) {
             for (const tree of obj.data.trees) {
-              const match = (tree.name as string)?.match(/^(.+)@([^@]+)$/);
-              if (match) pkgs.push({ name: match[1]!, current: match[2]! });
+              const match = tree.name?.match(/^(.+)@([^@]+)$/);
+              if (match) pkgs.push({ name: match[1], current: match[2] });
             }
           }
         } catch {}
@@ -336,9 +347,9 @@ function extractJson(raw: string): string | null {
   return null;
 }
 
-function parsePnpmOutdated(data: any): OutdatedPackage[] {
-  if (Array.isArray(data) || typeof data !== "object") return [];
-  return Object.entries(data).map(([name, info]: [string, any]) => ({
+function parsePnpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPackage[] {
+  if (data === null || typeof data !== "object" || Array.isArray(data)) return [];
+  return Object.entries(data).map(([name, info]) => ({
     name,
     current: info.current ?? "N/A",
     wanted: info.wanted ?? info.latest,
@@ -350,8 +361,9 @@ function parsePnpmOutdated(data: any): OutdatedPackage[] {
   }));
 }
 
-function parseNpmOutdated(data: any): OutdatedPackage[] {
-  return Object.entries(data).map(([name, info]: [string, any]) => ({
+function parseNpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPackage[] {
+  if (data === null || typeof data !== "object") return [];
+  return Object.entries(data).map(([name, info]) => ({
     name,
     current: info.current ?? "N/A",
     wanted: info.wanted ?? info.latest,
@@ -415,9 +427,9 @@ function parseYarnOutdated(raw: string): OutdatedPackage[] {
     const trimmed = line.trim();
     if (!trimmed) continue;
     try {
-      const obj = JSON.parse(trimmed);
+      const obj: YarnOutdatedLine = JSON.parse(trimmed);
       if (obj.type === "table" && obj.data?.body) {
-        return obj.data.body.map((row: string[]) => ({
+        return obj.data.body.map((row) => ({
           name: row[0],
           current: row[1] ?? "N/A",
           wanted: row[2] ?? row[3],

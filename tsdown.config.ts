@@ -8,6 +8,7 @@ export default defineConfig({
   platform: "node",
   outputOptions: {
     entryFileNames: "cli.js",
+    comments: false,
   },
   deps: {
     neverBundle: ["ink", "ink-scroll-view", "react", "execa"],

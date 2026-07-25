@@ -16,14 +16,21 @@ export function useSelfUpdate(currentVersion: string, installManager: PackageMan
 
   useEffect(() => {
     let cancelled = false;
-    fetchLatestVersion("ripencli").then((latest) => {
-      if (cancelled) return;
-      if (latest && isNewerVersion(currentVersion, latest)) {
-        setLatestVersion(latest);
-        setHasUpdate(true);
-      }
-      setCheckComplete(true);
-    });
+    fetchLatestVersion("ripencli")
+      .then((latest) => {
+        if (cancelled) return;
+        if (latest && isNewerVersion(currentVersion, latest)) {
+          setLatestVersion(latest);
+          setHasUpdate(true);
+        }
+        setCheckComplete(true);
+      })
+      .catch(() => {
+        // A failed self-update check must never block the app — silently
+        // proceed as if we're already up to date.
+        if (cancelled) return;
+        setCheckComplete(true);
+      });
     return () => {
       cancelled = true;
     };

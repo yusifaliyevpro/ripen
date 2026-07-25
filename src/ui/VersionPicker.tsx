@@ -8,9 +8,10 @@ type Props = {
   pkg: OutdatedPackage;
   onSelect: (version: string, publishedAt: string) => void;
   onCancel: () => void;
+  onError: (message: string) => void;
 };
 
-export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
+export function VersionPicker({ pkg, onSelect, onCancel, onError }: Props) {
   const [versions, setVersions] = useState<RegistryVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [cursor, setCursor] = useState(0);
@@ -20,15 +21,19 @@ export function VersionPicker({ pkg, onSelect, onCancel }: Props) {
   const PAGE = Math.max(1, rows - 11);
 
   useEffect(() => {
-    fetchVersions(pkg.name, pkg.current).then((v) => {
-      setVersions(v);
-      const idx = v.findIndex((x) => x.version === (pkg.targetVersion ?? pkg.latest));
-      if (idx >= 0) {
-        setCursor(idx);
-        setScroll(Math.max(0, idx - Math.floor(PAGE / 2)));
-      }
-      setLoading(false);
-    });
+    fetchVersions(pkg.name, pkg.current)
+      .then((v) => {
+        setVersions(v);
+        const idx = v.findIndex((x) => x.version === (pkg.targetVersion ?? pkg.latest));
+        if (idx >= 0) {
+          setCursor(idx);
+          setScroll(Math.max(0, idx - Math.floor(PAGE / 2)));
+        }
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        onError(err instanceof Error ? err.message : String(err));
+      });
   }, [pkg.name]);
 
   useInput((input, key) => {

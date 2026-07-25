@@ -24,7 +24,7 @@ function prettyUrl(url: string): string {
   const ref = url.match(/github\.com\/[^/]+\/[^/]+\/(?:issues|pull)\/(\d+)(?:[#?].*)?$/);
   if (ref) return `#${ref[1]}`;
   const commit = url.match(/github\.com\/[^/]+\/[^/]+\/commit\/([0-9a-f]{7,40})(?:[#?].*)?$/i);
-  if (commit) return commit[1]!.slice(0, 7);
+  if (commit) return commit[1].slice(0, 7);
   return url;
 }
 
@@ -43,35 +43,35 @@ function parseInline(raw: string, repoUrl?: string): Segment[] {
       segments.push({ text: raw.slice(last, m.index) });
     }
     if (m[2] !== undefined) {
-      segments.push({ text: m[2]!, bold: true });
+      segments.push({ text: m[2], bold: true });
     } else if (m[3] !== undefined) {
-      segments.push({ text: m[3]!, italic: true });
+      segments.push({ text: m[3], italic: true });
     } else if (m[4] !== undefined) {
-      segments.push({ text: m[4]!, strikethrough: true });
+      segments.push({ text: m[4], strikethrough: true });
     } else if (m[5] !== undefined) {
-      segments.push({ text: m[5]!, code: true });
+      segments.push({ text: m[5], code: true });
     } else if (m[6] !== undefined) {
-      const linkText = stripHtmlTags(m[6]!).trim() || prettyUrl(m[7]!);
-      segments.push({ text: linkText, link: m[7]! });
+      const linkText = stripHtmlTags(m[6]).trim() || prettyUrl(m[7]);
+      segments.push({ text: linkText, link: m[7] });
     } else if (m[8] !== undefined) {
-      segments.push({ text: m[8]!, bold: true });
+      segments.push({ text: m[8], bold: true });
     } else if (m[9] !== undefined) {
-      segments.push({ text: m[9]!, italic: true });
+      segments.push({ text: m[9], italic: true });
     } else if (m[10] !== undefined) {
-      segments.push({ text: m[10]!, strikethrough: true });
+      segments.push({ text: m[10], strikethrough: true });
     } else if (m[11] !== undefined) {
-      segments.push({ text: m[11]!, code: true });
+      segments.push({ text: m[11], code: true });
     } else if (m[12] !== undefined) {
       // #number — issue/PR reference
-      const num = m[12]!;
+      const num = m[12];
       const url = repoUrl ? `${repoUrl}/issues/${num}` : undefined;
       segments.push(url ? { text: `#${num}`, link: url } : { text: `#${num}`, code: true });
     } else if (m[13] !== undefined) {
       // @mention
-      const user = m[13]!;
+      const user = m[13];
       segments.push({ text: `@${user}`, link: `https://github.com/${user}` });
     } else if (m[14] !== undefined) {
-      segments.push({ text: prettyUrl(m[14]!), link: m[14]! });
+      segments.push({ text: prettyUrl(m[14]), link: m[14] });
     }
     last = m.index + m[0].length;
   }
@@ -94,13 +94,13 @@ function Segment({ s, baseColor }: { s: Segment; baseColor: string }) {
   if (s.code) return <Text color="cyan">{s.text}</Text>;
   if (s.bold)
     return (
-      <Text bold color={baseColor as any}>
+      <Text bold color={baseColor}>
         {s.text}
       </Text>
     );
   if (s.italic)
     return (
-      <Text italic color={baseColor as any}>
+      <Text italic color={baseColor}>
         {s.text}
       </Text>
     );
@@ -110,7 +110,7 @@ function Segment({ s, baseColor }: { s: Segment; baseColor: string }) {
         {s.text}
       </Text>
     );
-  return <Text color={baseColor as any}>{s.text}</Text>;
+  return <Text color={baseColor}>{s.text}</Text>;
 }
 
 type Props = {
@@ -147,14 +147,14 @@ export function MarkdownLine({ line, baseColor = "white", repoUrl }: Props) {
   // Heading (h1–h6)
   const headingMatch = raw.match(/^(#{1,6})\s+(.*)/);
   if (headingMatch) {
-    const level = headingMatch[1]!.length;
-    const text = headingMatch[2]!;
+    const level = headingMatch[1].length;
+    const text = headingMatch[2];
     const color = level === 1 ? "whiteBright" : level === 2 ? "cyanBright" : level === 3 ? "cyan" : "gray";
     const bold = level <= 3;
     const prefix = "  " + "  ".repeat(Math.max(0, level - 3));
     const segments = parseInline(text, repoUrl);
     return (
-      <Text bold={bold} color={color as any}>
+      <Text bold={bold} color={color}>
         {prefix}
         {segments.map((s, i) => (
           <Segment key={i} s={s} baseColor={color} />
@@ -176,8 +176,8 @@ export function MarkdownLine({ line, baseColor = "white", repoUrl }: Props) {
   // List item
   const listMatch = raw.match(/^(\s*[-*+]|\s*\d+\.)\s+(.*)/);
   if (listMatch) {
-    const indent = listMatch[1]!.match(/^\s*/)?.[0].length ?? 0;
-    const content = listMatch[2]!;
+    const indent = listMatch[1].match(/^\s*/)?.[0].length ?? 0;
+    const content = listMatch[2];
     const segments = parseInline(content, repoUrl);
     return (
       <Text>

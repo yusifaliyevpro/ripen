@@ -3,5 +3,8 @@ minimumReleaseAge: 1440
 trustPolicy: "no-downgrade"
 allowBuilds:
   esbuild: true
+  sharp: true
+  unrs-resolver: true
 packages:
   - "."
+  - "docs"

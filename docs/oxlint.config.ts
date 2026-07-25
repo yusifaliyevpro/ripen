@@ -5,7 +5,6 @@ export default defineConfig({
   categories: {
     suspicious: "warn",
   },
-  ignorePatterns: ["dist"],
   rules: {
     eqeqeq: "warn",
     "import/no-unassigned-import": "off",

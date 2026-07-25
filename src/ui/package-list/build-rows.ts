@@ -53,7 +53,7 @@ export function buildDisplayRows(
     const label = !separateDevDeps && type === "dependencies" ? "All Dependencies" : (GROUP_LABELS[type] ?? type);
     rows.push({
       kind: "header",
-      groupType: type as OutdatedPackage["type"],
+      groupType: type,
       label,
       packages: allPkgs,
       packageIndices: items.map((i) => i.index),
@@ -101,7 +101,7 @@ export function buildDisplayRows(
           const scopeKey = `${type}::${scope}`;
           rows.push({
             kind: "scope-header",
-            groupType: type as OutdatedPackage["type"],
+            groupType: type,
             scope,
             packageIndices: scopeItems.map((si) => si.index),
             packages: scopeItems.map((si) => si.pkg),
@@ -154,7 +154,7 @@ export function buildDisplayRows(
             const scopeKey = `${type}::${slot.group.scope}`;
             rows.push({
               kind: "scope-header",
-              groupType: type as OutdatedPackage["type"],
+              groupType: type,
               scope: slot.group.scope,
               packageIndices: slot.group.items.map((si) => si.index),
               packages: slot.group.items.map((si) => si.pkg),
@@ -191,7 +191,7 @@ export function buildDisplayRows(
             const scopeKey = `${type}::${slot.group.scope}`;
             rows.push({
               kind: "scope-header",
-              groupType: type as OutdatedPackage["type"],
+              groupType: type,
               scope: slot.group.scope,
               packageIndices: slot.group.items.map((si) => si.index),
               packages: slot.group.items.map((si) => si.pkg),

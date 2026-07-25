@@ -71,6 +71,66 @@ export type ChangelogResult = {
   rateLimited?: boolean;
 };
 
+// ── External JSON shapes (npm registry, GitHub API, CLI output) ───────
+// Only the fields ripen actually reads are declared. All are marked optional
+// because they come from untrusted network / subprocess responses.
+
+/** A package's `repository` field as it appears in npm metadata. */
+export type NpmRepository = string | { url?: string };
+
+/** A single published version's manifest (e.g. the `/:package/latest` endpoint). */
+export type NpmVersionManifest = {
+  version?: string;
+  repository?: NpmRepository;
+};
+
+/** Full npm registry document for a package (`GET /:package`). */
+export type NpmPackument = {
+  "dist-tags"?: Record<string, string>;
+  versions?: Record<string, NpmVersionManifest>;
+  time?: Record<string, string>;
+  repository?: NpmRepository;
+};
+
+/**
+ * A GitHub release (subset of the REST `/releases` response ripen uses).
+ * `tag_name`, `html_url`, `draft` and `prerelease` are always present on a
+ * release object; `body` is present but may be `null` when the release has no
+ * notes.
+ */
+export type GitHubRelease = {
+  tag_name: string;
+  body: string | null;
+  html_url: string;
+  draft: boolean;
+  prerelease: boolean;
+};
+
+/** `npm ls -g --json` / `pnpm ls -g --json` output (subset). */
+export type GlobalListOutput = {
+  dependencies?: Record<string, { version?: string }>;
+};
+
+/** One ndjson line from `yarn global list --json`. */
+export type YarnListLine = {
+  type: string;
+  data?: { trees: Array<{ name?: string }> };
+};
+
+/** One dependency entry in `npm`/`pnpm outdated --json`. */
+export type OutdatedInfo = {
+  current?: string;
+  wanted?: string;
+  latest: string;
+  dependent?: string;
+};
+
+/** One ndjson line from `yarn outdated --json`. */
+export type YarnOutdatedLine = {
+  type: string;
+  data?: { body: string[][] };
+};
+
 // ── UI screens ───────────────────────────────────────────────────────
 
 export type Screen =

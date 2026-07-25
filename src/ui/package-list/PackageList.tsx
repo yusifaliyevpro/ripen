@@ -135,7 +135,7 @@ export function PackageList({
           return focusedIndex >= h && focusedIndex < nextHeader;
         });
         const nextIdx = (currentGroupIdx + 1) % headerIndices.length;
-        setFocusedIndex(headerIndices[nextIdx]!);
+        setFocusedIndex(headerIndices[nextIdx]);
         return;
       }
 

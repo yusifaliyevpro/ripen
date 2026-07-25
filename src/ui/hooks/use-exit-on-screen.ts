@@ -13,7 +13,7 @@ export function useExitOnScreen(
   const { delay = 300, beforeExit } = options ?? {};
 
   useEffect(() => {
-    if (!targetScreens.includes(screen)) return;
+    if (!targetScreens.includes(screen)) return undefined;
     const timer = setTimeout(() => {
       exit();
       beforeExit?.();

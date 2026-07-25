@@ -1,16 +1,16 @@
 "use client";
 
 import { Table } from "@heroui/react";
-import { Children, type ReactElement, type ReactNode, isValidElement } from "react";
+import { Children, type ReactNode, isValidElement } from "react";
 
 function getChildArray(node: ReactNode): ReactNode[] {
-  if (!isValidElement(node)) return [];
-  return Children.toArray((node as ReactElement<{ children?: ReactNode }>).props.children);
+  if (!isValidElement<{ children?: ReactNode }>(node)) return [];
+  return Children.toArray(node.props.children);
 }
 
 function getCellContent(node: ReactNode): ReactNode {
-  if (!isValidElement(node)) return node;
-  return (node as ReactElement<{ children?: ReactNode }>).props.children;
+  if (!isValidElement<{ children?: ReactNode }>(node)) return node;
+  return node.props.children;
 }
 
 export function MdxTable({ children }: { children: ReactNode }) {
