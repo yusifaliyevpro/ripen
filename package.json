@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "1.2.9",
+  "version": "1.3.0",
   "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
   "keywords": [
     "bun",
@@ -72,8 +72,8 @@
   "devDependencies": {
     "@types/node": "24.12.2",
     "@types/react": "19.2.17",
-    "oxfmt": "0.60.0",
-    "oxlint": "1.75.0",
+    "oxfmt": "0.61.0",
+    "oxlint": "1.76.0",
     "oxlint-tsgolint": "^7.0.2001",
     "tsdown": "0.22.14",
     "typescript": "7.0.2"
