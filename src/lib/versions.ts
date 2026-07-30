@@ -5,6 +5,15 @@
  */
 
 /**
+ * Packages that publish one release line per major and whose major is chosen to
+ * match an external tool, not to be upgraded freely. `@types/node` tracks the
+ * Node.js major you actually run — sitting on Node 24 you want the newest
+ * `24.x` types, never a jump to `26.x`. For these we pin comparisons and the
+ * version picker to the currently-installed major.
+ */
+export const MAJOR_PINNED_PACKAGES = new Set<string>(["@types/node"]);
+
+/**
  * Parse a version string into [major, minor, patch].
  * Strips any non-numeric prefix ("v", "next@", "package@v", etc.)
  * and any pre-release suffix ("-beta.1", etc.).

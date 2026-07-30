@@ -1,7 +1,13 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
-import { parseBaseVersion, prereleaseChannel } from "./lib/versions";
+import {
+  compareFullVersions,
+  MAJOR_PINNED_PACKAGES,
+  parseBaseVersion,
+  parseVersion,
+  prereleaseChannel,
+} from "./lib/versions";
 import { isNewerVersion } from "./registry";
 import type {
   PackageManager,
@@ -45,8 +51,23 @@ function readPackageJsonDeps(cwd: string): DepEntry[] {
 
 type RegistryInfo = { version: string; publishedAt: string } | null;
 
-/** A package to check, plus the pre-release channel it should be checked against. */
-type Target = { name: string; channel?: string };
+/**
+ * A package to check, plus the pre-release channel it should be checked
+ * against. `pinMajor` restricts the comparison to a single major (used for
+ * `@types/node`-style packages — see {@link MAJOR_PINNED_PACKAGES}).
+ */
+type Target = { name: string; channel?: string; pinMajor?: number };
+
+/** Highest stable version whose major equals `major`, or null if none exist. */
+function latestVersionInMajor(data: NpmPackument, major: number): string | null {
+  let best: string | null = null;
+  for (const v of Object.keys(data.versions ?? {})) {
+    if (v.includes("-")) continue; // stable only
+    if (parseVersion(v)[0] !== major) continue;
+    if (best === null || compareFullVersions(v, best) > 0) best = v;
+  }
+  return best;
+}
 
 /**
  * Resolve the version a dependency should be compared against.
@@ -56,7 +77,11 @@ type Target = { name: string; channel?: string };
  * channel's own dist-tag — otherwise it is measured against a *lower* stable
  * version and never reports as outdated.
  */
-async function fetchRegistryInfoWithRetry(packageName: string, channel?: string): Promise<RegistryInfo> {
+async function fetchRegistryInfoWithRetry(
+  packageName: string,
+  channel?: string,
+  pinMajor?: number,
+): Promise<RegistryInfo> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const controller = new AbortController();
@@ -69,7 +94,12 @@ async function fetchRegistryInfoWithRetry(packageName: string, channel?: string)
       const data: NpmPackument = await res.json();
       const distTags = data["dist-tags"] ?? {};
       const version: string | null =
-        (channel ? distTags[channel] : null) ?? distTags.latest ?? Object.keys(data.versions ?? {}).at(-1) ?? null;
+        pinMajor !== undefined
+          ? latestVersionInMajor(data, pinMajor)
+          : ((channel ? distTags[channel] : null) ??
+            distTags.latest ??
+            Object.keys(data.versions ?? {}).at(-1) ??
+            null);
       if (!version) return null;
       return { version, publishedAt: data.time?.[version] ?? "" };
     } catch {
@@ -93,7 +123,7 @@ async function fetchAllLatest(
       const i = index++;
       const target = targets[i];
       onLine?.(`Checking ${target.name} (${completed + 1}/${targets.length})...`);
-      results.set(target.name, await fetchRegistryInfoWithRetry(target.name, target.channel));
+      results.set(target.name, await fetchRegistryInfoWithRetry(target.name, target.channel, target.pinMajor));
       completed++;
     }
   }
@@ -127,7 +157,11 @@ export async function getOutdatedPackages(
   }
 
   const latestVersions = await fetchAllLatest(
-    deps.map((d) => ({ name: d.name, channel: prereleaseChannel(d.current) })),
+    deps.map((d) => ({
+      name: d.name,
+      channel: prereleaseChannel(d.current),
+      pinMajor: MAJOR_PINNED_PACKAGES.has(d.name) ? parseVersion(d.current)[0] : undefined,
+    })),
     8,
     onLine,
   );

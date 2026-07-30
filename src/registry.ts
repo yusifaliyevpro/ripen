@@ -1,5 +1,11 @@
 import { execa } from "execa";
-import { compareFullVersions, compareVersions, parseVersion, prereleaseChannel } from "./lib/versions";
+import {
+  compareFullVersions,
+  compareVersions,
+  MAJOR_PINNED_PACKAGES,
+  parseVersion,
+  prereleaseChannel,
+} from "./lib/versions";
 import type {
   RegistryVersion,
   ChangelogResult,
@@ -50,6 +56,11 @@ export function prewarmGitHubToken(): void {
  * unless they carry a dist-tag — *or* they belong to the same channel as
  * `currentVersion`. Someone sitting on `16.3.0-preview.5` needs to see every
  * `preview.*` to move within that channel.
+ *
+ * For major-pinned packages (see {@link MAJOR_PINNED_PACKAGES}, e.g.
+ * `@types/node`) every version of the currently-installed major is listed, but
+ * other majors are collapsed to just their latest release — so a `24.x` user
+ * scrolls their whole line yet still sees one `26.x`, one `25.x`, etc.
  */
 export async function fetchVersions(packageName: string, currentVersion = ""): Promise<RegistryVersion[]> {
   try {
@@ -79,6 +90,19 @@ export async function fetchVersions(packageName: string, currentVersion = ""): P
         tag: tagByVersion[v],
       }))
       .toSorted((a, b) => compareFullVersions(b.version, a.version));
+
+    if (MAJOR_PINNED_PACKAGES.has(packageName) && currentVersion) {
+      const currentMajor = parseVersion(currentVersion)[0];
+      const seenOtherMajors = new Set<number>();
+      // versions is sorted newest-first, so the first row of each other major is its latest.
+      return versions.filter((v) => {
+        const major = parseVersion(v.version)[0];
+        if (major === currentMajor) return true;
+        if (seenOtherMajors.has(major)) return false;
+        seenOtherMajors.add(major);
+        return true;
+      });
+    }
 
     return versions;
   } catch {
