@@ -24,4 +24,4 @@ jobs:
         run: pnpm install
 
       - name: Checks
-        run: pnpm checks
+        run: pnpm check
