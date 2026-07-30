@@ -4,7 +4,7 @@ on:
     types: [opened, synchronize, reopened]
 jobs:
   test:
-    name: Type Check
+    name: Checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
