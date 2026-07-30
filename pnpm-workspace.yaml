@@ -8,3 +8,5 @@ allowBuilds:
 packages:
   - "."
   - "docs"
+minimumReleaseAgeExclude:
+  - greenly@1.0.1

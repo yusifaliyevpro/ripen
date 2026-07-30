@@ -23,11 +23,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Format check
-        run: pnpm fmt:check
-
-      - name: Lint check
-        run: pnpm lint
-
-      - name: Build
-        run: pnpm build
+      - name: Checks
+        run: pnpm checks
