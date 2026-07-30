@@ -4,7 +4,7 @@ on:
     types: [opened, synchronize, reopened]
 jobs:
   test:
-    name: Type Check
+    name: Checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -23,11 +23,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Format check
-        run: pnpm fmt:check
-
-      - name: Lint check
-        run: pnpm lint
-
-      - name: Build
-        run: pnpm build
+      - name: Checks
+        run: pnpm check
