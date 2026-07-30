@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   cacheComponents: true,
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  experimental: {
+    useTypeScriptCli: true,
+    turbopackRustReactCompiler: true,
+  },
   turbopack: {
     // docs is a member of the pnpm workspace at the repo root; pnpm keeps the
     // shared package store in <repo-root>/node_modules/.pnpm, so Turbopack's
