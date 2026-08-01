@@ -19,11 +19,10 @@ type Props = {
   showAll: boolean;
   version: string;
   installManager: ProjectInfo["manager"];
-  onCancelled?: () => void;
   onCopied?: (commands: string[]) => void;
 };
 
-export function App({ project, global, showAll, version, installManager, onCancelled, onCopied }: Props) {
+export function App({ project, global, showAll, version, installManager, onCopied }: Props) {
   const { exit } = useApp();
 
   const [screen, setScreen] = useState<Screen>("self-update-check");
@@ -50,10 +49,7 @@ export function App({ project, global, showAll, version, installManager, onCance
 
   // ── Exit handlers ───────────────────────────────────────────────────
   useExitOnScreen(screen, ["empty"], exit);
-  useExitOnScreen(screen, ["cancelled"], exit, {
-    delay: 200,
-    beforeExit: () => onCancelled?.(),
-  });
+  useExitOnScreen(screen, ["cancelled"], exit, { delay: 200 });
 
   // ── Self-update check → screen transition ──────────────────────────
   useEffect(() => {

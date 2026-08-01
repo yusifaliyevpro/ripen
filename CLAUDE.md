@@ -7,29 +7,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 pnpm build        # Bundle with tsdown → dist/cli.js
 pnpm start        # Run the built dist/cli.js
+pnpm test         # Run the vitest suite (tests/**)
+pnpm test:watch   # Vitest in watch mode
 pnpm fmt          # Auto-format with oxfmt
 pnpm fmt:check    # Check formatting without writing
 pnpm lint         # Lint with oxlint
 pnpm lint:fix     # Auto-fix lint issues
-pnpm check        # All of the above, interactively — HUMANS ONLY, see below
+pnpm check        # Run all checks via greenly (see below)
 ```
 
-There is no test suite. Note there is no `pnpm dev` and no `pnpm typecheck` script.
+Tests live in `tests/**` and run with **vitest** (`pnpm test`). Note there is no `pnpm dev` and no `pnpm typecheck` script.
 
 ### Verifying a change
 
-`pnpm check` is **for humans, not agents.** On a format failure it prompts "Run pnpm fmt to
-auto-fix?" and waits on stdin; without an interactive stdin that prompt can never be answered
-and the script hangs until it is killed.
+`pnpm check` runs [greenly](greenly.config.ts), which executes every check non-interactively in
+the same order as CI — safe for both humans and agents:
 
-Agents should run the four underlying checks directly instead. These are exactly what
-`pnpm check` wraps, in the same order as CI, and all four are non-interactive:
+```bash
+pnpm check
+```
+
+The individual steps, if you want to run them directly:
 
 ```bash
 pnpm tsc --noEmit   # 1. TypeScript — type check
 pnpm fmt:check      # 2. Oxfmt — format check   (on failure: pnpm fmt)
 pnpm lint           # 3. Oxlint — lint check    (on failure: pnpm lint:fix)
-pnpm build          # 4. tsdown — build errors
+pnpm test           # 4. Vitest — run the test suite
+pnpm build          # 5. tsdown — build errors
 ```
 
 ## Releases
@@ -61,19 +66,19 @@ cli.tsx  →  detector.ts  →  fetcher.ts  →  App.tsx  →  executor.ts
 6. **`src/config.ts`** — Persists settings and update-frequency tracking to `~/.config/ripen/config.json`.
 7. **`src/lib/versions.ts`** — Semver parsing, version comparison, range prefix parsing (`^`, `~`, etc.).
 8. **`src/lib/utils.ts`** — Cross-platform browser opener (Windows: `start`, macOS: `open`, Linux: `xdg-open`).
-9. **`src/types.ts`** — All shared TypeScript types: `PackageManager`, `ProjectInfo`, `OutdatedPackage`, `RipenConfig`, `Screen`, `UpdateResult`, `RegistryVersion`.
+9. **`src/types.ts`** — All shared TypeScript types: `PackageManager`, `ProjectInfo`, `OutdatedPackage`, `RipenConfig`, `Screen`, `RegistryVersion`.
 
 ### UI / screen state machine
 
 `src/ui/App.tsx` owns a `Screen` union type and drives all screen transitions:
 
 ```
-loading → list ←→ version-picker
-               ←→ changelog
-               ←→ settings
-               ←→ self-update-prompt
-               → updating → results
+self-update-check → self-update → loading → list ←→ version-picker
+                                                 ←→ changelog
+                                                 ←→ settings
 ```
+
+On confirm, the selected install command is copied to the clipboard and the app exits (there is no in-app `updating`/`results` screen).
 
 **Important:** `PackageList` stays mounted even when other screens are active — it is hidden with `display="none"` rather than unmounted, preserving scroll position and selection state.
 
@@ -87,7 +92,6 @@ loading → list ←→ version-picker
 | `ui/package-list/types.ts`        | Row types, color constants                                         |
 | `ui/VersionPicker.tsx`            | Scrollable version picker (fetches from npm registry)              |
 | `ui/ChangelogPanel.tsx`           | GitHub release notes viewer                                        |
-| `ui/UpdateResults.tsx`            | Post-update summary                                                |
 | `ui/Settings.tsx`                 | Settings screen with toggles                                       |
 | `ui/SettingsToggle.tsx`           | Reusable toggle component                                          |
 | `ui/SelfUpdatePrompt.tsx`         | Prompts user to update ripen itself                                |

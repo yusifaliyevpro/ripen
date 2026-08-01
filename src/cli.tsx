@@ -55,7 +55,6 @@ prewarmGitHubToken();
 
 const installManager = detectGlobalInstallManager();
 
-let wasCancelled = false;
 let copiedCommands: string[] = [];
 
 const { waitUntilExit } = render(
@@ -65,9 +64,6 @@ const { waitUntilExit } = render(
     showAll={showAll}
     version={VERSION}
     installManager={installManager}
-    onCancelled={() => {
-      wasCancelled = true;
-    }}
     onCopied={(cmds) => {
       copiedCommands = cmds;
     }}
@@ -79,8 +75,6 @@ await waitUntilExit();
 
 // Primary buffer is now restored. Print post-exit output here so it appears
 // in the normal scrollback, not the (now-gone) alternate screen.
-if (wasCancelled) {
-  process.stdout.write("  \x1b[32mCancelled.\x1b[0m\n");
-} else if (copiedCommands.length > 0) {
+if (copiedCommands.length > 0) {
   process.stdout.write("  \x1b[32mCopied to clipboard.\x1b[0m\n");
 }

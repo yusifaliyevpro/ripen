@@ -1,6 +1,7 @@
 import { Box, Text, useInput, useWindowSize } from "ink";
 import { useMemo, useEffect, useState, useRef } from "react";
 import { formatAge } from "../../lib/utils";
+import { parseVersion } from "../../lib/versions";
 import type { OutdatedPackage } from "../../types";
 import { buildDisplayRows, filterCollapsed, buildGroups, groupCheckbox, computeMaxPerGroup } from "./build-rows";
 import type { PackageGroup } from "./types";
@@ -317,7 +318,7 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
           if (row.kind !== "package") return null;
           const pkg = row.pkg;
           const isUpToDate = pkg.current === pkg.latest;
-          const isMajorBump = !isUpToDate && parseInt(pkg.latest) > parseInt(pkg.current);
+          const isMajorBump = !isUpToDate && (parseVersion(pkg.latest)[0] ?? 0) > (parseVersion(pkg.current)[0] ?? 0);
 
           return (
             <Box key={pkg.name} gap={2}>

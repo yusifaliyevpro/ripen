@@ -141,8 +141,6 @@ export type Screen =
   | "list"
   | "version-picker"
   | "changelog"
-  | "updating"
-  | "results"
   | "empty"
   | "error"
   | "settings"
