@@ -86,7 +86,9 @@ export async function fetchVersions(packageName: string, currentVersion = ""): P
       })
       .map((v) => ({
         version: v,
-        date: times[v] ? new Date(times[v]).toISOString().split("T")[0] : "",
+        // Keep the full ISO timestamp — truncating to YYYY-MM-DD makes every
+        // version published on the same day report the same age in the picker.
+        date: times[v] ?? "",
         tag: tagByVersion[v],
       }))
       .toSorted((a, b) => compareFullVersions(b.version, a.version));

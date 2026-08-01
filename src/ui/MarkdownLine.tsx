@@ -15,12 +15,12 @@ function osc8(text: string, url: string): string {
 }
 
 /** Strip inline HTML tags (e.g. `<samp>`) from a string, keeping the inner text. */
-function stripHtmlTags(s: string): string {
+export function stripHtmlTags(s: string): string {
   return s.replace(/<\/?[a-zA-Z][^>]*>/g, "");
 }
 
 /** Shorten bare GitHub issue/PR/commit URLs to `#123` / short SHA, matching GitHub's own rendering. */
-function prettyUrl(url: string): string {
+export function prettyUrl(url: string): string {
   const ref = url.match(/github\.com\/[^/]+\/[^/]+\/(?:issues|pull)\/(\d+)(?:[#?].*)?$/);
   if (ref) return `#${ref[1]}`;
   const commit = url.match(/github\.com\/[^/]+\/[^/]+\/commit\/([0-9a-f]{7,40})(?:[#?].*)?$/i);
@@ -28,7 +28,7 @@ function prettyUrl(url: string): string {
   return url;
 }
 
-function parseInline(raw: string, repoUrl?: string): Segment[] {
+export function parseInline(raw: string, repoUrl?: string): Segment[] {
   const segments: Segment[] = [];
   // Order matters: ** before *, ~~ before bare ~, HTML tags use non-capturing groups (no backrefs)
   // Groups: 2=bold 3=italic 4=strike 5=code 6=linkText 7=linkUrl
@@ -134,7 +134,7 @@ const HTML_ENTITIES: Record<string, string> = {
   "&raquo;": "»",
 };
 
-function decodeEntities(s: string): string {
+export function decodeEntities(s: string): string {
   return s
     .replace(/&[a-z]+;/g, (e) => HTML_ENTITIES[e] ?? e)
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))

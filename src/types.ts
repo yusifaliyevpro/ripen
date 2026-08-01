@@ -52,6 +52,7 @@ export type RipenConfig = {
 
 export type RegistryVersion = {
   version: string;
+  /** Full ISO publish timestamp (not just the date) so ages are accurate to the hour. */
   date: string;
   tag?: string;
 };
