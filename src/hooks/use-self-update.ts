@@ -1,40 +1,27 @@
 import { useState, useEffect } from "react";
+import { loadCachedLatestVersion, saveCachedLatestVersion } from "../config";
 import { fetchLatestVersion, isNewerVersion } from "../registry";
 import type { PackageManager } from "../types";
 
 export type SelfUpdateState = {
   latestVersion: string | null;
-  checkComplete: boolean;
   hasUpdate: boolean;
   buildUpdateCommand: () => string;
 };
 
 export function useSelfUpdate(currentVersion: string, installManager: PackageManager): SelfUpdateState {
-  const [latestVersion, setLatestVersion] = useState<string | null>(null);
-  const [checkComplete, setCheckComplete] = useState(false);
-  const [hasUpdate, setHasUpdate] = useState(false);
+  // Decide synchronously from the version cached by a previous run — no network
+  // wait at startup. The very first run has no cache and shows no prompt.
+  const [latestVersion] = useState<string | null>(() => loadCachedLatestVersion());
+  const hasUpdate = latestVersion !== null && isNewerVersion(currentVersion, latestVersion);
 
+  // Fire-and-forget: refresh the cache on npm for the *next* run. Never blocks
+  // or affects this session; failures are swallowed inside fetchLatestVersion.
   useEffect(() => {
-    let cancelled = false;
-    fetchLatestVersion("ripencli")
-      .then((latest) => {
-        if (cancelled) return;
-        if (latest && isNewerVersion(currentVersion, latest)) {
-          setLatestVersion(latest);
-          setHasUpdate(true);
-        }
-        setCheckComplete(true);
-      })
-      .catch(() => {
-        // A failed self-update check must never block the app — silently
-        // proceed as if we're already up to date.
-        if (cancelled) return;
-        setCheckComplete(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [currentVersion]);
+    void fetchLatestVersion("ripencli").then((latest) => {
+      if (latest) saveCachedLatestVersion(latest);
+    });
+  }, []);
 
   const buildUpdateCommand = (): string => {
     const version = latestVersion ?? "latest";
@@ -43,5 +30,5 @@ export function useSelfUpdate(currentVersion: string, installManager: PackageMan
     return `${installManager} add -g ripencli@${version}`;
   };
 
-  return { latestVersion, checkComplete, hasUpdate, buildUpdateCommand };
+  return { latestVersion, hasUpdate, buildUpdateCommand };
 }

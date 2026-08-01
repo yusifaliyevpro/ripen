@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../config";
 import { buildUpdateCommands } from "../executor";
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
-import { useSelfUpdate, usePackages, useTerminalOutput, useExitOnScreen } from "../hooks";
+import { useSelfUpdate, usePackages, useTerminalOutput } from "../hooks";
 import { copyToClipboard } from "../lib/utils";
 import type { ProjectInfo, RipenConfig, Screen } from "../types";
 import { ChangelogPanel } from "./changelog-panel";
@@ -20,12 +20,17 @@ type Props = {
   version: string;
   installManager: ProjectInfo["manager"];
   onCopied?: (commands: string[]) => void;
+  onEmpty?: () => void;
 };
 
-export function App({ project, global, showAll, version, installManager, onCopied }: Props) {
+export function App({ project, global, showAll, version, installManager, onCopied, onEmpty }: Props) {
   const { exit } = useApp();
 
-  const [screen, setScreen] = useState<Screen>("self-update-check");
+  // The self-update decision is synchronous (reads a version cached by a prior
+  // run), so the app opens straight on the prompt or the list — no wait.
+  const selfUpdate = useSelfUpdate(version, installManager);
+
+  const [screen, setScreen] = useState<Screen>(selfUpdate.hasUpdate ? "self-update" : "loading");
   const [config, setConfig] = useState<RipenConfig>(() => loadConfig());
   const [frequency, setFrequency] = useState<Record<string, number>>(() => loadFrequency());
   const [activeIndex, setActiveIndex] = useState(0);
@@ -38,25 +43,23 @@ export function App({ project, global, showAll, version, installManager, onCopie
     setScreen("error");
   };
 
-  const selfUpdate = useSelfUpdate(version, installManager);
   const { packages, setPackages, toggleOne, toggleMany, chooseVersion } = usePackages();
   const terminal = useTerminalOutput();
 
   // ── Ctrl+C ──────────────────────────────────────────────────────────
   useInput((_input, key) => {
-    if (key.ctrl && _input === "c") setScreen("cancelled");
+    if (key.ctrl && _input === "c") exit();
   });
 
-  // ── Exit handlers ───────────────────────────────────────────────────
-  useExitOnScreen(screen, ["empty"], exit);
-  useExitOnScreen(screen, ["cancelled"], exit);
-
-  // ── Self-update check → screen transition ──────────────────────────
+  // ── Exit when there's nothing to show ───────────────────────────────
+  // "All up to date" is printed to the primary buffer by cli.tsx after exit, so
+  // we quit immediately here — no delay to let an alternate-screen frame paint.
   useEffect(() => {
-    if (!selfUpdate.checkComplete) return;
-    if (screen !== "self-update-check") return;
-    setScreen(selfUpdate.hasUpdate ? "self-update" : "loading");
-  }, [selfUpdate.checkComplete, selfUpdate.hasUpdate, screen]);
+    if (screen !== "empty") return;
+    onEmpty?.();
+    exit();
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen]);
 
   const handleSelfUpdate = () => {
     const raw = selfUpdate.buildUpdateCommand();
@@ -118,20 +121,6 @@ export function App({ project, global, showAll, version, installManager, onCopie
 
   // ── Render ─────────────────────────────────────────────────────────
 
-  if (screen === "self-update-check") {
-    return (
-      <Box flexDirection="column" padding={1}>
-        <Text color="greenBright" bold>
-          {" "}
-          ripen
-        </Text>
-        <Box marginTop={1}>
-          <Text color="gray">Checking for updates…</Text>
-        </Box>
-      </Box>
-    );
-  }
-
   if (screen === "self-update") {
     return (
       <SelfUpdatePrompt
@@ -172,23 +161,9 @@ export function App({ project, global, showAll, version, installManager, onCopie
     );
   }
 
-  if (screen === "cancelled") return <></>;
-
-  if (screen === "empty") {
-    return (
-      <Box flexDirection="column" padding={1}>
-        <Text color="greenBright" bold>
-          {" "}
-          ripen
-        </Text>
-        <Box marginTop={1}>
-          <Text color="gray">
-            ✓ All packages are up to date in <Text color="white">{global ? "global" : project.name}</Text>
-          </Text>
-        </Box>
-      </Box>
-    );
-  }
+  // The "empty" screen renders nothing — the effect above exits immediately and
+  // cli.tsx prints the "all up to date" message to the primary buffer.
+  if (screen === "empty") return <></>;
 
   // All screens below keep PackageList mounted (hidden) to preserve state.
   const isListActive = screen === "list";

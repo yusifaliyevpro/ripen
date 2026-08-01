@@ -135,7 +135,6 @@ export type YarnOutdatedLine = {
 // ── UI screens ───────────────────────────────────────────────────────
 
 export type Screen =
-  | "self-update-check"
   | "self-update"
   | "loading"
   | "list"
@@ -143,5 +142,4 @@ export type Screen =
   | "changelog"
   | "empty"
   | "error"
-  | "settings"
-  | "cancelled";
+  | "settings";

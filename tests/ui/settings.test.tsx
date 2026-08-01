@@ -2,7 +2,7 @@ import { render } from "ink-testing-library";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_CONFIG } from "../../src/config";
 import type { RipenConfig } from "../../src/types";
-import { Settings } from "../../src/ui/Settings";
+import { Settings } from "../../src/ui/settings";
 
 const ESC = String.fromCharCode(27);
 const DOWN = `${ESC}[B`;

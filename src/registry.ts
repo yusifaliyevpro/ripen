@@ -176,12 +176,26 @@ export async function fetchChangelog(
   }
 }
 
-export async function fetchLatestVersion(packageName: string): Promise<string | null> {
+/**
+ * Best-effort "latest version on npm" lookup for the self-update check. Runs
+ * fire-and-forget in the background, so it uses abbreviated metadata (a smaller
+ * payload) and a short timeout, and resolves to null on any failure.
+ */
+export async function fetchLatestVersion(packageName: string, timeoutMs = 3000): Promise<string | null> {
   try {
-    const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
-    if (!res.ok) return null;
-    const data: NpmVersionManifest = await res.json();
-    return data.version ?? null;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`, {
+        signal: controller.signal,
+        headers: { accept: "application/vnd.npm.install-v1+json" },
+      });
+      if (!res.ok) return null;
+      const data: NpmVersionManifest = await res.json();
+      return data.version ?? null;
+    } finally {
+      clearTimeout(timer);
+    }
   } catch {
     return null;
   }

@@ -255,7 +255,7 @@ export function groupCheckbox(packages: OutdatedPackage[]): { symbol: string; co
 
 export function computeMaxPerGroup(terminalRows: number, groupCount: number): number {
   // Each group has marginBottom={1} that GROUP_CHROME+1 doesn't account for (+groupCount lines).
-  // App.tsx wraps PackageList in <Box padding={1}>, adding 2 lines not in CHROME_LINES.
+  // app.tsx wraps the package list in <Box padding={1}>, adding 2 lines not in CHROME_LINES.
   // Without this correction outputHeight === stdout.rows, which triggers Ink's clearTerminal
   // path (wipes the entire screen on every render) instead of the smooth eraseLines path.
   const available = terminalRows - CHROME_LINES - groupCount * (GROUP_CHROME + 2) - 2;

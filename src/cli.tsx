@@ -56,6 +56,7 @@ prewarmGitHubToken();
 const installManager = detectGlobalInstallManager();
 
 let copiedCommands: string[] = [];
+let wasEmpty = false;
 
 const { waitUntilExit } = render(
   <App
@@ -67,6 +68,9 @@ const { waitUntilExit } = render(
     onCopied={(cmds) => {
       copiedCommands = cmds;
     }}
+    onEmpty={() => {
+      wasEmpty = true;
+    }}
   />,
   { exitOnCtrlC: false, alternateScreen: true },
 );
@@ -77,4 +81,7 @@ await waitUntilExit();
 // in the normal scrollback, not the (now-gone) alternate screen.
 if (copiedCommands.length > 0) {
   process.stdout.write("  \x1b[32mCopied to clipboard.\x1b[0m\n");
+} else if (wasEmpty) {
+  const label = isGlobal ? "global" : project.name;
+  process.stdout.write(`  \x1b[32m✓ All packages are up to date in ${label}.\x1b[0m\n`);
 }

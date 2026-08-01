@@ -19,7 +19,15 @@ vi.mock("node:fs", () => ({
   mkdirSync: () => undefined,
 }));
 
-const { DEFAULT_CONFIG, incrementFrequency, loadConfig, loadFrequency, saveConfig } = await import("../src/config");
+const {
+  DEFAULT_CONFIG,
+  incrementFrequency,
+  loadCachedLatestVersion,
+  loadConfig,
+  loadFrequency,
+  saveCachedLatestVersion,
+  saveConfig,
+} = await import("../src/config");
 
 beforeEach(() => {
   files.clear();
@@ -61,5 +69,30 @@ describe("frequency tracking", () => {
     incrementFrequency(["react", "zod"]);
     incrementFrequency(["react"]);
     expect(loadFrequency()).toEqual({ react: 2, zod: 1 });
+  });
+});
+
+describe("self-update cache", () => {
+  it("returns null when no cache file exists", () => {
+    expect(loadCachedLatestVersion()).toBeNull();
+  });
+
+  it("round-trips the cached latest version", () => {
+    saveCachedLatestVersion("2.5.0");
+    expect(loadCachedLatestVersion()).toBe("2.5.0");
+  });
+
+  it("returns null when the cache file is malformed", () => {
+    saveCachedLatestVersion("2.5.0");
+    const [path] = [...files.keys()];
+    files.set(path, "{ not json");
+    expect(loadCachedLatestVersion()).toBeNull();
+  });
+
+  it("returns null when latestVersion is missing or not a string", () => {
+    saveCachedLatestVersion("2.5.0");
+    const [path] = [...files.keys()];
+    files.set(path, JSON.stringify({ latestVersion: 123 }));
+    expect(loadCachedLatestVersion()).toBeNull();
   });
 });

@@ -60,3 +60,30 @@ export function incrementFrequency(packageNames: string[]): void {
     // Silently fail — non-critical
   }
 }
+
+// --- Self-update cache ---
+//
+// The latest ripen version seen on npm, written by a fire-and-forget check on
+// the previous run. Reading it is synchronous, so startup never waits on the
+// network to decide whether to show the self-update prompt.
+
+const UPDATE_CACHE_PATH = join(CONFIG_DIR, "update-check.json");
+
+export function loadCachedLatestVersion(): string | null {
+  try {
+    const raw = readFileSync(UPDATE_CACHE_PATH, "utf-8");
+    const parsed: { latestVersion?: unknown } = JSON.parse(raw);
+    return typeof parsed.latestVersion === "string" ? parsed.latestVersion : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveCachedLatestVersion(version: string): void {
+  try {
+    mkdirSync(CONFIG_DIR, { recursive: true });
+    writeFileSync(UPDATE_CACHE_PATH, JSON.stringify({ latestVersion: version }, null, 2) + "\n", "utf-8");
+  } catch {
+    // Silently fail — non-critical
+  }
+}
