@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import type { OutdatedPackage } from "../../types";
+import type { OutdatedPackage } from "../types";
 
 export function usePackages() {
   const [packages, setPackages] = useState<OutdatedPackage[]>([]);

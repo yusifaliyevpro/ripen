@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { openInBrowser } from "../lib/utils";
 import { fetchChangelog, fetchRepoUrl } from "../registry";
 import type { ChangelogEntry, OutdatedPackage } from "../types";
-import { MarkdownLine } from "./MarkdownLine";
+import { MarkdownLine } from "./markdown-line";
 
 type Props = {
   pkg: OutdatedPackage;

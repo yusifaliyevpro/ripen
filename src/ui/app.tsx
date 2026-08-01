@@ -3,15 +3,15 @@ import { useState, useEffect } from "react";
 import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../config";
 import { buildUpdateCommands } from "../executor";
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
+import { useSelfUpdate, usePackages, useTerminalOutput, useExitOnScreen } from "../hooks";
 import { copyToClipboard } from "../lib/utils";
 import type { ProjectInfo, RipenConfig, Screen } from "../types";
-import { ChangelogPanel } from "./ChangelogPanel";
-import { useSelfUpdate, usePackages, useTerminalOutput, useExitOnScreen } from "./hooks";
+import { ChangelogPanel } from "./changelog-panel";
 import { PackageList } from "./package-list";
-import { SelfUpdatePrompt } from "./SelfUpdatePrompt";
-import { Settings } from "./Settings";
-import { TerminalOutputBox } from "./TerminalOutputBox";
-import { VersionPicker } from "./VersionPicker";
+import { SelfUpdatePrompt } from "./self-update-prompt";
+import { Settings } from "./settings";
+import { TerminalOutputBox } from "./terminal-output-box";
+import { VersionPicker } from "./version-picker";
 
 type Props = {
   project: ProjectInfo;

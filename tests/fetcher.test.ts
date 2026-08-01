@@ -5,7 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // getOutdatedPackages (via registry) imports execa — never spawn it in tests.
 vi.mock("execa", () => ({
-  execa: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 })),
+  execa: vi.fn<() => Promise<{ stdout: string; stderr: string; exitCode: number }>>(async () => ({
+    stdout: "",
+    stderr: "",
+    exitCode: 0,
+  })),
 }));
 
 const { getOutdatedPackages } = await import("../src/fetcher");

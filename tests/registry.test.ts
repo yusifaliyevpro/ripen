@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Avoid spawning the real `gh` CLI for githubToken(); pretend no token exists.
 vi.mock("execa", () => ({
-  execa: vi.fn(async () => ({ stdout: "", exitCode: 1 })),
+  execa: vi.fn<() => Promise<{ stdout: string; exitCode: number }>>(async () => ({ stdout: "", exitCode: 1 })),
 }));
 
 const { fetchChangelog, fetchLatestVersion, fetchRepoUrl, fetchVersions, isNewerVersion } =

@@ -1,11 +1,17 @@
 import { Box, Text, useInput, useWindowSize } from "ink";
 import { useMemo, useEffect, useState, useRef } from "react";
-import { formatAge } from "../../lib/utils";
-import { parseVersion } from "../../lib/versions";
-import type { OutdatedPackage } from "../../types";
-import { buildDisplayRows, filterCollapsed, buildGroups, groupCheckbox, computeMaxPerGroup } from "./build-rows";
-import type { PackageGroup } from "./types";
-import { TYPE_COLORS } from "./types";
+import {
+  buildDisplayRows,
+  filterCollapsed,
+  buildGroups,
+  groupCheckbox,
+  computeMaxPerGroup,
+  type PackageGroup,
+  TYPE_COLORS,
+} from "../lib/build-rows";
+import { formatAge } from "../lib/utils";
+import { parseVersion } from "../lib/versions";
+import type { OutdatedPackage } from "../types";
 
 type Props = {
   packages: OutdatedPackage[];

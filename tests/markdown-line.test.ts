@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodeEntities, parseInline, prettyUrl, stripHtmlTags } from "../src/ui/MarkdownLine";
+import { decodeEntities, parseInline, prettyUrl, stripHtmlTags } from "../src/ui/markdown-line";
 
 describe("prettyUrl", () => {
   it("shortens an issue URL to #number", () => {

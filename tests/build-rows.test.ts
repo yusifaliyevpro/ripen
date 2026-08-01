@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { OutdatedPackage } from "../src/types";
 import {
   buildDisplayRows,
   buildGroups,
@@ -8,7 +7,8 @@ import {
   getScope,
   groupCheckbox,
   sortableName,
-} from "../src/ui/package-list/build-rows";
+} from "../src/lib/build-rows";
+import type { OutdatedPackage } from "../src/types";
 
 function pkg(name: string, type: OutdatedPackage["type"] = "dependencies", selected = false): OutdatedPackage {
   return { name, current: "1.0.0", wanted: "2.0.0", latest: "2.0.0", dependent: "", type, selected };

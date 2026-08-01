@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import type { Screen } from "../../types";
+import type { Screen } from "../types";
 
 /**
  * Exit the Ink app after a delay when the screen matches one of the target screens.

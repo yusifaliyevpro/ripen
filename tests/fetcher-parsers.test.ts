@@ -46,9 +46,10 @@ describe("parsePnpmOutdated", () => {
   });
 
   it("returns [] for a non-object payload", () => {
-    // pnpm emits `null` / an array when nothing is outdated
-    expect(parsePnpmOutdated(null as never)).toEqual([]);
-    expect(parsePnpmOutdated([] as never)).toEqual([]);
+    // pnpm emits `null` / an array when nothing is outdated. JSON.parse yields
+    // `any` here, matching how fetcher.ts feeds this parser in production.
+    expect(parsePnpmOutdated(JSON.parse("null"))).toEqual([]);
+    expect(parsePnpmOutdated(JSON.parse("[]"))).toEqual([]);
   });
 });
 
