@@ -49,14 +49,14 @@ export function App({ project, global, showAll, version, installManager, onCopie
 
   // ── Exit handlers ───────────────────────────────────────────────────
   useExitOnScreen(screen, ["empty"], exit);
-  useExitOnScreen(screen, ["cancelled"], exit, { delay: 200 });
+  useExitOnScreen(screen, ["cancelled"], exit);
 
   // ── Self-update check → screen transition ──────────────────────────
   useEffect(() => {
     if (!selfUpdate.checkComplete) return;
     if (screen !== "self-update-check") return;
     setScreen(selfUpdate.hasUpdate ? "self-update" : "loading");
-  }, [selfUpdate.checkComplete]);
+  }, [selfUpdate.checkComplete, selfUpdate.hasUpdate, screen]);
 
   const handleSelfUpdate = () => {
     const raw = selfUpdate.buildUpdateCommand();
@@ -96,6 +96,7 @@ export function App({ project, global, showAll, version, installManager, onCopie
       .catch((err) => {
         showError(err instanceof Error ? err.message : String(err));
       });
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
   // ── Callbacks ──────────────────────────────────────────────────────

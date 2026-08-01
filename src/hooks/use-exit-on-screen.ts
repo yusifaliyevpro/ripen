@@ -20,5 +20,6 @@ export function useExitOnScreen(
       process.exit(0);
     }, delay);
     return () => clearTimeout(timer);
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 }

@@ -1,5 +1,5 @@
 import { Box, Text, useInput, useWindowSize } from "ink";
-import { useMemo, useEffect, useState, useRef } from "react";
+import { useMemo, useEffect, useState } from "react";
 import {
   buildDisplayRows,
   filterCollapsed,
@@ -86,19 +86,27 @@ export function PackageList({
   const { rows: terminalRows } = useWindowSize();
   const maxVisible = useMemo(() => computeMaxPerGroup(terminalRows, groups.length), [terminalRows, groups.length]);
 
-  // Per-group scroll offsets tracked in a ref to avoid a second render per keypress
-  const scrollOffsetsRef = useRef<Record<string, number>>({});
+  // Per-group scroll offsets. Held in state and adjusted during render (React's
+  // "storing information from previous renders" pattern) so the visible window
+  // shifts exactly when the focused row would scroll out of view — without
+  // reading or mutating a ref during render.
+  const [scrollOffsets, setScrollOffsets] = useState<Record<string, number>>({});
 
-  // Compute scroll offsets inline during render (deterministic from focusedIndex + maxVisible)
+  const offsets: Record<string, number> = { ...scrollOffsets };
+  let offsetsChanged = false;
   for (const group of groups) {
     const localIndex = group.items.findIndex((item) => item.visibleIndex === focusedIndex);
     if (localIndex === -1) continue;
-    const prev = scrollOffsetsRef.current[group.type] ?? 0;
+    const prev = offsets[group.type] ?? 0;
     let next = prev;
     if (localIndex < prev) next = localIndex;
     else if (localIndex >= prev + maxVisible) next = localIndex - maxVisible + 1;
-    scrollOffsetsRef.current[group.type] = next;
+    if (next !== prev) {
+      offsets[group.type] = next;
+      offsetsChanged = true;
+    }
   }
+  if (offsetsChanged) setScrollOffsets(offsets);
 
   // Clamp focusedIndex when visibleRows shrinks (e.g., after collapse)
   useEffect(() => {
@@ -207,7 +215,7 @@ export function PackageList({
           group={group}
           focusedIndex={focusedIndex}
           collapsedScopes={collapsedScopes}
-          scrollOffset={scrollOffsetsRef.current[group.type] ?? 0}
+          scrollOffset={offsets[group.type] ?? 0}
           maxVisible={maxVisible}
         />
       ))}

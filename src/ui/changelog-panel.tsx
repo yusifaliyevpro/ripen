@@ -40,6 +40,7 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
       .catch((err: unknown) => {
         onError(err instanceof Error ? err.message : String(err));
       });
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [pkg.name]);
 
   useEffect(() => {

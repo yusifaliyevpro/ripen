@@ -34,6 +34,7 @@ export function VersionPicker({ pkg, onSelect, onCancel, onError }: Props) {
       .catch((err: unknown) => {
         onError(err instanceof Error ? err.message : String(err));
       });
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [pkg.name]);
 
   useInput((input, key) => {

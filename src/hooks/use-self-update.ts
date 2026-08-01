@@ -34,7 +34,7 @@ export function useSelfUpdate(currentVersion: string, installManager: PackageMan
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [currentVersion]);
 
   const buildUpdateCommand = (): string => {
     const version = latestVersion ?? "latest";
