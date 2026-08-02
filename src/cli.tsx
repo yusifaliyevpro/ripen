@@ -77,7 +77,7 @@ const { waitUntilExit } = render(
       wasCancelled = true;
     }}
   />,
-  { exitOnCtrlC: false, alternateScreen: true },
+  { exitOnCtrlC: false, alternateScreen: true, incrementalRendering: true },
 );
 
 await waitUntilExit();
