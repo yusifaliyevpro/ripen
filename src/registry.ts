@@ -178,8 +178,13 @@ export async function fetchChangelog(
 
 /**
  * Best-effort "latest version on npm" lookup for the self-update check. Runs
- * fire-and-forget in the background, so it uses abbreviated metadata (a smaller
- * payload) and a short timeout, and resolves to null on any failure.
+ * fire-and-forget in the background, so it hits the small `/latest` version
+ * manifest with a short timeout, and resolves to null on any failure.
+ *
+ * NOTE: the abbreviated-metadata accept header
+ * (`application/vnd.npm.install-v1+json`) is only valid on the full packument
+ * route — sending it to `/{pkg}/latest` makes the registry answer 406, so the
+ * `/latest` request must use the default accept.
  */
 export async function fetchLatestVersion(packageName: string, timeoutMs = 3000): Promise<string | null> {
   try {
@@ -188,7 +193,6 @@ export async function fetchLatestVersion(packageName: string, timeoutMs = 3000):
     try {
       const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`, {
         signal: controller.signal,
-        headers: { accept: "application/vnd.npm.install-v1+json" },
       });
       if (!res.ok) return null;
       const data: NpmVersionManifest = await res.json();

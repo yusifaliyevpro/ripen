@@ -54,6 +54,21 @@ describe("fetchLatestVersion", () => {
     });
     await expect(fetchLatestVersion("ripencli")).resolves.toBeNull();
   });
+
+  it("does not request abbreviated metadata on /latest (registry answers 406)", async () => {
+    // The real registry returns 406 Not Acceptable when the abbreviated
+    // metadata accept header (application/vnd.npm.install-v1+json) is sent to
+    // the /{pkg}/latest route — that header is only valid on the full
+    // packument. Simulate that so the request must be registry-compatible.
+    globalThis.fetch = vi.fn<typeof fetch>(async (_input, init) => {
+      const accept = new Headers(init?.headers).get("accept") ?? "";
+      if (accept.includes("application/vnd.npm.install-v1+json")) {
+        return new Response("Not Acceptable", { status: 406 });
+      }
+      return json({ version: "3.4.5" });
+    });
+    expect(await fetchLatestVersion("ripencli")).toBe("3.4.5");
+  });
 });
 
 describe("fetchVersions", () => {
