@@ -1,3 +1,4 @@
+import type * as Ink from "ink";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { OutdatedPackage } from "../../src/types";
 
@@ -6,7 +7,7 @@ import type { OutdatedPackage } from "../../src/types";
 // module so ink-testing-library's render still uses the genuine renderer.
 let mockRows = 24;
 vi.mock("ink", async (orig) => {
-  const actual = await orig<typeof import("ink")>();
+  const actual = await orig<typeof Ink>();
   return { ...actual, useWindowSize: () => ({ rows: mockRows, columns: 100 }) };
 });
 

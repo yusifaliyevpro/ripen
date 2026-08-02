@@ -58,6 +58,7 @@ const installManager = detectGlobalInstallManager();
 
 let copiedCommands: string[] = [];
 let wasEmpty = false;
+let wasCancelled = false;
 
 const { waitUntilExit } = render(
   <App
@@ -72,6 +73,9 @@ const { waitUntilExit } = render(
     onEmpty={() => {
       wasEmpty = true;
     }}
+    onCancel={() => {
+      wasCancelled = true;
+    }}
   />,
   { exitOnCtrlC: false, alternateScreen: true },
 );
@@ -85,4 +89,6 @@ if (copiedCommands.length > 0) {
 } else if (wasEmpty) {
   const label = isGlobal ? "global" : project.name;
   process.stdout.write(`  ${colors.green(`✓ All packages are up to date in ${label}.`)}\n`);
+} else if (wasCancelled) {
+  process.stdout.write(`  ${colors.dim("Cancelled.")}\n`);
 }

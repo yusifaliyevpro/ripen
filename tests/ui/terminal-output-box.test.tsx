@@ -1,9 +1,10 @@
+import type * as Ink from "ink";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // Control the terminal height the component sees (see package-list-layout.test.tsx).
 let mockRows = 24;
 vi.mock("ink", async (orig) => {
-  const actual = await orig<typeof import("ink")>();
+  const actual = await orig<typeof Ink>();
   return { ...actual, useWindowSize: () => ({ rows: mockRows, columns: 100 }) };
 });
 

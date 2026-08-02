@@ -151,7 +151,9 @@ describe("computeMaxPerGroup", () => {
         const total = chrome + groupCount * perGroup;
         expect(perGroup).toBeGreaterThanOrEqual(1); // always show at least one row
         // Once the viewport has room for the chrome plus one row per group, nothing overflows.
-        if (rows - 2 - chrome >= groupCount) expect(total).toBeLessThanOrEqual(rows - 2);
+        // (When it doesn't, the floor of 1 may exceed the budget — allow that with no bound.)
+        const bound = rows - 2 - chrome >= groupCount ? rows - 2 : Number.POSITIVE_INFINITY;
+        expect(total).toBeLessThanOrEqual(bound);
       }
     }
   });

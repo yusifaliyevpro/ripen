@@ -21,9 +21,10 @@ type Props = {
   installManager: ProjectInfo["manager"];
   onCopied?: (commands: string[]) => void;
   onEmpty?: () => void;
+  onCancel?: () => void;
 };
 
-export function App({ project, global, showAll, version, installManager, onCopied, onEmpty }: Props) {
+export function App({ project, global, showAll, version, installManager, onCopied, onEmpty, onCancel }: Props) {
   const { exit } = useApp();
 
   // The self-update decision is synchronous (reads a version cached by a prior
@@ -48,7 +49,10 @@ export function App({ project, global, showAll, version, installManager, onCopie
 
   // ── Ctrl+C ──────────────────────────────────────────────────────────
   useInput((_input, key) => {
-    if (key.ctrl && _input === "c") exit();
+    if (key.ctrl && _input === "c") {
+      onCancel?.();
+      exit();
+    }
   });
 
   // ── Exit when there's nothing to show ───────────────────────────────
