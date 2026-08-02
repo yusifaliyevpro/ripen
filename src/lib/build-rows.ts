@@ -283,7 +283,7 @@ export type DisplayRow =
     }
   | { kind: "package"; pkg: OutdatedPackage; packageIndex: number; indented: boolean; scopeKey: string | null };
 
-export type GroupItem = {
+type GroupItem = {
   row: DisplayRow;
   visibleIndex: number;
 };
@@ -304,13 +304,13 @@ export const TYPE_COLORS: Record<string, string> = {
   global: "yellow",
 };
 
-export const GROUP_LABELS: Record<string, string> = {
+const GROUP_LABELS: Record<string, string> = {
   dependencies: "Dependencies",
   devDependencies: "Dev Dependencies",
   global: "Global Packages",
 };
 
-export const GROUP_ORDER: OutdatedPackage["type"][] = ["dependencies", "devDependencies", "global"];
+const GROUP_ORDER: OutdatedPackage["type"][] = ["dependencies", "devDependencies", "global"];
 
 /**
  * Whole-list chrome: ripen line (1) + marginTop (1) + controls (2, the hints line wraps on
