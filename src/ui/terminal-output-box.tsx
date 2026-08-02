@@ -8,13 +8,17 @@ type Props = {
 };
 
 export function TerminalOutputBox({ message, command, outputLines, maxLines }: Props) {
-  const { columns } = useWindowSize();
+  const { columns, rows } = useWindowSize();
   const boxWidth = Math.min(64, columns - 4);
+  // Fill the terminal (like the package list) so the header pins to the top instead of
+  // floating in the middle. This box has its own padding of 2, so a full-height minHeight
+  // paints the same total height as the list screen — no jump when loading finishes.
+  const minHeight = Math.max(1, rows);
   return (
-    <Box flexDirection="column" padding={1}>
+    <Box flexDirection="column" padding={1} minHeight={minHeight}>
       <Text color="greenBright" bold>
         {" "}
-        ripen
+        ripen <Text color="gray">- interactive dependency updater</Text>
       </Text>
       <Box marginTop={1}>
         <Text color="gray">{message}</Text>

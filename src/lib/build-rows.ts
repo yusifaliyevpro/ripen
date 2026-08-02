@@ -254,13 +254,14 @@ export function groupCheckbox(packages: OutdatedPackage[]): { symbol: string; co
 }
 
 export function computeMaxPerGroup(terminalRows: number, groupCount: number): number {
-  // Each group has marginBottom={1} that GROUP_CHROME+1 doesn't account for (+groupCount lines).
-  // app.tsx wraps the package list in <Box padding={1}>, adding 2 lines not in CHROME_LINES.
-  // Without this correction outputHeight === stdout.rows, which triggers Ink's clearTerminal
-  // path (wipes the entire screen on every render) instead of the smooth eraseLines path.
-  const available = terminalRows - CHROME_LINES - groupCount * (GROUP_CHROME + 2) - 2;
-  const perGroup = Math.floor(available / groupCount);
-  return Math.max(3, perGroup);
+  if (groupCount <= 0) return 3;
+  // The list fills the terminal to `terminalRows - 2` (the App wraps it in <Box padding={1}>,
+  // costing 2 lines). Items get whatever is left after the whole-list chrome (CHROME_LINES)
+  // and each group's own chrome (GROUP_CHROME). Sizing to fill — rather than under-reserving —
+  // both uses the available height and, because we never provision more than fits, keeps two
+  // groups from overflowing the viewport and scrolling the header off the top.
+  const itemBudget = terminalRows - 2 - CHROME_LINES - groupCount * GROUP_CHROME;
+  return Math.max(1, Math.floor(itemBudget / groupCount));
 }
 
 // ── Display row types ────────────────────────────────────────────────
@@ -311,7 +312,11 @@ export const GROUP_LABELS: Record<string, string> = {
 
 export const GROUP_ORDER: OutdatedPackage["type"][] = ["dependencies", "devDependencies", "global"];
 
-/** Header (1) + controls (1) + margin (1) + footer (1) + group headers/borders overhead */
-export const CHROME_LINES = 8;
-/** Column header inside each bordered box + scroll indicator lines */
-export const GROUP_CHROME = 5; // border top + column header + scroll-up + scroll-down + border bottom
+/**
+ * Whole-list chrome: ripen line (1) + marginTop (1) + controls (2, the hints line wraps on
+ * narrower terminals) + marginBottom (1) + footer (1). Reserving 2 for the controls is safe on
+ * wide terminals where it fits one line — the extra row is absorbed by the list's minHeight.
+ */
+export const CHROME_LINES = 6;
+/** Per-group chrome: group header (1) + top/bottom border (2) + column header (1) + single scroll indicator (1) */
+export const GROUP_CHROME = 5;

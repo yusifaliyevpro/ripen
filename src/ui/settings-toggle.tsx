@@ -10,7 +10,7 @@ type Props = {
 
 export function SettingsToggle({ label, description, checked, focused, disabled = false }: Props) {
   return (
-    <Box flexDirection="column" marginBottom={1}>
+    <Box flexDirection="column">
       <Box gap={1}>
         <Text dimColor={disabled} color="greenBright">
           {focused ? ">" : " "}

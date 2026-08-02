@@ -1,4 +1,4 @@
-import { Box, Text, useInput } from "ink";
+import { Box, Text, useInput, useWindowSize } from "ink";
 import { useState } from "react";
 import type { RipenConfig } from "../types";
 import { SettingsToggle } from "./settings-toggle";
@@ -132,8 +132,13 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
 
   const listHeaderFocused = currentRow?.type === "list-header";
 
+  // Fill the terminal to a stable height (matching the list and other views) so the footer
+  // stays pinned one line above the bottom no matter how many options or scopes there are.
+  const { rows: terminalRows } = useWindowSize();
+  const minHeight = Math.max(1, terminalRows - 2);
+
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" minHeight={minHeight}>
       <Box marginBottom={1} flexDirection="column">
         <Text bold color="greenBright">
           {" "}
@@ -235,9 +240,12 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
         ) : null}
       </Box>
 
+      {/* Spacer — pushes the footer to the bottom of the fixed height */}
+      <Box flexGrow={1} />
+
       <Box marginTop={1}>
         <Text color="gray">
-          <Text color="white">arrow keys</Text> navigate{"  "}
+          <Text color="white">↑↓</Text> navigate{"  "}
           <Text color="white">space</Text> toggle{"  "}
           <Text color="white">a</Text> add{"  "}
           <Text color="white">d</Text> remove{"  "}

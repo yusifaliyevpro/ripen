@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   buildDisplayRows,
   buildGroups,
+  CHROME_LINES,
   computeMaxPerGroup,
   filterCollapsed,
   getScope,
+  GROUP_CHROME,
   groupCheckbox,
   sortableName,
 } from "../src/lib/build-rows";
@@ -130,13 +132,27 @@ describe("groupCheckbox", () => {
 });
 
 describe("computeMaxPerGroup", () => {
-  it("never returns fewer than 3 rows per group", () => {
-    expect(computeMaxPerGroup(10, 3)).toBe(3);
+  it("always shows at least one row per group, even on a tiny terminal", () => {
+    expect(computeMaxPerGroup(10, 3)).toBe(1);
   });
 
   it("grows with available terminal height", () => {
     const small = computeMaxPerGroup(40, 1);
     const large = computeMaxPerGroup(80, 1);
     expect(large).toBeGreaterThan(small);
+  });
+
+  it("never provisions more rows than fit, so two groups stay within the viewport", () => {
+    // Whole-list chrome + per-group chrome + items must fit terminalRows - 2.
+    for (const rows of [20, 24, 30, 40]) {
+      for (const groupCount of [1, 2]) {
+        const perGroup = computeMaxPerGroup(rows, groupCount);
+        const chrome = CHROME_LINES + groupCount * GROUP_CHROME;
+        const total = chrome + groupCount * perGroup;
+        expect(perGroup).toBeGreaterThanOrEqual(1); // always show at least one row
+        // Once the viewport has room for the chrome plus one row per group, nothing overflows.
+        if (rows - 2 - chrome >= groupCount) expect(total).toBeLessThanOrEqual(rows - 2);
+      }
+    }
   });
 });

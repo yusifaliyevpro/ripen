@@ -66,6 +66,24 @@ describe("PackageList rendering", () => {
     expect(few.lastFrame()!.split("\n").at(-1)).toContain("selected");
   });
 
+  it("keeps both group headers and the top header in view with dev deps separated (regression)", async () => {
+    // Two groups must not provision so many rows that the combined height overflows the
+    // viewport and scrolls the "ripen" header (and the first group's header) off the top.
+    const packages = [
+      ...Array.from({ length: 6 }, (_, i) => pkg(`dep-${i}`, { type: "dependencies" })),
+      ...Array.from({ length: 8 }, (_, i) => pkg(`dev-${i}`, { type: "devDependencies" })),
+    ];
+    const { lastFrame } = renderList(packages, { separateDevDeps: true });
+    await vi.waitFor(() => expect(lastFrame()).toContain("Dev Dependencies"));
+    const lines = lastFrame()!.split("\n");
+
+    expect(lines[0]).toContain("ripen"); // top header not scrolled off
+    const frame = lastFrame()!;
+    expect(frame).toContain("Dependencies (6)");
+    expect(frame).toContain("Dev Dependencies (8)");
+    expect(lines.at(-1)).toContain("selected"); // footer still at the bottom
+  });
+
   it("flags a major version bump but not a minor one", async () => {
     const { lastFrame } = renderList([
       pkg("react", { current: "18.0.0", latest: "19.0.0" }),

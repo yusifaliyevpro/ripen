@@ -186,12 +186,12 @@ export function PackageList({
   const selectedCount = packages.filter((p) => p.selected).length;
   const outdatedCount = packages.filter((p) => p.current !== p.latest).length;
 
-  // Fill the terminal to a stable height so the header stays pinned to the top and
-  // the footer to the bottom regardless of how many packages there are — otherwise a
-  // short list floats and the chrome shifts as the count changes. Leave a safety row
-  // (and the App's padding of 2) so the output never equals stdout.rows, which would
-  // trip Ink's full-screen clear path (see computeMaxPerGroup).
-  const minHeight = Math.max(1, terminalRows - 3);
+  // Fill the terminal to a stable height so the header stays pinned to the top and the
+  // footer to the bottom regardless of how many packages there are — otherwise a short
+  // list floats and the chrome shifts as the count changes. `terminalRows - 2` accounts
+  // for the App's padding of 2 and leaves a single blank line at the bottom, matching the
+  // version picker and changelog views. computeMaxPerGroup fills items to this same budget.
+  const minHeight = Math.max(1, terminalRows - 2);
 
   return (
     <Box flexDirection="column" minHeight={minHeight}>
@@ -199,7 +199,7 @@ export function PackageList({
       <Box marginBottom={1} flexDirection="column">
         <Text bold color="greenBright">
           {" "}
-          ripen <Text color="gray">-- interactive dependency updater</Text>
+          ripen <Text color="gray">- interactive dependency updater</Text>
         </Text>
         <Box marginTop={1}>
           <Text color="gray">
@@ -275,7 +275,7 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
   const focusedLocalIndex = group.items.findIndex((item) => item.visibleIndex === focusedIndex);
 
   return (
-    <Box key={group.type} flexDirection="column" marginBottom={1}>
+    <Box key={group.type} flexDirection="column">
       {/* Group header */}
       <Box gap={1}>
         <Text color="greenBright">{headerFocused ? "❯" : " "}</Text>
@@ -312,9 +312,6 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
             <Text color="gray">age</Text>
           </Box>
         </Box>
-
-        {/* Scroll indicator top */}
-        {needsScroll && <Text color="gray">{scrollOffset > 0 ? `  ↑ ${scrollOffset} more above` : " "}</Text>}
 
         {/* Visible rows */}
         {visibleItems.map((item) => {
@@ -384,10 +381,14 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
           );
         })}
 
-        {/* Scroll indicator bottom */}
+        {/* Scroll indicator — a single line (always present while scrolling, so the box
+            height stays stable) showing how many rows are hidden above and/or below. */}
         {needsScroll && (
           <Text color="gray">
-            {scrollOffset + maxVisible < totalItems ? `  ↓ ${totalItems - scrollOffset - maxVisible} more below` : " "}
+            {"  "}
+            {scrollOffset > 0 ? `↑ ${scrollOffset} above` : ""}
+            {scrollOffset > 0 && scrollOffset + maxVisible < totalItems ? "   " : ""}
+            {scrollOffset + maxVisible < totalItems ? `↓ ${totalItems - scrollOffset - maxVisible} below` : ""}
           </Text>
         )}
       </Box>
