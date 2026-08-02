@@ -5,6 +5,6 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["tests/**/*.test.{ts,tsx}"],
-    slowTestThreshold: 1000,
+    slowTestThreshold: 2500,
   },
 });
