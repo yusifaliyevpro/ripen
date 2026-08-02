@@ -186,8 +186,15 @@ export function PackageList({
   const selectedCount = packages.filter((p) => p.selected).length;
   const outdatedCount = packages.filter((p) => p.current !== p.latest).length;
 
+  // Fill the terminal to a stable height so the header stays pinned to the top and
+  // the footer to the bottom regardless of how many packages there are — otherwise a
+  // short list floats and the chrome shifts as the count changes. Leave a safety row
+  // (and the App's padding of 2) so the output never equals stdout.rows, which would
+  // trip Ink's full-screen clear path (see computeMaxPerGroup).
+  const minHeight = Math.max(1, terminalRows - 3);
+
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" minHeight={minHeight}>
       {/* Header */}
       <Box marginBottom={1} flexDirection="column">
         <Text bold color="greenBright">
@@ -219,6 +226,9 @@ export function PackageList({
           maxVisible={maxVisible}
         />
       ))}
+
+      {/* Spacer — absorbs the slack so the footer sits at the bottom of the fixed height */}
+      <Box flexGrow={1} />
 
       {/* Footer */}
       <Box flexDirection="column">

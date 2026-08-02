@@ -49,6 +49,23 @@ describe("PackageList rendering", () => {
     expect(frame).toContain("2 outdated");
   });
 
+  it("fills a stable height so the header and footer stay put regardless of package count (regression)", async () => {
+    // With few packages the list must still occupy the same total height as a
+    // full list, otherwise the header/footer float and shift as the count changes.
+    const few = renderList([pkg("react"), pkg("zod")]);
+    await vi.waitFor(() => expect(few.lastFrame()).toContain("react"));
+    const fewHeight = few.lastFrame()!.split("\n").length;
+
+    const many = renderList(Array.from({ length: 12 }, (_, i) => pkg(`pkg-${i}`)));
+    await vi.waitFor(() => expect(many.lastFrame()).toContain("pkg-0"));
+    const manyHeight = many.lastFrame()!.split("\n").length;
+
+    expect(fewHeight).toBe(manyHeight);
+    // Header pinned to the top, footer pinned to the bottom.
+    expect(few.lastFrame()!.split("\n")[0]).toContain("ripen");
+    expect(few.lastFrame()!.split("\n").at(-1)).toContain("selected");
+  });
+
   it("flags a major version bump but not a minor one", async () => {
     const { lastFrame } = renderList([
       pkg("react", { current: "18.0.0", latest: "19.0.0" }),
