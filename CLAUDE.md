@@ -37,6 +37,21 @@ pnpm test           # 4. Vitest — run the test suite
 pnpm build          # 5. tsdown — build errors
 ```
 
+### Fixing bugs & regressions (test-first)
+
+**Always write a failing test that reproduces the bug or regression _before_ fixing it.** For
+every reported issue:
+
+1. Add a test in `tests/**` that captures the broken behavior, and run it to confirm it **fails**
+   for the right reason (it reproduces the actual bug, not a typo in the test).
+2. Apply the fix, then run the test to confirm it now **passes**.
+3. Run `pnpm check` so the rest of the suite and the other checks stay green.
+
+This applies to all bug fixes, not just obvious regressions — the test is what stops the issue
+from silently coming back. For terminal-height / layout behavior, control the viewport by mocking
+ink's `useWindowSize` (see `tests/ui/package-list-layout.test.tsx`) rather than mocking
+`terminal-size`, which pnpm resolves to ink's own copy.
+
 ## Releases
 
 Releases are fully automated — there is **no changelog file to maintain**.
