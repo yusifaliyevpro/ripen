@@ -1,10 +1,17 @@
 import { Box, Text, useInput, useWindowSize } from "ink";
-import { useMemo, useEffect, useState, useRef } from "react";
-import { formatAge } from "../../lib/utils";
-import type { OutdatedPackage } from "../../types";
-import { buildDisplayRows, filterCollapsed, buildGroups, groupCheckbox, computeMaxPerGroup } from "./build-rows";
-import type { PackageGroup } from "./types";
-import { TYPE_COLORS } from "./types";
+import { useMemo, useEffect, useState } from "react";
+import {
+  buildDisplayRows,
+  filterCollapsed,
+  buildGroups,
+  groupCheckbox,
+  computeMaxPerGroup,
+  type PackageGroup,
+  TYPE_COLORS,
+} from "../lib/build-rows";
+import { formatAge } from "../lib/utils";
+import { parseVersion } from "../lib/versions";
+import type { OutdatedPackage } from "../types";
 
 type Props = {
   packages: OutdatedPackage[];
@@ -79,19 +86,27 @@ export function PackageList({
   const { rows: terminalRows } = useWindowSize();
   const maxVisible = useMemo(() => computeMaxPerGroup(terminalRows, groups.length), [terminalRows, groups.length]);
 
-  // Per-group scroll offsets tracked in a ref to avoid a second render per keypress
-  const scrollOffsetsRef = useRef<Record<string, number>>({});
+  // Per-group scroll offsets. Held in state and adjusted during render (React's
+  // "storing information from previous renders" pattern) so the visible window
+  // shifts exactly when the focused row would scroll out of view — without
+  // reading or mutating a ref during render.
+  const [scrollOffsets, setScrollOffsets] = useState<Record<string, number>>({});
 
-  // Compute scroll offsets inline during render (deterministic from focusedIndex + maxVisible)
+  const offsets: Record<string, number> = { ...scrollOffsets };
+  let offsetsChanged = false;
   for (const group of groups) {
     const localIndex = group.items.findIndex((item) => item.visibleIndex === focusedIndex);
     if (localIndex === -1) continue;
-    const prev = scrollOffsetsRef.current[group.type] ?? 0;
+    const prev = offsets[group.type] ?? 0;
     let next = prev;
     if (localIndex < prev) next = localIndex;
     else if (localIndex >= prev + maxVisible) next = localIndex - maxVisible + 1;
-    scrollOffsetsRef.current[group.type] = next;
+    if (next !== prev) {
+      offsets[group.type] = next;
+      offsetsChanged = true;
+    }
   }
+  if (offsetsChanged) setScrollOffsets(offsets);
 
   // Clamp focusedIndex when visibleRows shrinks (e.g., after collapse)
   useEffect(() => {
@@ -171,13 +186,20 @@ export function PackageList({
   const selectedCount = packages.filter((p) => p.selected).length;
   const outdatedCount = packages.filter((p) => p.current !== p.latest).length;
 
+  // Fill the terminal to a stable height so the header stays pinned to the top and the
+  // footer to the bottom regardless of how many packages there are — otherwise a short
+  // list floats and the chrome shifts as the count changes. `terminalRows - 2` accounts
+  // for the App's padding of 2 and leaves a single blank line at the bottom, matching the
+  // version picker and changelog views. computeMaxPerGroup fills items to this same budget.
+  const minHeight = Math.max(1, terminalRows - 2);
+
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" minHeight={minHeight}>
       {/* Header */}
       <Box marginBottom={1} flexDirection="column">
         <Text bold color="greenBright">
           {" "}
-          ripen <Text color="gray">-- interactive dependency updater</Text>
+          ripen <Text color="gray">- interactive dependency updater</Text>
         </Text>
         <Box marginTop={1}>
           <Text color="gray">
@@ -200,10 +222,13 @@ export function PackageList({
           group={group}
           focusedIndex={focusedIndex}
           collapsedScopes={collapsedScopes}
-          scrollOffset={scrollOffsetsRef.current[group.type] ?? 0}
+          scrollOffset={offsets[group.type] ?? 0}
           maxVisible={maxVisible}
         />
       ))}
+
+      {/* Spacer — absorbs the slack so the footer sits at the bottom of the fixed height */}
+      <Box flexGrow={1} />
 
       {/* Footer */}
       <Box flexDirection="column">
@@ -250,7 +275,7 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
   const focusedLocalIndex = group.items.findIndex((item) => item.visibleIndex === focusedIndex);
 
   return (
-    <Box key={group.type} flexDirection="column" marginBottom={1}>
+    <Box key={group.type} flexDirection="column">
       {/* Group header */}
       <Box gap={1}>
         <Text color="greenBright">{headerFocused ? "❯" : " "}</Text>
@@ -288,9 +313,6 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
           </Box>
         </Box>
 
-        {/* Scroll indicator top */}
-        {needsScroll && <Text color="gray">{scrollOffset > 0 ? `  ↑ ${scrollOffset} more above` : " "}</Text>}
-
         {/* Visible rows */}
         {visibleItems.map((item) => {
           const { row } = item;
@@ -317,7 +339,7 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
           if (row.kind !== "package") return null;
           const pkg = row.pkg;
           const isUpToDate = pkg.current === pkg.latest;
-          const isMajorBump = !isUpToDate && parseInt(pkg.latest) > parseInt(pkg.current);
+          const isMajorBump = !isUpToDate && (parseVersion(pkg.latest)[0] ?? 0) > (parseVersion(pkg.current)[0] ?? 0);
 
           return (
             <Box key={pkg.name} gap={2}>
@@ -359,10 +381,14 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
           );
         })}
 
-        {/* Scroll indicator bottom */}
+        {/* Scroll indicator — a single line (always present while scrolling, so the box
+            height stays stable) showing how many rows are hidden above and/or below. */}
         {needsScroll && (
           <Text color="gray">
-            {scrollOffset + maxVisible < totalItems ? `  ↓ ${totalItems - scrollOffset - maxVisible} more below` : " "}
+            {"  "}
+            {scrollOffset > 0 ? `↑ ${scrollOffset} above` : ""}
+            {scrollOffset > 0 && scrollOffset + maxVisible < totalItems ? "   " : ""}
+            {scrollOffset + maxVisible < totalItems ? `↓ ${totalItems - scrollOffset - maxVisible} below` : ""}
           </Text>
         )}
       </Box>

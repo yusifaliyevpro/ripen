@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { openInBrowser } from "../lib/utils";
 import { fetchChangelog, fetchRepoUrl } from "../registry";
 import type { ChangelogEntry, OutdatedPackage } from "../types";
-import { MarkdownLine } from "./MarkdownLine";
+import { MarkdownLine } from "./markdown-line";
 
 type Props = {
   pkg: OutdatedPackage;
@@ -40,6 +40,7 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
       .catch((err: unknown) => {
         onError(err instanceof Error ? err.message : String(err));
       });
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [pkg.name]);
 
   useEffect(() => {
@@ -92,17 +93,19 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
   const targetVer = pkg.targetVersion ?? pkg.latest;
 
   // Reserve rows for the surrounding chrome so the scrollable body fits the terminal:
-  //   header (3 lines + 1 margin) + release navigator (1 line + 1 margin, only when >1 entry)
-  //   + footer (divider + hints, 2 lines + 1 margin) + 1 safety row.
+  //   header (3 lines + 1 top margin + 1 bottom margin) + release navigator (1 line + 1
+  //   margin, only when >1 entry) + footer (divider + hints, 2 lines + 1 margin) + 1 safety row.
   const navigatorHeight = entries.length > 1 ? 2 : 0;
-  const chromeHeight = 4 + navigatorHeight + 3 + 1;
-  const maxBodyHeight = Math.max(3, rows - chromeHeight);
-  const bodyHeight = currentEntry ? Math.min(currentEntry.body.split("\n").length, maxBodyHeight) : 0;
+  const chromeHeight = 5 + navigatorHeight + 3 + 1;
+  // Size the body from the window, not the content, so the header/navigator/footer
+  // stay put. Sizing to the content collapses the box for short releases, which
+  // shifts the whole layout up and down as you navigate between releases.
+  const bodyHeight = Math.max(3, rows - chromeHeight);
 
   return (
     <Box flexDirection="column">
       {/* Header */}
-      <Box flexDirection="column" marginBottom={1}>
+      <Box flexDirection="column" marginTop={1} marginBottom={1}>
         <Text bold color="magentaBright">
           {" "}
           Changelog — <Text color="whiteBright">{pkg.name}</Text>
@@ -133,38 +136,39 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
         </Box>
       )}
 
-      {/* Scrollable body */}
-      {loading ? (
-        <Text color="gray"> fetching release notes…</Text>
-      ) : rateLimited ? (
-        <Box flexDirection="column">
-          <Text color="yellow"> GitHub rate limit reached (60 requests/hour for unauthenticated use).</Text>
-          <Text color="gray"> Install the GitHub CLI and log in to raise the limit to 5,000/hour:</Text>
-          <Text color="gray">
-            {"   "}
-            <Text color="white">gh auth login</Text> — https://cli.github.com
-          </Text>
-          {releasesPageUrl && (
+      {/* Scrollable body — fixed height in every state (loading, error, notes) so
+          the surrounding header/navigator/footer never shift as the panel loads. */}
+      <Box height={bodyHeight} flexDirection="column">
+        {loading ? (
+          <Text color="gray"> fetching release notes…</Text>
+        ) : rateLimited ? (
+          <Box flexDirection="column">
+            <Text color="yellow"> GitHub rate limit reached (60 requests/hour for unauthenticated use).</Text>
+            <Text color="gray"> Install the GitHub CLI and log in to raise the limit to 5,000/hour:</Text>
             <Text color="gray">
-              {" "}
-              Or press <Text color="white">r</Text> to open the releases page in browser.
+              {"   "}
+              <Text color="white">gh auth login</Text> — https://cli.github.com
             </Text>
-          )}
-        </Box>
-      ) : entries.length === 0 ? (
-        <Box flexDirection="column">
-          <Text color="gray"> No GitHub release notes found between these versions.</Text>
-          {releasesPageUrl ? (
-            <Text color="gray">
-              {" "}
-              Press <Text color="white">r</Text> to open releases page in browser.
-            </Text>
-          ) : (
-            <Text color="gray"> Check the package repository manually.</Text>
-          )}
-        </Box>
-      ) : currentEntry ? (
-        <Box height={bodyHeight} flexDirection="column">
+            {releasesPageUrl && (
+              <Text color="gray">
+                {" "}
+                Or press <Text color="white">r</Text> to open the releases page in browser.
+              </Text>
+            )}
+          </Box>
+        ) : entries.length === 0 ? (
+          <Box flexDirection="column">
+            <Text color="gray"> No GitHub release notes found between these versions.</Text>
+            {releasesPageUrl ? (
+              <Text color="gray">
+                {" "}
+                Press <Text color="white">r</Text> to open releases page in browser.
+              </Text>
+            ) : (
+              <Text color="gray"> Check the package repository manually.</Text>
+            )}
+          </Box>
+        ) : currentEntry ? (
           <ScrollView ref={scrollRef}>
             <Box flexDirection="column">
               {currentEntry.body.split("\n").map((line, j) => (
@@ -172,8 +176,8 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
               ))}
             </Box>
           </ScrollView>
-        </Box>
-      ) : null}
+        ) : null}
+      </Box>
 
       {/* Footer */}
       <Box flexDirection="column" marginTop={1}>

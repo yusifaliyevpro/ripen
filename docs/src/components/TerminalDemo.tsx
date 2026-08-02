@@ -17,7 +17,7 @@ export function TerminalDemo() {
           {/* App header */}
           <div className="mb-1 text-left">
             <span className="font-bold text-green"> ripen</span>{" "}
-            <span className="text-text-dim">-- interactive dependency updater</span>
+            <span className="text-text-dim">- interactive dependency updater</span>
           </div>
 
           {/* Keyboard shortcuts bar */}

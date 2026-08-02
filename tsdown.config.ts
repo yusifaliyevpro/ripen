@@ -1,6 +1,13 @@
+import pluginBabel from "@rolldown/plugin-babel";
+import { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
+  plugins: [
+    pluginBabel({
+      presets: [reactCompilerPreset()],
+    }),
+  ],
   entry: ["src/cli.tsx"],
   format: "esm",
   outDir: "dist",
@@ -9,8 +16,5 @@ export default defineConfig({
   outputOptions: {
     entryFileNames: "cli.js",
     comments: false,
-  },
-  deps: {
-    neverBundle: ["ink", "ink-scroll-view", "react", "execa"],
   },
 });

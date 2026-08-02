@@ -52,6 +52,7 @@ export type RipenConfig = {
 
 export type RegistryVersion = {
   version: string;
+  /** Full ISO publish timestamp (not just the date) so ages are accurate to the hour. */
   date: string;
   tag?: string;
 };
@@ -134,15 +135,11 @@ export type YarnOutdatedLine = {
 // ── UI screens ───────────────────────────────────────────────────────
 
 export type Screen =
-  | "self-update-check"
   | "self-update"
   | "loading"
   | "list"
   | "version-picker"
   | "changelog"
-  | "updating"
-  | "results"
   | "empty"
   | "error"
-  | "settings"
-  | "cancelled";
+  | "settings";

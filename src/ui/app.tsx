@@ -3,15 +3,15 @@ import { useState, useEffect } from "react";
 import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../config";
 import { buildUpdateCommands } from "../executor";
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
+import { useSelfUpdate, usePackages, useTerminalOutput } from "../hooks";
 import { copyToClipboard } from "../lib/utils";
 import type { ProjectInfo, RipenConfig, Screen } from "../types";
-import { ChangelogPanel } from "./ChangelogPanel";
-import { useSelfUpdate, usePackages, useTerminalOutput, useExitOnScreen } from "./hooks";
+import { ChangelogPanel } from "./changelog-panel";
 import { PackageList } from "./package-list";
-import { SelfUpdatePrompt } from "./SelfUpdatePrompt";
-import { Settings } from "./Settings";
-import { TerminalOutputBox } from "./TerminalOutputBox";
-import { VersionPicker } from "./VersionPicker";
+import { SelfUpdatePrompt } from "./self-update-prompt";
+import { Settings } from "./settings";
+import { TerminalOutputBox } from "./terminal-output-box";
+import { VersionPicker } from "./version-picker";
 
 type Props = {
   project: ProjectInfo;
@@ -19,14 +19,19 @@ type Props = {
   showAll: boolean;
   version: string;
   installManager: ProjectInfo["manager"];
-  onCancelled?: () => void;
   onCopied?: (commands: string[]) => void;
+  onEmpty?: () => void;
+  onCancel?: () => void;
 };
 
-export function App({ project, global, showAll, version, installManager, onCancelled, onCopied }: Props) {
+export function App({ project, global, showAll, version, installManager, onCopied, onEmpty, onCancel }: Props) {
   const { exit } = useApp();
 
-  const [screen, setScreen] = useState<Screen>("self-update-check");
+  // The self-update decision is synchronous (reads a version cached by a prior
+  // run), so the app opens straight on the prompt or the list — no wait.
+  const selfUpdate = useSelfUpdate(version, installManager);
+
+  const [screen, setScreen] = useState<Screen>(selfUpdate.hasUpdate ? "self-update" : "loading");
   const [config, setConfig] = useState<RipenConfig>(() => loadConfig());
   const [frequency, setFrequency] = useState<Record<string, number>>(() => loadFrequency());
   const [activeIndex, setActiveIndex] = useState(0);
@@ -39,28 +44,26 @@ export function App({ project, global, showAll, version, installManager, onCance
     setScreen("error");
   };
 
-  const selfUpdate = useSelfUpdate(version, installManager);
   const { packages, setPackages, toggleOne, toggleMany, chooseVersion } = usePackages();
   const terminal = useTerminalOutput();
 
   // ── Ctrl+C ──────────────────────────────────────────────────────────
   useInput((_input, key) => {
-    if (key.ctrl && _input === "c") setScreen("cancelled");
+    if (key.ctrl && _input === "c") {
+      onCancel?.();
+      exit();
+    }
   });
 
-  // ── Exit handlers ───────────────────────────────────────────────────
-  useExitOnScreen(screen, ["empty"], exit);
-  useExitOnScreen(screen, ["cancelled"], exit, {
-    delay: 200,
-    beforeExit: () => onCancelled?.(),
-  });
-
-  // ── Self-update check → screen transition ──────────────────────────
+  // ── Exit when there's nothing to show ───────────────────────────────
+  // "All up to date" is printed to the primary buffer by cli.tsx after exit, so
+  // we quit immediately here — no delay to let an alternate-screen frame paint.
   useEffect(() => {
-    if (!selfUpdate.checkComplete) return;
-    if (screen !== "self-update-check") return;
-    setScreen(selfUpdate.hasUpdate ? "self-update" : "loading");
-  }, [selfUpdate.checkComplete]);
+    if (screen !== "empty") return;
+    onEmpty?.();
+    exit();
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen]);
 
   const handleSelfUpdate = () => {
     const raw = selfUpdate.buildUpdateCommand();
@@ -100,6 +103,7 @@ export function App({ project, global, showAll, version, installManager, onCance
       .catch((err) => {
         showError(err instanceof Error ? err.message : String(err));
       });
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
   // ── Callbacks ──────────────────────────────────────────────────────
@@ -120,20 +124,6 @@ export function App({ project, global, showAll, version, installManager, onCance
   };
 
   // ── Render ─────────────────────────────────────────────────────────
-
-  if (screen === "self-update-check") {
-    return (
-      <Box flexDirection="column" padding={1}>
-        <Text color="greenBright" bold>
-          {" "}
-          ripen
-        </Text>
-        <Box marginTop={1}>
-          <Text color="gray">Checking for updates…</Text>
-        </Box>
-      </Box>
-    );
-  }
 
   if (screen === "self-update") {
     return (
@@ -175,23 +165,9 @@ export function App({ project, global, showAll, version, installManager, onCance
     );
   }
 
-  if (screen === "cancelled") return <></>;
-
-  if (screen === "empty") {
-    return (
-      <Box flexDirection="column" padding={1}>
-        <Text color="greenBright" bold>
-          {" "}
-          ripen
-        </Text>
-        <Box marginTop={1}>
-          <Text color="gray">
-            ✓ All packages are up to date in <Text color="white">{global ? "global" : project.name}</Text>
-          </Text>
-        </Box>
-      </Box>
-    );
-  }
+  // The "empty" screen renders nothing — the effect above exits immediately and
+  // cli.tsx prints the "all up to date" message to the primary buffer.
+  if (screen === "empty") return <></>;
 
   // All screens below keep PackageList mounted (hidden) to preserve state.
   const isListActive = screen === "list";

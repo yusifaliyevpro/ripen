@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "1.3.2",
+  "version": "1.4.0",
   "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
   "keywords": [
     "bun",
@@ -21,7 +21,7 @@
   "bugs": {
     "url": "https://github.com/yusifaliyevpro/ripen/issues"
   },
-  "license": "MIT",
+  "license": "LGPL-2.1-or-later",
   "author": {
     "name": "Yusif Aliyev",
     "email": "yusifaliyevpro@gmail.com",
@@ -54,6 +54,8 @@
   "scripts": {
     "build": "tsdown",
     "start": "node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "docs:dev": "pnpm --prefix docs dev",
     "docs:build": "pnpm --prefix docs build",
     "docs:start": "pnpm --prefix docs start",
@@ -64,20 +66,24 @@
     "lint:fix": "oxlint --fix"
   },
   "dependencies": {
-    "execa": "10.0.0",
+    "execa": "10.0.1",
     "ink": "7.1.1",
     "ink-scroll-view": "0.3.7",
-    "react": "19.2.8"
+    "react": "19.2.7"
   },
   "devDependencies": {
+    "@rolldown/plugin-babel": "0.2.3",
     "@types/node": "24.13.3",
-    "@types/react": "19.2.17",
-    "greenly": "1.0.1",
+    "@types/react": "19.2.18",
+    "@vitejs/plugin-react": "6.0.5",
+    "greenly": "1.1.3",
+    "ink-testing-library": "4.0.0",
     "oxfmt": "0.61.0",
     "oxlint": "1.76.0",
-    "oxlint-tsgolint": "^7.0.2001",
+    "oxlint-tsgolint": "7.0.2001",
     "tsdown": "0.22.14",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
   },
   "engines": {
     "node": ">=18"

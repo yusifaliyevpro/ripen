@@ -368,7 +368,7 @@ async function getGlobalOutdatedPackages(
  * Extract the first top-level JSON object from a string that may contain
  * non-JSON lines (e.g. pnpm WARN messages) before or after the JSON.
  */
-function extractJson(raw: string): string | null {
+export function extractJson(raw: string): string | null {
   const start = raw.indexOf("{");
   if (start === -1) return null;
 
@@ -381,7 +381,7 @@ function extractJson(raw: string): string | null {
   return null;
 }
 
-function parsePnpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPackage[] {
+export function parsePnpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPackage[] {
   if (data === null || typeof data !== "object" || Array.isArray(data)) return [];
   return Object.entries(data).map(([name, info]) => ({
     name,
@@ -395,7 +395,7 @@ function parsePnpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPackage[
   }));
 }
 
-function parseNpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPackage[] {
+export function parseNpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPackage[] {
   if (data === null || typeof data !== "object") return [];
   return Object.entries(data).map(([name, info]) => ({
     name,
@@ -455,7 +455,7 @@ export async function getAllGlobalOutdated(
  * Yarn classic outputs ndjson — one JSON object per line.
  * The table data is in a line like: {"type":"table","data":{"head":...,"body":[[name, current, wanted, latest, workspace, type],...]}}
  */
-function parseYarnOutdated(raw: string): OutdatedPackage[] {
+export function parseYarnOutdated(raw: string): OutdatedPackage[] {
   const lines = raw.split("\n");
   for (const line of lines) {
     const trimmed = line.trim();

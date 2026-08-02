@@ -1,8 +1,17 @@
-# ripen
+<h1>
+  <img src="https://raw.githubusercontent.com/yusifaliyevpro/ripen/main/docs/public/icon.svg" alt="" height="34" align="center" />
+  ripen
+</h1>
 
 > Security-first interactive dependency updater for npm, pnpm, yarn, and bun
 
-![npm version](https://img.shields.io/npm/v/ripencli) ![node](https://img.shields.io/node/v/ripencli) ![GitHub License](https://img.shields.io/github/license/yusifaliyevpro/ripen)
+[![npm version](https://img.shields.io/npm/v/ripencli?color=3fb950&label=npm)](https://www.npmjs.com/package/ripencli)
+[![npm downloads](https://img.shields.io/npm/dm/ripencli?color=3fb950)](https://www.npmjs.com/package/ripencli)
+[![unpacked size](https://img.shields.io/npm/unpacked-size/ripencli?color=3fb950)](https://www.npmjs.com/package/ripencli)
+[![node](https://img.shields.io/node/v/ripencli?color=3fb950)](https://www.npmjs.com/package/ripencli)
+[![Socket Badge](https://badge.socket.dev/npm/package/ripencli/1.4.0)](https://socket.dev/npm/package/ripencli)
+[![PR Checks](https://github.com/yusifaliyevpro/ripen/actions/workflows/pr.yml/badge.svg)](https://github.com/yusifaliyevpro/ripen/actions/workflows/pr.yml)
+[![license](https://img.shields.io/npm/l/ripencli?color=3fb950)](https://github.com/yusifaliyevpro/ripen/blob/main/LICENSE)
 
 ![ripen banner](https://raw.githubusercontent.com/yusifaliyevpro/ripen/main/docs/public/og.svg)
 

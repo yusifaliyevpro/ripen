@@ -2,8 +2,9 @@
 import { render } from "ink";
 import { version as VERSION } from "../package.json";
 import { getProjectInfo, hasPackageJson, detectGlobalInstallManager } from "./detector";
+import { colors } from "./lib/colors";
 import { prewarmGitHubToken } from "./registry";
-import { App } from "./ui/App";
+import { App } from "./ui/app";
 
 const args = process.argv.slice(2);
 const isGlobal = args.includes("--global") || args.includes("-g");
@@ -55,8 +56,9 @@ prewarmGitHubToken();
 
 const installManager = detectGlobalInstallManager();
 
-let wasCancelled = false;
 let copiedCommands: string[] = [];
+let wasEmpty = false;
+let wasCancelled = false;
 
 const { waitUntilExit } = render(
   <App
@@ -65,11 +67,14 @@ const { waitUntilExit } = render(
     showAll={showAll}
     version={VERSION}
     installManager={installManager}
-    onCancelled={() => {
-      wasCancelled = true;
-    }}
     onCopied={(cmds) => {
       copiedCommands = cmds;
+    }}
+    onEmpty={() => {
+      wasEmpty = true;
+    }}
+    onCancel={() => {
+      wasCancelled = true;
     }}
   />,
   { exitOnCtrlC: false, alternateScreen: true },
@@ -79,8 +84,11 @@ await waitUntilExit();
 
 // Primary buffer is now restored. Print post-exit output here so it appears
 // in the normal scrollback, not the (now-gone) alternate screen.
-if (wasCancelled) {
-  process.stdout.write("  \x1b[32mCancelled.\x1b[0m\n");
-} else if (copiedCommands.length > 0) {
-  process.stdout.write("  \x1b[32mCopied to clipboard.\x1b[0m\n");
+if (copiedCommands.length > 0) {
+  process.stdout.write(`  ${colors.green("Copied to clipboard.")}\n`);
+} else if (wasEmpty) {
+  const label = isGlobal ? "global" : project.name;
+  process.stdout.write(`  ${colors.green(`✓ All packages are up to date in ${label}.`)}\n`);
+} else if (wasCancelled) {
+  process.stdout.write(`  ${colors.dim("Cancelled.")}\n`);
 }
