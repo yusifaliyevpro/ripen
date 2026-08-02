@@ -121,6 +121,46 @@ describe("ChangelogPanel — interaction", () => {
     expect(lastFrame()).toContain("v1.1.0");
   });
 
+  it("keeps a stable layout height when switching between short and long releases (regression)", async () => {
+    // The body box must be sized from the window, not the content. Otherwise a
+    // short release collapses the box, shifting the header up and the footer
+    // down as you navigate between releases of differing lengths.
+    fetchChangelog.mockResolvedValue({
+      entries: [
+        { version: "v1.0.5", body: "one short line", url: "" },
+        { version: "v1.1.0", body: Array.from({ length: 40 }, (_, i) => `- change ${i}`).join("\n"), url: "" },
+      ],
+    });
+    fetchRepoUrl.mockResolvedValue("https://github.com/o/r");
+    const { lastFrame, stdin } = renderPanel();
+    await vi.waitFor(() => expect(lastFrame()).toContain("(1/2)"));
+
+    const shortReleaseHeight = lastFrame()!.split("\n").length;
+    stdin.write(RIGHT);
+    await vi.waitFor(() => expect(lastFrame()).toContain("(2/2)"));
+    const longReleaseHeight = lastFrame()!.split("\n").length;
+
+    // Same total height regardless of how long each release's notes are.
+    expect(longReleaseHeight).toBe(shortReleaseHeight);
+  });
+
+  it("keeps a stable layout height between the loading and loaded states (regression)", async () => {
+    // The "fetching release notes…" placeholder must occupy the same body height
+    // as the loaded notes, otherwise the header/footer jump when the fetch lands.
+    let resolve!: (r: ChangelogResult) => void;
+    fetchChangelog.mockReturnValue(new Promise<ChangelogResult>((r) => (resolve = r)));
+    fetchRepoUrl.mockResolvedValue("https://github.com/o/r");
+    const { lastFrame } = renderPanel();
+    await vi.waitFor(() => expect(lastFrame()).toContain("fetching release notes"));
+    const loadingHeight = lastFrame()!.split("\n").length;
+
+    resolve({ entries: [{ version: "v1.1.0", body: "short note", url: "" }] });
+    await vi.waitFor(() => expect(lastFrame()).toContain("short note"));
+    const loadedHeight = lastFrame()!.split("\n").length;
+
+    expect(loadedHeight).toBe(loadingHeight);
+  });
+
   it("opens the current release in the browser on 'o'", async () => {
     const url = "https://github.com/o/r/releases/tag/v1.1.0";
     fetchChangelog.mockResolvedValue({ entries: [{ version: "v1.1.0", body: "notes", url }] });

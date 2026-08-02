@@ -18,6 +18,10 @@ describe("prettyUrl", () => {
     expect(prettyUrl("https://github.com/owner/repo/issues/7#issuecomment-1")).toBe("#7");
   });
 
+  it("shortens a compare URL to its ref range, like GitHub", () => {
+    expect(prettyUrl("https://github.com/vadimdemedes/ink/compare/v7.1.0...v7.1.1")).toBe("v7.1.0...v7.1.1");
+  });
+
   it("leaves an unrelated URL untouched", () => {
     expect(prettyUrl("https://example.com/foo")).toBe("https://example.com/foo");
   });
@@ -92,6 +96,21 @@ describe("parseInline", () => {
   it("shortens a bare GitHub URL while linking the full URL", () => {
     expect(parseInline("https://github.com/o/r/pull/9")).toEqual([
       { text: "#9", link: "https://github.com/o/r/pull/9" },
+    ]);
+  });
+
+  it("leaves a bare commit SHA as plain text", () => {
+    // GitHub release notes list the short commit SHA as plain text; we keep it as-is.
+    expect(parseInline("fix thing (#974)  e51dfdd", "https://github.com/o/r")).toEqual([
+      { text: "fix thing (" },
+      { text: "#974", link: "https://github.com/o/r/issues/974" },
+      { text: ")  e51dfdd" },
+    ]);
+  });
+
+  it("shortens a bare compare URL to its ref range while keeping the link", () => {
+    expect(parseInline("https://github.com/o/r/compare/v7.1.0...v7.1.1")).toEqual([
+      { text: "v7.1.0...v7.1.1", link: "https://github.com/o/r/compare/v7.1.0...v7.1.1" },
     ]);
   });
 

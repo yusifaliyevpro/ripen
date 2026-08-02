@@ -57,6 +57,37 @@ describe("VersionPicker", () => {
     expect(new Set(["1h", "5h", "20h"]).size).toBe(3);
   });
 
+  it("keeps long version strings on a single line so the header stays in view (regression)", async () => {
+    // Versions longer than the fixed 16-char version column must NOT wrap to a
+    // second line. The picker renders exactly PAGE rows on the assumption that
+    // each row is one line tall; if long versions (e.g. canary builds like
+    // "19.3.0-canary-d5736f09-20260507") wrap, the total height grows past the
+    // terminal and pushes the "Pick version — …" header off-screen.
+    const shortVersions: RegistryVersion[] = Array.from({ length: 10 }, (_, i) => ({
+      version: `19.2.${10 - i}`,
+      date: iso((i + 1) * HOUR),
+      ...(i === 0 ? { tag: "latest" as const } : {}),
+    }));
+    fetchVersions.mockResolvedValueOnce(shortVersions);
+    const short = renderPicker({ current: "19.2.7", targetVersion: "19.2.6" });
+    await vi.waitFor(() => expect(short.lastFrame()).toContain("19.2.1"));
+    const shortLineCount = short.lastFrame()!.split("\n").length;
+
+    // Same list, but the two newest versions are far wider than the 16-char column.
+    const longVersions: RegistryVersion[] = shortVersions.map((v, i) =>
+      i < 2 ? { ...v, version: `19.3.0-canary-d5736f09-2026050${i}` } : v,
+    );
+    fetchVersions.mockResolvedValueOnce(longVersions);
+    const long = renderPicker({ current: "19.2.7", targetVersion: "19.2.6" });
+    await vi.waitFor(() => expect(long.lastFrame()).toContain("19.2.1"));
+    const longFrame = long.lastFrame()!;
+
+    // The header must still be present…
+    expect(longFrame).toContain("Pick version");
+    // …and the long versions must not have added extra lines to the view.
+    expect(longFrame.split("\n").length).toBe(shortLineCount);
+  });
+
   it("renders the current version and a fetch failure message", async () => {
     fetchVersions.mockResolvedValue([]);
     const { lastFrame } = renderPicker();

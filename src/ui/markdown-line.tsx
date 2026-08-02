@@ -19,12 +19,14 @@ export function stripHtmlTags(s: string): string {
   return s.replace(/<\/?[a-zA-Z][^>]*>/g, "");
 }
 
-/** Shorten bare GitHub issue/PR/commit URLs to `#123` / short SHA, matching GitHub's own rendering. */
+/** Shorten bare GitHub issue/PR/commit/compare URLs to `#123` / short SHA / `a...b`, matching GitHub's own rendering. */
 export function prettyUrl(url: string): string {
   const ref = url.match(/github\.com\/[^/]+\/[^/]+\/(?:issues|pull)\/(\d+)(?:[#?].*)?$/);
   if (ref) return `#${ref[1]}`;
   const commit = url.match(/github\.com\/[^/]+\/[^/]+\/commit\/([0-9a-f]{7,40})(?:[#?].*)?$/i);
   if (commit) return commit[1].slice(0, 7);
+  const compare = url.match(/github\.com\/[^/]+\/[^/]+\/compare\/([^#?]+)(?:[#?].*)?$/);
+  if (compare) return decodeURIComponent(compare[1]);
   return url;
 }
 

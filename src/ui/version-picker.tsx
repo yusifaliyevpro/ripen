@@ -103,7 +103,11 @@ export function VersionPicker({ pkg, onSelect, onCancel, onError }: Props) {
           <Box key={v.version} gap={2}>
             <Text color="cyanBright">{isFocused ? "❯" : " "}</Text>
             <Box width={16}>
-              <Text bold={isFocused} color={isFocused ? "whiteBright" : isCurrent ? "red" : "white"}>
+              <Text
+                wrap="truncate-end"
+                bold={isFocused}
+                color={isFocused ? "whiteBright" : isCurrent ? "red" : "white"}
+              >
                 {v.version}
               </Text>
             </Box>
