@@ -9,4 +9,4 @@ packages:
   - "."
   - "docs"
 minimumReleaseAgeExclude:
-  - greenly@1.0.1
+  - greenly@1.0.1 || 1.1.3

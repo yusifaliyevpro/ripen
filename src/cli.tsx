@@ -2,6 +2,7 @@
 import { render } from "ink";
 import { version as VERSION } from "../package.json";
 import { getProjectInfo, hasPackageJson, detectGlobalInstallManager } from "./detector";
+import { colors } from "./lib/colors";
 import { prewarmGitHubToken } from "./registry";
 import { App } from "./ui/app";
 
@@ -80,8 +81,8 @@ await waitUntilExit();
 // Primary buffer is now restored. Print post-exit output here so it appears
 // in the normal scrollback, not the (now-gone) alternate screen.
 if (copiedCommands.length > 0) {
-  process.stdout.write("  \x1b[32mCopied to clipboard.\x1b[0m\n");
+  process.stdout.write(`  ${colors.green("Copied to clipboard.")}\n`);
 } else if (wasEmpty) {
   const label = isGlobal ? "global" : project.name;
-  process.stdout.write(`  \x1b[32m✓ All packages are up to date in ${label}.\x1b[0m\n`);
+  process.stdout.write(`  ${colors.green(`✓ All packages are up to date in ${label}.`)}\n`);
 }
