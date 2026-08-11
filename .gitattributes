@@ -20,6 +20,10 @@
 *.bat   text eol=crlf
 *.cmd   text eol=crlf
 
+# Force GitHub to classify .tsx as TypeScript (content-based search
+# classifier otherwise tags import-only files as JavaScript)
+*.tsx   linguist-language=TypeScript
+
 # Binary — no line ending conversion
 *.png   binary
 *.jpg   binary
