@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { render } from "ink";
-import { version as VERSION } from "../package.json";
+import { version as RIPEN_VERSION } from "../package.json";
 import { getProjectInfo, hasPackageJson, detectGlobalInstallManager } from "./detector";
 import { colors } from "./lib/colors";
 import { prewarmGitHubToken } from "./registry";
@@ -13,7 +13,7 @@ const showHelp = args.includes("--help") || args.includes("-h");
 const showVersion = args.includes("--version") || args.includes("-v");
 
 if (showVersion) {
-  console.log(VERSION);
+  console.log(RIPEN_VERSION);
   process.exit(0);
 }
 
@@ -65,7 +65,7 @@ const { waitUntilExit } = render(
     project={project}
     global={isGlobal}
     showAll={showAll}
-    version={VERSION}
+    version={RIPEN_VERSION}
     installManager={installManager}
     onCopied={(cmds) => {
       copiedCommands = cmds;

@@ -1,6 +1,17 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
+import { parse } from "valibot";
+import {
+  GlobalListOutputArraySchema,
+  GlobalListOutputSchema,
+  NpmPackumentSchema,
+  OutdatedInfoRecordSchema,
+  YarnListLineSchema,
+  YarnOutdatedLineSchema,
+  type NpmPackument,
+  type OutdatedInfo,
+} from "./lib/schemas";
 import {
   compareFullVersions,
   MAJOR_PINNED_PACKAGES,
@@ -9,16 +20,7 @@ import {
   prereleaseChannel,
 } from "./lib/versions";
 import { isNewerVersion } from "./registry";
-import type {
-  PackageManager,
-  OutdatedPackage,
-  FetchResult,
-  NpmPackument,
-  GlobalListOutput,
-  YarnListLine,
-  OutdatedInfo,
-  YarnOutdatedLine,
-} from "./types";
+import type { PackageManager, OutdatedPackage, FetchResult } from "./types";
 
 type DepEntry = {
   name: string;
@@ -91,7 +93,7 @@ async function fetchRegistryInfoWithRetry(
       });
       clearTimeout(timeout);
       if (!res.ok) return null;
-      const data: NpmPackument = await res.json();
+      const data = parse(NpmPackumentSchema, await res.json());
       const distTags = data["dist-tags"] ?? {};
       const version: string | null =
         pinMajor !== undefined
@@ -220,7 +222,7 @@ async function listGlobalPackages(
   try {
     if (manager === "npm") {
       const { stdout } = await execa("npm", ["list", "-g", "--depth=0", "--json"], { cwd, reject: false });
-      const data: GlobalListOutput = JSON.parse(stdout);
+      const data = parse(GlobalListOutputSchema, JSON.parse(stdout));
       return Object.entries(data.dependencies ?? {}).map(([name, info]) => ({
         name,
         current: info.version ?? "N/A",
@@ -228,10 +230,10 @@ async function listGlobalPackages(
     }
     if (manager === "pnpm") {
       const { stdout } = await execa("pnpm", ["list", "-g", "--json"], { cwd, reject: false });
-      const data: GlobalListOutput | GlobalListOutput[] = JSON.parse(stdout);
-      const deps: Record<string, { version?: string }> = Array.isArray(data)
-        ? (data[0]?.dependencies ?? {})
-        : (data.dependencies ?? {});
+      const raw: unknown = JSON.parse(stdout);
+      const deps: Record<string, { version?: string }> = Array.isArray(raw)
+        ? (parse(GlobalListOutputArraySchema, raw)[0]?.dependencies ?? {})
+        : (parse(GlobalListOutputSchema, raw).dependencies ?? {});
       return Object.entries(deps).map(([name, info]) => ({
         name,
         current: info.version ?? "N/A",
@@ -242,7 +244,7 @@ async function listGlobalPackages(
       const pkgs: Array<{ name: string; current: string }> = [];
       for (const line of stdout.trim().split("\n")) {
         try {
-          const obj: YarnListLine = JSON.parse(line);
+          const obj = parse(YarnListLineSchema, JSON.parse(line));
           if (obj.type === "tree" && obj.data?.trees) {
             for (const tree of obj.data.trees) {
               const match = tree.name?.match(/^(.+)@([^@]+)$/);
@@ -353,7 +355,7 @@ async function getGlobalOutdatedPackages(
       return { ok: false, error: errMsg };
     }
     try {
-      const data = JSON.parse(jsonStr);
+      const data = parse(OutdatedInfoRecordSchema, JSON.parse(jsonStr));
       packages = manager === "pnpm" ? parsePnpmOutdated(data) : parseNpmOutdated(data);
     } catch {
       return { ok: false, error: "Failed to parse outdated output. Try again." };
@@ -461,7 +463,7 @@ export function parseYarnOutdated(raw: string): OutdatedPackage[] {
     const trimmed = line.trim();
     if (!trimmed) continue;
     try {
-      const obj: YarnOutdatedLine = JSON.parse(trimmed);
+      const obj = parse(YarnOutdatedLineSchema, JSON.parse(trimmed));
       if (obj.type === "table" && obj.data?.body) {
         return obj.data.body.map((row) => ({
           name: row[0],
