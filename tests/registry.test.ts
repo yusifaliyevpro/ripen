@@ -148,12 +148,12 @@ describe("fetchVersions", () => {
 
 describe("fetchRepoUrl", () => {
   it("derives a GitHub URL from an object repository field", async () => {
-    mockFetch(() => json({ repository: { url: "git+https://github.com/facebook/react.git" } }));
+    mockFetch(() => json({ version: "1.0.0", repository: { url: "git+https://github.com/facebook/react.git" } }));
     expect(await fetchRepoUrl("react")).toBe("https://github.com/facebook/react");
   });
 
   it("derives a GitHub URL from a string repository field", async () => {
-    mockFetch(() => json({ repository: "git+https://github.com/vercel/next.js.git" }));
+    mockFetch(() => json({ version: "1.0.0", repository: "git+https://github.com/vercel/next.js.git" }));
     expect(await fetchRepoUrl("next")).toBe("https://github.com/vercel/next.js");
   });
 
@@ -164,7 +164,7 @@ describe("fetchRepoUrl", () => {
 });
 
 describe("fetchChangelog", () => {
-  const withRepo = { repository: { url: "https://github.com/owner/repo.git" } };
+  const withRepo = { version: "1.0.0", repository: { url: "https://github.com/owner/repo.git" } };
 
   it("returns entries strictly between fromVersion and toVersion, oldest first", async () => {
     mockFetch((url) => {
@@ -205,5 +205,29 @@ describe("fetchChangelog", () => {
   it("returns no entries when the package has no GitHub repo", async () => {
     mockFetch(() => json({ version: "1.0.0" }));
     expect(await fetchChangelog("pkg", "1.0.0", "2.0.0")).toEqual({ entries: [] });
+  });
+
+  it("falls back to no entries when GitHub returns a schema-invalid release list", async () => {
+    // The releases payload is not the expected array-of-releases shape (here the
+    // required fields are missing / mistyped). valibot rejects it, and the
+    // fetcher must degrade to an empty result instead of trusting bad data.
+    mockFetch((url) => {
+      if (url.includes("registry.npmjs.org")) return json(withRepo);
+      return json([{ tag_name: 123, draft: "nope" }]);
+    });
+    expect(await fetchChangelog("pkg", "1.0.0", "2.0.0")).toEqual({ entries: [] });
+  });
+});
+
+describe("schema validation of registry responses", () => {
+  it("fetchVersions returns [] when the packument shape is invalid", async () => {
+    // `versions` must be an object keyed by version; a string here is invalid.
+    mockFetch(() => json({ versions: "not-an-object" }));
+    expect(await fetchVersions("pkg")).toEqual([]);
+  });
+
+  it("fetchLatestVersion returns null when `version` is not a string", async () => {
+    mockFetch(() => json({ version: 42 }));
+    expect(await fetchLatestVersion("pkg")).toBeNull();
   });
 });

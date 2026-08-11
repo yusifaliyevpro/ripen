@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -53,6 +53,22 @@ describe("detectPackageManager", () => {
     await writeFile(join(dir, "bun.lock"), "");
     await writeFile(join(dir, "pnpm-lock.yaml"), "");
     expect(detectPackageManager(dir)).toBe("bun");
+  });
+
+  it("finds a lockfile in an ancestor directory (workspace root)", async () => {
+    await writeFile(join(dir, "pnpm-workspace.yaml"), "");
+    const sub = join(dir, "docs");
+    await mkdir(sub, { recursive: true });
+    await writeFile(join(sub, "package.json"), "{}");
+    expect(detectPackageManager(sub)).toBe("pnpm");
+  });
+
+  it("prefers a lockfile in the nearest directory over an ancestor", async () => {
+    await writeFile(join(dir, "pnpm-workspace.yaml"), "");
+    const sub = join(dir, "docs");
+    await mkdir(sub, { recursive: true });
+    await writeFile(join(sub, "yarn.lock"), "");
+    expect(detectPackageManager(sub)).toBe("yarn");
   });
 });
 

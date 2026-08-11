@@ -1,14 +1,33 @@
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import type { PackageManager, ProjectInfo } from "./types";
 
+function detectInDir(dir: string): PackageManager | null {
+  if (existsSync(join(dir, "bun.lock"))) return "bun";
+  if (existsSync(join(dir, "bun.lockb"))) return "bun";
+  if (existsSync(join(dir, "pnpm-lock.yaml"))) return "pnpm";
+  if (existsSync(join(dir, "pnpm-workspace.yaml"))) return "pnpm";
+  if (existsSync(join(dir, "yarn.lock"))) return "yarn";
+  if (existsSync(join(dir, "package-lock.json"))) return "npm";
+  return null;
+}
+
+/**
+ * Detect the package manager by walking up from `cwd` toward the filesystem
+ * root. This handles monorepos/workspaces where the lockfile (and
+ * `pnpm-workspace.yaml`) lives in the repo root rather than the package
+ * subdirectory the command is run from. The nearest directory with a lockfile
+ * wins; falls back to npm when none is found.
+ */
 export function detectPackageManager(cwd: string): PackageManager {
-  if (existsSync(join(cwd, "bun.lock"))) return "bun";
-  if (existsSync(join(cwd, "bun.lockb"))) return "bun";
-  if (existsSync(join(cwd, "pnpm-lock.yaml"))) return "pnpm";
-  if (existsSync(join(cwd, "pnpm-workspace.yaml"))) return "pnpm";
-  if (existsSync(join(cwd, "yarn.lock"))) return "yarn";
-  if (existsSync(join(cwd, "package-lock.json"))) return "npm";
+  let dir = cwd;
+  while (true) {
+    const manager = detectInDir(dir);
+    if (manager) return manager;
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
   return "npm";
 }
 

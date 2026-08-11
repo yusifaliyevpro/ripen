@@ -96,4 +96,11 @@ describe("parseYarnOutdated", () => {
     const raw = 'garbage line\n{"type":"table","data":{"body":[["a","1.0.0","2.0.0","2.0.0","deps"]]}}';
     expect(parseYarnOutdated(raw)).toHaveLength(1);
   });
+
+  it("rejects a table line whose body cells are not strings (valibot validation)", () => {
+    // A shape-invalid table row (numeric cells) must be discarded rather than
+    // trusted — valibot rejects it, so the line is skipped like malformed JSON.
+    const raw = '{"type":"table","data":{"body":[[123,456]]}}';
+    expect(parseYarnOutdated(raw)).toEqual([]);
+  });
 });

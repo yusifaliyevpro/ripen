@@ -13,6 +13,9 @@ export default defineConfig({
   outDir: "dist",
   clean: true,
   platform: "node",
+  deps: {
+    onlyBundle: ["ink-scroll-view", "valibot"],
+  },
   outputOptions: {
     entryFileNames: "cli.js",
     comments: false,
