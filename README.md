@@ -102,4 +102,4 @@ When using `ripen -g`, all available package managers (npm, pnpm, yarn) (except 
 
 ## License
 
-MIT
+LGPL-2.1-or-later © Yusif Aliyev
