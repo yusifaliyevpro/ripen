@@ -1,4 +1,6 @@
 import { execa } from "execa";
+import * as v from "valibot";
+import { GitHubReleasesSchema, NpmPackumentSchema, NpmVersionManifestSchema, type NpmRepository } from "./lib/schemas";
 import {
   compareFullVersions,
   compareVersions,
@@ -6,14 +8,7 @@ import {
   parseVersion,
   prereleaseChannel,
 } from "./lib/versions";
-import type {
-  RegistryVersion,
-  ChangelogResult,
-  NpmPackument,
-  NpmVersionManifest,
-  NpmRepository,
-  GitHubRelease,
-} from "./types";
+import type { RegistryVersion, ChangelogResult } from "./types";
 
 export { isNewerVersion } from "./lib/versions";
 
@@ -66,7 +61,7 @@ export async function fetchVersions(packageName: string, currentVersion = ""): P
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`);
     if (!res.ok) return [];
-    const data: NpmPackument = await res.json();
+    const data = v.parse(NpmPackumentSchema, await res.json());
 
     const times: Record<string, string> = data.time ?? {};
     const distTags: Record<string, string> = data["dist-tags"] ?? {};
@@ -79,17 +74,17 @@ export async function fetchVersions(packageName: string, currentVersion = ""): P
     const channel = prereleaseChannel(currentVersion);
 
     const versions: RegistryVersion[] = Object.keys(data.versions ?? {})
-      .filter((v) => {
-        if (!v.includes("-")) return true;
-        if (tagByVersion[v]) return true;
-        return channel !== "" && prereleaseChannel(v) === channel;
+      .filter((ver) => {
+        if (!ver.includes("-")) return true;
+        if (tagByVersion[ver]) return true;
+        return channel !== "" && prereleaseChannel(ver) === channel;
       })
-      .map((v) => ({
-        version: v,
+      .map((ver) => ({
+        version: ver,
         // Keep the full ISO timestamp — truncating to YYYY-MM-DD makes every
         // version published on the same day report the same age in the picker.
-        date: times[v] ?? "",
-        tag: tagByVersion[v],
+        date: times[ver] ?? "",
+        tag: tagByVersion[ver],
       }))
       .toSorted((a, b) => compareFullVersions(b.version, a.version));
 
@@ -97,8 +92,8 @@ export async function fetchVersions(packageName: string, currentVersion = ""): P
       const currentMajor = parseVersion(currentVersion)[0];
       const seenOtherMajors = new Set<number>();
       // versions is sorted newest-first, so the first row of each other major is its latest.
-      return versions.filter((v) => {
-        const major = parseVersion(v.version)[0];
+      return versions.filter((ver) => {
+        const major = parseVersion(ver.version)[0];
         if (major === currentMajor) return true;
         if (seenOtherMajors.has(major)) return false;
         seenOtherMajors.add(major);
@@ -120,7 +115,7 @@ export async function fetchChangelog(
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
     if (!res.ok) return { entries: [] };
-    const data: NpmVersionManifest = await res.json();
+    const data = v.parse(NpmVersionManifestSchema, await res.json());
 
     const repo = extractGitHubRepo(data);
     if (!repo) return { entries: [] };
@@ -137,7 +132,7 @@ export async function fetchChangelog(
       return { entries: [], rateLimited };
     }
 
-    const releases: GitHubRelease[] = await ghRes.json();
+    const releases = v.parse(GitHubReleasesSchema, await ghRes.json());
 
     const toMajor = parseVersion(toVersion)[0];
     const filtered = releases
@@ -195,7 +190,7 @@ export async function fetchLatestVersion(packageName: string, timeoutMs = 3000):
         signal: controller.signal,
       });
       if (!res.ok) return null;
-      const data: NpmVersionManifest = await res.json();
+      const data = v.parse(NpmVersionManifestSchema, await res.json());
       return data.version ?? null;
     } finally {
       clearTimeout(timer);
@@ -209,7 +204,7 @@ export async function fetchRepoUrl(packageName: string): Promise<string> {
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
     if (!res.ok) return "";
-    const data: NpmVersionManifest = await res.json();
+    const data = v.parse(NpmVersionManifestSchema, await res.json());
     const repo = extractGitHubRepo(data);
     return repo ? `https://github.com/${repo}` : "";
   } catch {
@@ -221,7 +216,7 @@ export async function fetchPublishedAt(packageName: string, version: string): Pr
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`);
     if (!res.ok) return "";
-    const data: NpmPackument = await res.json();
+    const data = v.parse(NpmPackumentSchema, await res.json());
     return data.time?.[version] ?? "";
   } catch {
     return "";
