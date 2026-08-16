@@ -1,6 +1,3 @@
-"use client";
-
-import { Table } from "@heroui/react";
 import { Children, type ReactNode, isValidElement } from "react";
 
 function getChildArray(node: ReactNode): ReactNode[] {
@@ -40,29 +37,33 @@ export function MdxTable({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="mb-6">
-      <Table>
-        <Table.ScrollContainer>
-          <Table.Content aria-label="Table">
-            <Table.Header>
-              {headerCells.map((cell, i) => (
-                <Table.Column key={i} isRowHeader={i === 0}>
+    <div className="mb-6 overflow-x-auto rounded-lg border border-border">
+      <table className="w-full border-collapse text-left text-sm">
+        <thead>
+          <tr className="border-b border-border bg-surface">
+            {headerCells.map((cell, i) => (
+              <th
+                key={i}
+                scope="col"
+                className="px-4 py-3 font-semibold whitespace-nowrap text-text"
+              >
+                {cell}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {bodyRows.map((row, i) => (
+            <tr key={i} className="border-b border-border last:border-b-0 hover:bg-surface-hover">
+              {row.map((cell, j) => (
+                <td key={j} className="px-4 py-3 align-top text-text-muted">
                   {cell}
-                </Table.Column>
+                </td>
               ))}
-            </Table.Header>
-            <Table.Body>
-              {bodyRows.map((row, i) => (
-                <Table.Row key={i}>
-                  {row.map((cell, j) => (
-                    <Table.Cell key={j}>{cell}</Table.Cell>
-                  ))}
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Content>
-        </Table.ScrollContainer>
-      </Table>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
