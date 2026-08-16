@@ -28,6 +28,21 @@ describe("parseVersion", () => {
     expect(parseVersion("6")).toEqual([6]);
     expect(parseVersion("6.2")).toEqual([6, 2]);
   });
+
+  it("returns a stable, cached result for repeated calls (memoization)", () => {
+    // Same input returns the very same array reference — proves the memo is live
+    // and that repeated parses don't re-run the regex work.
+    const first = parseVersion("12.34.56");
+    const second = parseVersion("12.34.56");
+    expect(second).toBe(first);
+  });
+
+  it("does not confuse distinct inputs through the cache", () => {
+    expect(parseVersion("1.2.3")).toEqual([1, 2, 3]);
+    expect(parseVersion("v9.3.0")).toEqual([9, 3, 0]);
+    expect(parseVersion("1.2.3")).toEqual([1, 2, 3]);
+    expect(parseVersion("16.3.0-preview.5")).toEqual([16, 3, 0]);
+  });
 });
 
 describe("compareVersions", () => {

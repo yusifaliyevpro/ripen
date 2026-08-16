@@ -14,16 +14,37 @@
 export const MAJOR_PINNED_PACKAGES = new Set<string>(["@types/node"]);
 
 /**
+ * Memo cache for {@link parseVersion}. Sorting a package's whole version history
+ * (e.g. `@types/node` has ~1000 releases) calls `parseVersion` on both operands
+ * for every comparison — O(n log n) regex-heavy parses over a small set of
+ * distinct strings. Caching collapses that to one parse per unique version.
+ *
+ * The cached arrays are returned by reference; callers only ever read from them
+ * (indexing, comparison), never mutate. A cap bounds memory across the process.
+ */
+const parseCache = new Map<string, number[]>();
+const PARSE_CACHE_LIMIT = 10_000;
+
+/**
  * Parse a version string into [major, minor, patch].
  * Strips any non-numeric prefix ("v", "next@", "package@v", etc.)
  * and any pre-release suffix ("-beta.1", etc.).
  */
 export function parseVersion(v: string): number[] {
-  return v
+  const cached = parseCache.get(v);
+  if (cached) return cached;
+
+  const parsed = v
     .replace(/^[^0-9]*/, "")
     .replace(/-.*$/, "")
     .split(".")
     .map(Number);
+
+  // Simple bound: clear wholesale rather than track LRU — the CLI is short-lived
+  // and the working set (one project's versions) is far below the cap.
+  if (parseCache.size >= PARSE_CACHE_LIMIT) parseCache.clear();
+  parseCache.set(v, parsed);
+  return parsed;
 }
 
 /**

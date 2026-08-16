@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
   "keywords": [
     "bun",

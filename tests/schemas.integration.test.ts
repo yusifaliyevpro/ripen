@@ -8,7 +8,7 @@ import {
   NpmVersionManifestSchema,
   OutdatedInfoRecordSchema,
 } from "../src/lib/schemas";
-import { fetchChangelog, fetchLatestVersion, fetchRepoUrl, fetchVersions } from "../src/registry";
+import { fetchChangelog, fetchLatestVersion, fetchRepoUrl, fetchVersions, githubToken } from "../src/registry";
 
 /**
  * Real-world integration tests: NO mocking of `fetch()` or `execa()`.
@@ -31,10 +31,14 @@ import { fetchChangelog, fetchLatestVersion, fetchRepoUrl, fetchVersions } from 
 const NETWORK_TIMEOUT = 30_000;
 
 /** Fetch JSON, or skip the test when the endpoint is unreachable / not ok. */
-async function fetchJsonOrSkip(ctx: { skip: (note?: string) => never }, url: string): Promise<unknown> {
+async function fetchJsonOrSkip(
+  ctx: { skip: (note?: string) => never },
+  url: string,
+  headers?: Record<string, string>,
+): Promise<unknown> {
   let res: Response;
   try {
-    res = await fetch(url);
+    res = await fetch(url, headers ? { headers } : undefined);
   } catch {
     return ctx.skip("network unreachable");
   }
@@ -75,8 +79,17 @@ describe("GitHub releases responses match GitHubReleasesSchema (live)", () => {
   it(
     "the public /releases endpoint validates",
     async (ctx) => {
-      // Unauthenticated: may be rate-limited (403/429) → fetchJsonOrSkip skips.
-      const json = await fetchJsonOrSkip(ctx, "https://api.github.com/repos/facebook/react/releases?per_page=5");
+      // Authenticate with the same `gh auth token` the app uses (registry.ts), so
+      // the 5,000/hr limit applies instead of the easily-exhausted 60/hr one. When
+      // `gh` is absent/logged-out the request falls back to unauthenticated and
+      // fetchJsonOrSkip skips on the resulting 403/429.
+      const token = await githubToken();
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const json = await fetchJsonOrSkip(
+        ctx,
+        "https://api.github.com/repos/facebook/react/releases?per_page=5",
+        headers,
+      );
       expect(json).toEqual(expect.schemaMatching(GitHubReleasesSchema));
     },
     NETWORK_TIMEOUT,
@@ -183,9 +196,9 @@ describe("package-manager CLI output matches its schema (live subprocess)", () =
       } catch {
         ctx.skip("npm not available");
       }
-      // Empty stdout means nothing is globally outdated — nothing to validate.
-      const trimmed = stdout.trim();
-      if (!trimmed || trimmed === "{}") ctx.skip("no globally-outdated packages");
+      // Empty stdout means nothing is globally outdated — an empty record `{}`,
+      // which is itself a valid OutdatedInfoRecordSchema, so validate it too.
+      const trimmed = stdout.trim() || "{}";
       expect(JSON.parse(trimmed)).toEqual(expect.schemaMatching(OutdatedInfoRecordSchema));
     },
     NETWORK_TIMEOUT,

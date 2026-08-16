@@ -10,8 +10,11 @@ export function usePackages() {
 
   const toggleMany = useCallback((indices: number[]) => {
     setPackages((prev) => {
+      // Set membership keeps this O(n) instead of O(n·m) — `indices.includes`
+      // inside `map` is quadratic when selecting a large group.
+      const targeted = new Set(indices);
       const allSelected = indices.every((i) => prev[i]?.selected);
-      return prev.map((p, i) => (indices.includes(i) ? { ...p, selected: !allSelected } : p));
+      return prev.map((p, i) => (targeted.has(i) ? { ...p, selected: !allSelected } : p));
     });
   }, []);
 

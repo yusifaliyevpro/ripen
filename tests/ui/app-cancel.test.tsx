@@ -39,7 +39,7 @@ const { render } = await import("ink-testing-library");
 const { App } = await import("../../src/ui/app");
 
 const CTRL_C = "\x03";
-const project: ProjectInfo = { name: "demo", cwd: ".", manager: "npm" };
+const project: ProjectInfo = { name: "demo", cwd: ".", manager: "npm", packageJson: null };
 
 function renderApp(props: Partial<Parameters<typeof App>[0]> = {}) {
   return render(

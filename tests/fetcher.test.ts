@@ -12,6 +12,12 @@ vi.mock("execa", () => ({
   })),
 }));
 
+// Global mode probes manager availability via detector.isManagerInstalled, which
+// hits the real PATH. Stub it so tests don't depend on which managers the host
+// actually has installed; default: every manager is available.
+const isManagerInstalled = vi.fn<(m: string) => boolean>(() => true);
+vi.mock("../src/detector", () => ({ isManagerInstalled: (m: string) => isManagerInstalled(m) }));
+
 const { getOutdatedPackages, getAllGlobalOutdated } = await import("../src/fetcher");
 
 let dir: string;
@@ -30,6 +36,7 @@ function mockRegistry(byName: Record<string, unknown>): void {
 
 beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), "ripen-fetch-"));
+  isManagerInstalled.mockImplementation(() => true);
 });
 
 afterEach(async () => {
@@ -97,6 +104,33 @@ describe("getOutdatedPackages (local mode)", () => {
     expect(result.error).toMatch(/package\.json/);
   });
 
+  it("uses the pre-parsed package.json without reading disk", async () => {
+    // No package.json on disk — a disk read would throw. Passing the pre-parsed
+    // object (as ProjectInfo carries it) must let the scan proceed anyway.
+    mockRegistry({ react: { "dist-tags": { latest: "19.0.0" }, versions: { "19.0.0": {} }, time: {} } });
+    const result = await getOutdatedPackages("pnpm", dir, false, undefined, false, {
+      dependencies: { react: "^18.0.0" },
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.packages.map((p) => p.name)).toEqual(["react"]);
+  });
+
+  it("prefers the pre-parsed object over what is on disk", async () => {
+    await writePkg({ zod: "^3.0.0" }); // disk says zod...
+    mockRegistry({
+      react: { "dist-tags": { latest: "19.0.0" }, versions: { "19.0.0": {} }, time: {} },
+      zod: { "dist-tags": { latest: "4.0.0" }, versions: { "4.0.0": {} }, time: {} },
+    });
+    // ...but the pre-parsed object says react, and that must win.
+    const result = await getOutdatedPackages("pnpm", dir, false, undefined, false, {
+      dependencies: { react: "^18.0.0" },
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.packages.map((p) => p.name)).toEqual(["react"]);
+  });
+
   it("errors when every registry request fails (offline)", async () => {
     await writePkg({ react: "^18.0.0" });
     mockRegistry({}); // every lookup 404s
@@ -128,6 +162,16 @@ describe("global mode command streaming", () => {
     expect(lines).toContain("$ npm outdated --global --json");
     expect(lines).toContain("$ pnpm outdated --global --json");
     expect(lines).toContain("$ yarn outdated --global --json");
+  });
+
+  it("skips managers that are not installed — no command streamed, no error", async () => {
+    isManagerInstalled.mockImplementation((m) => m !== "yarn"); // yarn absent
+    const lines: string[] = [];
+    const result = await getAllGlobalOutdated(dir, (l) => lines.push(l));
+    expect(result.ok).toBe(true);
+    expect(lines).toContain("$ npm outdated --global --json");
+    expect(lines).toContain("$ pnpm outdated --global --json");
+    expect(lines).not.toContain("$ yarn outdated --global --json");
   });
 
   it("streams the list command in showAll global mode", async () => {
