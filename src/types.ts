@@ -2,10 +2,23 @@
 
 export type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
 
+/** The parsed `package.json` fields ripen reads. */
+export type PackageJson = {
+  name?: string;
+  dependencies?: Record<string, unknown>;
+  devDependencies?: Record<string, unknown>;
+};
+
 export type ProjectInfo = {
   manager: PackageManager;
   cwd: string;
   name: string;
+  /**
+   * The parsed `package.json`, read once during detection and reused by the
+   * fetcher so it isn't read and parsed a second time. `null` when the file is
+   * missing or unparseable (the fetcher then re-reads to surface the error).
+   */
+  packageJson: PackageJson | null;
 };
 
 // ── Outdated packages ────────────────────────────────────────────────

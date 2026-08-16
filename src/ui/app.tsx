@@ -86,7 +86,7 @@ export function App({ project, global, showAll, version, installManager, onCopie
 
     const fetch = global
       ? getAllGlobalOutdated(project.cwd, terminal.onLine, showAll)
-      : getOutdatedPackages(project.manager, project.cwd, false, terminal.onLine, showAll);
+      : getOutdatedPackages(project.manager, project.cwd, false, terminal.onLine, showAll, project.packageJson);
 
     fetch
       .then((result) => {

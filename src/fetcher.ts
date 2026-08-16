@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
 import { parse } from "valibot";
+import { isManagerInstalled } from "./detector";
 import {
   GlobalListOutputArraySchema,
   GlobalListOutputSchema,
@@ -20,7 +21,7 @@ import {
   prereleaseChannel,
 } from "./lib/versions";
 import { isNewerVersion } from "./registry";
-import type { PackageManager, OutdatedPackage, FetchResult } from "./types";
+import type { PackageJson, PackageManager, OutdatedPackage, FetchResult } from "./types";
 
 type DepEntry = {
   name: string;
@@ -29,9 +30,19 @@ type DepEntry = {
   type: "dependencies" | "devDependencies";
 };
 
-function readPackageJsonDeps(cwd: string): DepEntry[] {
-  const raw = readFileSync(join(cwd, "package.json"), "utf-8");
-  const pkg: { dependencies?: Record<string, unknown>; devDependencies?: Record<string, unknown> } = JSON.parse(raw);
+/**
+ * Extract dependency entries from `package.json`. Prefers the pre-parsed object
+ * (read once during detection) and only touches disk when it is absent — which
+ * also preserves the "Could not read package.json" error path for direct
+ * callers that pass nothing.
+ */
+function readPackageJsonDeps(cwd: string, preParsed?: PackageJson | null): DepEntry[] {
+  let pkg: PackageJson;
+  if (preParsed) {
+    pkg = preParsed;
+  } else {
+    pkg = JSON.parse(readFileSync(join(cwd, "package.json"), "utf-8"));
+  }
   const entries: DepEntry[] = [];
 
   for (const [depType, section] of [
@@ -140,6 +151,7 @@ export async function getOutdatedPackages(
   global = false,
   onLine?: (line: string) => void,
   showAll = false,
+  packageJson?: PackageJson | null,
 ): Promise<FetchResult> {
   // Global mode: use manager's outdated command
   if (global) {
@@ -149,7 +161,7 @@ export async function getOutdatedPackages(
   // Local mode: read package.json + check npm registry
   let deps: DepEntry[];
   try {
-    deps = readPackageJsonDeps(cwd);
+    deps = readPackageJsonDeps(cwd, packageJson);
   } catch {
     return { ok: false, error: "Could not read package.json" };
   }
@@ -419,15 +431,6 @@ export function parseNpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPa
   }));
 }
 
-async function isManagerAvailable(manager: PackageManager): Promise<boolean> {
-  try {
-    await execa(manager, ["--version"], { reject: false });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 const ALL_MANAGERS: PackageManager[] = ["npm", "pnpm", "yarn"];
 
 /**
@@ -445,7 +448,7 @@ export async function getAllGlobalOutdated(
   // instead of blocking on the slowest probe across all managers.
   const results = await Promise.all(
     ALL_MANAGERS.map(async (manager) => {
-      if (!(await isManagerAvailable(manager))) return null;
+      if (!isManagerInstalled(manager)) return null;
       const result = showAll
         ? await getGlobalAllPackages(manager, cwd, onLine)
         : await getOutdatedPackages(manager, cwd, true, onLine);
