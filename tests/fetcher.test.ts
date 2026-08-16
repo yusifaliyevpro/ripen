@@ -12,7 +12,7 @@ vi.mock("execa", () => ({
   })),
 }));
 
-const { getOutdatedPackages } = await import("../src/fetcher");
+const { getOutdatedPackages, getAllGlobalOutdated } = await import("../src/fetcher");
 
 let dir: string;
 const originalFetch = globalThis.fetch;
@@ -104,5 +104,38 @@ describe("getOutdatedPackages (local mode)", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toMatch(/npm registry/i);
+  });
+});
+
+describe("global mode command streaming", () => {
+  // The top-level execa mock resolves to empty stdout for every call, so the
+  // managers report no packages — we only assert the streamed command lines.
+  it.each([
+    ["npm", "$ npm outdated --global --json"],
+    ["pnpm", "$ pnpm outdated --global --json"],
+    ["yarn", "$ yarn outdated --global --json"],
+  ] as const)("streams the executed %s command via onLine", async (manager, command) => {
+    const lines: string[] = [];
+    const result = await getOutdatedPackages(manager, dir, true, (l) => lines.push(l));
+    expect(result.ok).toBe(true);
+    expect(lines).toContain(command);
+  });
+
+  it("streams every manager's outdated command when checking all managers", async () => {
+    const lines: string[] = [];
+    const result = await getAllGlobalOutdated(dir, (l) => lines.push(l));
+    expect(result.ok).toBe(true);
+    expect(lines).toContain("$ npm outdated --global --json");
+    expect(lines).toContain("$ pnpm outdated --global --json");
+    expect(lines).toContain("$ yarn outdated --global --json");
+  });
+
+  it("streams the list command in showAll global mode", async () => {
+    const lines: string[] = [];
+    const result = await getAllGlobalOutdated(dir, (l) => lines.push(l), true);
+    expect(result.ok).toBe(true);
+    expect(lines).toContain("$ npm list -g --depth=0 --json");
+    expect(lines).toContain("$ pnpm list -g --json");
+    expect(lines).toContain("$ yarn global list --depth=0 --json");
   });
 });

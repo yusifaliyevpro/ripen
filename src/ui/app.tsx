@@ -80,7 +80,9 @@ export function App({ project, global, showAll, version, installManager, onCopie
     setFetchStarted(true);
 
     terminal.setLoadingMsg("Checking for outdated packages…");
-    terminal.setTerminalCmd(global ? "Checking all package managers…" : "Checking npm registry…");
+    // In global mode several managers run, so the real commands are streamed
+    // into the output box via onLine instead of a single fake header command.
+    terminal.setTerminalCmd(global ? "" : "Checking npm registry…");
 
     const fetch = global
       ? getAllGlobalOutdated(project.cwd, terminal.onLine, showAll)

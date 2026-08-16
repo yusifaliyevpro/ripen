@@ -218,10 +218,13 @@ async function hydratePublishDates(packages: OutdatedPackage[]): Promise<void> {
 async function listGlobalPackages(
   manager: PackageManager,
   cwd: string,
+  onLine?: (line: string) => void,
 ): Promise<Array<{ name: string; current: string }>> {
   try {
     if (manager === "npm") {
-      const { stdout } = await execa("npm", ["list", "-g", "--depth=0", "--json"], { cwd, reject: false });
+      const args = ["list", "-g", "--depth=0", "--json"];
+      onLine?.(`$ npm ${args.join(" ")}`);
+      const { stdout } = await execa("npm", args, { cwd, reject: false });
       const data = parse(GlobalListOutputSchema, JSON.parse(stdout));
       return Object.entries(data.dependencies ?? {}).map(([name, info]) => ({
         name,
@@ -229,7 +232,9 @@ async function listGlobalPackages(
       }));
     }
     if (manager === "pnpm") {
-      const { stdout } = await execa("pnpm", ["list", "-g", "--json"], { cwd, reject: false });
+      const args = ["list", "-g", "--json"];
+      onLine?.(`$ pnpm ${args.join(" ")}`);
+      const { stdout } = await execa("pnpm", args, { cwd, reject: false });
       const raw: unknown = JSON.parse(stdout);
       const deps: Record<string, { version?: string }> = Array.isArray(raw)
         ? (parse(GlobalListOutputArraySchema, raw)[0]?.dependencies ?? {})
@@ -240,7 +245,9 @@ async function listGlobalPackages(
       }));
     }
     if (manager === "yarn") {
-      const { stdout } = await execa("yarn", ["global", "list", "--depth=0", "--json"], { cwd, reject: false });
+      const args = ["global", "list", "--depth=0", "--json"];
+      onLine?.(`$ yarn ${args.join(" ")}`);
+      const { stdout } = await execa("yarn", args, { cwd, reject: false });
       const pkgs: Array<{ name: string; current: string }> = [];
       for (const line of stdout.trim().split("\n")) {
         try {
@@ -265,7 +272,7 @@ async function getGlobalAllPackages(
   cwd: string,
   onLine?: (line: string) => void,
 ): Promise<FetchResult> {
-  const installed = await listGlobalPackages(manager, cwd);
+  const installed = await listGlobalPackages(manager, cwd, onLine);
   if (installed.length === 0) return { ok: true, packages: [] };
 
   const registryInfo = await fetchAllLatest(
@@ -301,6 +308,7 @@ async function getGlobalOutdatedPackages(
   onLine?: (line: string) => void,
 ): Promise<FetchResult> {
   const args = ["outdated", "--global", "--json"];
+  onLine?.(`$ ${manager} ${args.join(" ")}`);
 
   let stdout = "";
   let stderr = "";
@@ -432,21 +440,25 @@ export async function getAllGlobalOutdated(
   onLine?: (line: string) => void,
   showAll = false,
 ): Promise<FetchResult> {
-  const available = await Promise.all(ALL_MANAGERS.map(async (m) => ({ manager: m, ok: await isManagerAvailable(m) })));
-  const managers = available.filter((a) => a.ok).map((a) => a.manager);
-
+  // Probe and query each manager independently so an installed manager's command
+  // streams into the output box as soon as its own `--version` probe resolves,
+  // instead of blocking on the slowest probe across all managers.
   const results = await Promise.all(
-    managers.map((m) => (showAll ? getGlobalAllPackages(m, cwd, onLine) : getOutdatedPackages(m, cwd, true, onLine))),
+    ALL_MANAGERS.map(async (manager) => {
+      if (!(await isManagerAvailable(manager))) return null;
+      const result = showAll
+        ? await getGlobalAllPackages(manager, cwd, onLine)
+        : await getOutdatedPackages(manager, cwd, true, onLine);
+      return { manager, result };
+    }),
   );
 
   const allPackages: OutdatedPackage[] = [];
-  for (let i = 0; i < managers.length; i++) {
-    const result = results[i];
-    if (result.ok) {
-      for (const pkg of result.packages) {
-        pkg.manager = managers[i];
-        allPackages.push(pkg);
-      }
+  for (const entry of results) {
+    if (!entry || !entry.result.ok) continue;
+    for (const pkg of entry.result.packages) {
+      pkg.manager = entry.manager;
+      allPackages.push(pkg);
     }
   }
 

@@ -13,7 +13,7 @@ pnpm fmt          # Auto-format with oxfmt
 pnpm fmt:check    # Check formatting without writing
 pnpm lint         # Lint with oxlint
 pnpm lint:fix     # Auto-fix lint issues
-pnpm check        # Run all checks via greenly (see below)
+pnpm check        # Run all checks via greenly (supports non-TTY and CI terminals) (see below)
 ```
 
 Tests live in `tests/**` and run with **vitest** (`pnpm test`). Note there is no `pnpm dev` and no `pnpm typecheck` script.
