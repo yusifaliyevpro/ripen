@@ -1,5 +1,6 @@
 "use client";
 
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,7 +8,7 @@ import { useState } from "react";
 import { SiNpm } from "react-icons/si";
 import { VscClose, VscGithubInverted, VscMenu } from "react-icons/vsc";
 
-const links = [
+const links: { href: Route; label: string }[] = [
   { href: "/docs", label: "Docs" },
   { href: "/changelog", label: "Changelog" },
 ];

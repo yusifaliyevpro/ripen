@@ -1,10 +1,11 @@
 "use client";
 
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-const navItems = [
+const navItems: { href: Route; label: string }[] = [
   { href: "/docs", label: "Overview" },
   { href: "/docs/installation", label: "Installation" },
   { href: "/docs/usage", label: "Usage" },
