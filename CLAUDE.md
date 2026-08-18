@@ -68,7 +68,7 @@ Releases are fully automated — there is **no changelog file to maintain**.
 
 ```
 cli.tsx  →  detector.ts  →  fetcher.ts  →  app.tsx  →  executor.ts
-           (pnpm|npm|bun    (outdated)      (TUI)    (add/install)
+           (pnpm|npm|bun    (outdated)      (TUI)    (build cmd strings)
             |yarn)                        registry.ts
                                        (versions/changelog)
 ```
@@ -76,7 +76,7 @@ cli.tsx  →  detector.ts  →  fetcher.ts  →  app.tsx  →  executor.ts
 1. **`src/cli.tsx`** — Parses argv (`-g`, `--help`, `--version`), calls `getProjectInfo`, renders `<App>`.
 2. **`src/detector.ts`** — Detects `pnpm`, `npm`, `bun`, or `yarn` by checking for `bun.lock` / `pnpm-lock.yaml` / `pnpm-workspace.yaml` / `package-lock.json` / `yarn.lock`. Reads project name from `package.json`.
 3. **`src/fetcher.ts`** — Reads `package.json` and checks each dependency against the npm registry directly (local mode), or queries package managers for global mode. Handles normalising formats into `OutdatedPackage[]`.
-4. **`src/executor.ts`** — Groups selected packages by type (`dependencies`, `devDependencies`, `global`) and runs one `pnpm/npm/bun/yarn add` command per group.
+4. **`src/executor.ts`** — `buildUpdateCommands` groups selected packages by type (`dependencies`, `devDependencies`, `global`) and returns one `pnpm/npm/bun/yarn add` command **string** per group. It does **not** spawn anything — the commands are copied to the clipboard on confirm (see UI flow below).
 5. **`src/registry.ts`** — Fetches version lists from the npm registry and GitHub Releases API for changelogs. Pre-release versions are filtered out unless they carry a dist-tag.
 6. **`src/config.ts`** — Persists settings (`config.json`), update-frequency tracking (`frequency.json`), and the self-update cache (`update-check.json`) under `~/.config/ripen/`. The self-update cache holds the latest ripen version seen on npm; a fire-and-forget check refreshes it each run so startup never blocks on the network.
 7. **`src/lib/versions.ts`** — Semver parsing, version comparison, range prefix parsing (`^`, `~`, etc.).
