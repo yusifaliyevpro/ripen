@@ -141,6 +141,47 @@ describe("getOutdatedPackages (local mode)", () => {
   });
 });
 
+describe("registry request timeout hygiene", () => {
+  it("clears the 15s request-timeout timer when a fetch fails (no leaked timers)", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      await writePkg({ react: "^18.0.0" });
+      globalThis.fetch = vi.fn<typeof fetch>(() => Promise.reject(new Error("network down")));
+
+      const result = await getOutdatedPackages("pnpm", dir);
+      expect(result.ok).toBe(false);
+      // A failed fetch used to leave its abort timer pending, which keeps Node's
+      // event loop alive. Every armed timer must be cleared.
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("getOutdatedPackages progress reporting", () => {
+  it("reports completed/total via onProgress, advancing to N/N", async () => {
+    await writePkg({ ink: "^4.0.0", react: "^18.0.0", zod: "^3.0.0" });
+    mockRegistry({
+      ink: { "dist-tags": { latest: "5.0.0" }, versions: { "5.0.0": {} }, time: {} },
+      react: { "dist-tags": { latest: "19.0.0" }, versions: { "19.0.0": {} }, time: {} },
+      zod: { "dist-tags": { latest: "3.0.0" }, versions: { "3.0.0": {} }, time: {} },
+    });
+
+    const progress: Array<[number, number]> = [];
+    await getOutdatedPackages("pnpm", dir, false, undefined, false, null, (done, total) =>
+      progress.push([done, total]),
+    );
+
+    // Total is constant; completion advances through each package to N/N.
+    expect(progress.every(([, total]) => total === 3)).toBe(true);
+    const done = progress.map(([d]) => d);
+    expect(done).toContain(1);
+    expect(done).toContain(2);
+    expect(progress.at(-1)).toEqual([3, 3]);
+  });
+});
+
 describe("global mode command streaming", () => {
   // The top-level run() mock resolves to empty stdout for every call, so the
   // managers report no packages — we only assert the streamed command lines.

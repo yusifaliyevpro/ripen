@@ -96,13 +96,14 @@ async function fetchRegistryInfoWithRetry(
   pinMajor?: number,
 ): Promise<RegistryInfo> {
   for (let attempt = 0; attempt < 3; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15_000);
+    // `clearTimeout` lives in `finally` so a failed request no longer leaks a
+    // 15s timer that keeps the event loop (and the CLI) alive after it errors.
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15_000);
       const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`, {
         signal: controller.signal,
       });
-      clearTimeout(timeout);
       if (!res.ok) return null;
       const data = parse(NpmPackumentSchema, await res.json());
       const distTags = data["dist-tags"] ?? {};
@@ -117,6 +118,8 @@ async function fetchRegistryInfoWithRetry(
       return { version, publishedAt: data.time?.[version] ?? "" };
     } catch {
       if (attempt === 2) return null;
+    } finally {
+      clearTimeout(timeout);
     }
   }
   return null;
@@ -126,18 +129,25 @@ async function fetchAllLatest(
   targets: Target[],
   concurrency: number,
   onLine?: (line: string) => void,
+  onProgress?: (completed: number, total: number) => void,
 ): Promise<Map<string, RegistryInfo>> {
   const results = new Map<string, RegistryInfo>();
   let index = 0;
   let completed = 0;
 
+  onProgress?.(0, targets.length);
+
   async function worker() {
     while (index < targets.length) {
       const i = index++;
       const target = targets[i];
-      onLine?.(`Checking ${target.name} (${completed + 1}/${targets.length})...`);
+      // Which package is being checked goes to the output box; the overall
+      // completed/total count is reported via onProgress (shown in the header),
+      // so a shared counter here can't print the same number for every worker.
+      onLine?.(`Checking ${target.name}...`);
       results.set(target.name, await fetchRegistryInfoWithRetry(target.name, target.channel, target.pinMajor));
       completed++;
+      onProgress?.(completed, targets.length);
     }
   }
 
@@ -152,6 +162,7 @@ export async function getOutdatedPackages(
   onLine?: (line: string) => void,
   showAll = false,
   packageJson?: PackageJson | null,
+  onProgress?: (completed: number, total: number) => void,
 ): Promise<FetchResult> {
   // Global mode: use manager's outdated command
   if (global) {
@@ -178,6 +189,7 @@ export async function getOutdatedPackages(
     })),
     8,
     onLine,
+    onProgress,
   );
 
   // If ALL fetches failed, it's likely a network issue

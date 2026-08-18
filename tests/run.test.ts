@@ -72,12 +72,7 @@ describe("run", () => {
   });
 
   it("keeps each argument a separate token (does not word-split on spaces)", async () => {
-    const { stdout } = await run(node, [
-      "-e",
-      "process.stdout.write(String(process.argv.length))",
-      "one two",
-      "three",
-    ]);
+    const { stdout } = await run(node, ["-e", "process.stdout.write(String(process.argv.length))", "one two", "three"]);
     // argv = [execPath, "one two", "three"] → length 3, proving "one two" wasn't split.
     expect(stdout).toBe("3");
   });
