@@ -20,7 +20,7 @@ export default defineConfig({
   platform: "node",
   target: "node22",
   deps: { onlyBundle: false },
-  env: { NODE_ENV: "production", DEV: "false" },
+  env: { NODE_ENV: "production" },
   outputOptions: {
     entryFileNames: "cli.js",
     comments: false,
