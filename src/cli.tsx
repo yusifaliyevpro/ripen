@@ -92,3 +92,5 @@ if (copiedCommands.length > 0) {
 } else if (wasCancelled) {
   process.stdout.write(`  ${colors.dim("Cancelled.")}\n`);
 }
+
+process.exit(0);
