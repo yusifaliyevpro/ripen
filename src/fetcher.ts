@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { execa } from "execa";
 import { parse } from "valibot";
 import { isManagerInstalled } from "./detector";
+import { run } from "./lib/run";
 import {
   GlobalListOutputArraySchema,
   GlobalListOutputSchema,
@@ -96,13 +96,14 @@ async function fetchRegistryInfoWithRetry(
   pinMajor?: number,
 ): Promise<RegistryInfo> {
   for (let attempt = 0; attempt < 3; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15_000);
+    // `clearTimeout` lives in `finally` so a failed request no longer leaks a
+    // 15s timer that keeps the event loop (and the CLI) alive after it errors.
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15_000);
       const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`, {
         signal: controller.signal,
       });
-      clearTimeout(timeout);
       if (!res.ok) return null;
       const data = parse(NpmPackumentSchema, await res.json());
       const distTags = data["dist-tags"] ?? {};
@@ -117,6 +118,8 @@ async function fetchRegistryInfoWithRetry(
       return { version, publishedAt: data.time?.[version] ?? "" };
     } catch {
       if (attempt === 2) return null;
+    } finally {
+      clearTimeout(timeout);
     }
   }
   return null;
@@ -126,18 +129,25 @@ async function fetchAllLatest(
   targets: Target[],
   concurrency: number,
   onLine?: (line: string) => void,
+  onProgress?: (completed: number, total: number) => void,
 ): Promise<Map<string, RegistryInfo>> {
   const results = new Map<string, RegistryInfo>();
   let index = 0;
   let completed = 0;
 
+  onProgress?.(0, targets.length);
+
   async function worker() {
     while (index < targets.length) {
       const i = index++;
       const target = targets[i];
-      onLine?.(`Checking ${target.name} (${completed + 1}/${targets.length})...`);
+      // Which package is being checked goes to the output box; the overall
+      // completed/total count is reported via onProgress (shown in the header),
+      // so a shared counter here can't print the same number for every worker.
+      onLine?.(`Checking ${target.name}...`);
       results.set(target.name, await fetchRegistryInfoWithRetry(target.name, target.channel, target.pinMajor));
       completed++;
+      onProgress?.(completed, targets.length);
     }
   }
 
@@ -152,6 +162,7 @@ export async function getOutdatedPackages(
   onLine?: (line: string) => void,
   showAll = false,
   packageJson?: PackageJson | null,
+  onProgress?: (completed: number, total: number) => void,
 ): Promise<FetchResult> {
   // Global mode: use manager's outdated command
   if (global) {
@@ -178,6 +189,7 @@ export async function getOutdatedPackages(
     })),
     8,
     onLine,
+    onProgress,
   );
 
   // If ALL fetches failed, it's likely a network issue
@@ -236,7 +248,7 @@ async function listGlobalPackages(
     if (manager === "npm") {
       const args = ["list", "-g", "--depth=0", "--json"];
       onLine?.(`$ npm ${args.join(" ")}`);
-      const { stdout } = await execa("npm", args, { cwd, reject: false });
+      const { stdout } = await run("npm", args, { cwd });
       const data = parse(GlobalListOutputSchema, JSON.parse(stdout));
       return Object.entries(data.dependencies ?? {}).map(([name, info]) => ({
         name,
@@ -246,7 +258,7 @@ async function listGlobalPackages(
     if (manager === "pnpm") {
       const args = ["list", "-g", "--json"];
       onLine?.(`$ pnpm ${args.join(" ")}`);
-      const { stdout } = await execa("pnpm", args, { cwd, reject: false });
+      const { stdout } = await run("pnpm", args, { cwd });
       const raw: unknown = JSON.parse(stdout);
       const deps: Record<string, { version?: string }> = Array.isArray(raw)
         ? (parse(GlobalListOutputArraySchema, raw)[0]?.dependencies ?? {})
@@ -259,7 +271,7 @@ async function listGlobalPackages(
     if (manager === "yarn") {
       const args = ["global", "list", "--depth=0", "--json"];
       onLine?.(`$ yarn ${args.join(" ")}`);
-      const { stdout } = await execa("yarn", args, { cwd, reject: false });
+      const { stdout } = await run("yarn", args, { cwd });
       const pkgs: Array<{ name: string; current: string }> = [];
       for (const line of stdout.trim().split("\n")) {
         try {
@@ -327,26 +339,21 @@ async function getGlobalOutdatedPackages(
   let exitCode = 0;
 
   try {
-    const proc = execa(manager, args, { cwd, reject: false });
-
-    if (onLine) {
-      const forwardWarnings = (chunk: Buffer) => {
-        const lines = chunk.toString().split("\n");
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed && /^\s*(WARN|ERR!|npm warn|npm error)/i.test(trimmed)) {
-            onLine(trimmed);
+    const forwardWarnings = onLine
+      ? (chunk: string) => {
+          for (const line of chunk.split("\n")) {
+            const trimmed = line.trim();
+            if (trimmed && /^\s*(WARN|ERR!|npm warn|npm error)/i.test(trimmed)) {
+              onLine(trimmed);
+            }
           }
         }
-      };
-      proc.stderr?.on("data", forwardWarnings);
-      proc.stdout?.on("data", forwardWarnings);
-    }
+      : undefined;
 
-    const result = await proc;
+    const result = await run(manager, args, { cwd, onData: forwardWarnings });
     stdout = result.stdout;
     stderr = result.stderr;
-    exitCode = result.exitCode!;
+    exitCode = result.exitCode;
   } catch (err: any) {
     return { ok: false, error: `Could not run ${manager}: ${err.message ?? err}` };
   }

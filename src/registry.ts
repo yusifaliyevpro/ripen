@@ -1,5 +1,5 @@
-import { execa } from "execa";
 import * as v from "valibot";
+import { run } from "./lib/run";
 import { GitHubReleasesSchema, NpmPackumentSchema, NpmVersionManifestSchema, type NpmRepository } from "./lib/schemas";
 import {
   compareFullVersions,
@@ -30,7 +30,7 @@ export function githubToken(): Promise<string | null> {
   if (tokenPromise) return tokenPromise;
   tokenPromise = (async () => {
     try {
-      const { stdout, exitCode } = await execa("gh", ["auth", "token"], { reject: false });
+      const { stdout, exitCode } = await run("gh", ["auth", "token"]);
       return exitCode === 0 && stdout.trim() ? stdout.trim() : null;
     } catch {
       return null;

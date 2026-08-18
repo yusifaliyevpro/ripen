@@ -42,11 +42,7 @@ export function MdxTable({ children }: { children: ReactNode }) {
         <thead>
           <tr className="border-b border-border bg-surface">
             {headerCells.map((cell, i) => (
-              <th
-                key={i}
-                scope="col"
-                className="px-4 py-3 font-semibold whitespace-nowrap text-text"
-              >
+              <th key={i} scope="col" className="px-4 py-3 font-semibold whitespace-nowrap text-text">
                 {cell}
               </th>
             ))}

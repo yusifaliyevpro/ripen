@@ -1,7 +1,7 @@
 import { Box, Text, useApp, useInput } from "ink";
 import { useState, useEffect } from "react";
+import { buildUpdateCommands } from "../build-commands";
 import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../config";
-import { buildUpdateCommands } from "../executor";
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
 import { useSelfUpdate, usePackages, useTerminalOutput } from "../hooks";
 import { copyToClipboard } from "../lib/utils";
@@ -86,7 +86,15 @@ export function App({ project, global, showAll, version, installManager, onCopie
 
     const fetch = global
       ? getAllGlobalOutdated(project.cwd, terminal.onLine, showAll)
-      : getOutdatedPackages(project.manager, project.cwd, false, terminal.onLine, showAll, project.packageJson);
+      : getOutdatedPackages(
+          project.manager,
+          project.cwd,
+          false,
+          terminal.onLine,
+          showAll,
+          project.packageJson,
+          (completed, total) => terminal.setLoadingMsg(`Checking for outdated packages… (${completed}/${total})`),
+        );
 
     fetch
       .then((result) => {

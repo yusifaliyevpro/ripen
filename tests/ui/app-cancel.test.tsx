@@ -32,7 +32,7 @@ vi.mock("../../src/registry", () => ({
   fetchChangelog: () => Promise.resolve({ entries: [] }),
   fetchRepoUrl: () => Promise.resolve(""),
 }));
-vi.mock("../../src/executor", () => ({ buildUpdateCommands: () => [] }));
+vi.mock("../../src/build-commands", () => ({ buildUpdateCommands: () => [] }));
 vi.mock("../../src/lib/utils", () => ({ copyToClipboard: () => {}, openInBrowser: () => {} }));
 
 const { render } = await import("ink-testing-library");

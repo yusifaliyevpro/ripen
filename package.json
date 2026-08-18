@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
   "keywords": [
     "bun",
@@ -65,28 +65,26 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix"
   },
-  "dependencies": {
-    "execa": "10.0.1",
-    "ink": "7.1.1",
-    "react": "19.2.8"
-  },
   "devDependencies": {
     "@rolldown/plugin-babel": "0.2.3",
     "@types/node": "24.13.3",
     "@types/react": "19.2.18",
     "@vitejs/plugin-react": "6.0.5",
     "greenly": "1.1.5",
+    "ink": "7.1.1",
     "ink-scroll-view": "0.3.7",
     "ink-testing-library": "4.0.0",
+    "nano-spawn": "2.1.0",
     "oxfmt": "0.63.0",
     "oxlint": "1.78.0",
     "oxlint-tsgolint": "7.0.2001",
+    "react": "19.2.8",
     "tsdown": "0.22.14",
     "typescript": "7.0.2",
     "valibot": "1.4.2",
     "vitest": "4.1.10"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   }
 }
