@@ -16,7 +16,6 @@ export default defineConfig({
   format: "esm",
   outDir: "dist",
   clean: true,
-  minify: true,
   platform: "node",
   target: "node22",
   deps: { onlyBundle: false },
