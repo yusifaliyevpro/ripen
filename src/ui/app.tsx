@@ -1,7 +1,7 @@
 import { Box, Text, useApp, useInput } from "ink";
 import { useState, useEffect } from "react";
+import { buildUpdateCommands } from "../build-commands";
 import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../config";
-import { buildUpdateCommands } from "../executor";
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
 import { useSelfUpdate, usePackages, useTerminalOutput } from "../hooks";
 import { copyToClipboard } from "../lib/utils";

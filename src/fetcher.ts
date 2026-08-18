@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { execa } from "execa";
 import { parse } from "valibot";
 import { isManagerInstalled } from "./detector";
+import { run } from "./lib/run";
 import {
   GlobalListOutputArraySchema,
   GlobalListOutputSchema,
@@ -236,7 +236,7 @@ async function listGlobalPackages(
     if (manager === "npm") {
       const args = ["list", "-g", "--depth=0", "--json"];
       onLine?.(`$ npm ${args.join(" ")}`);
-      const { stdout } = await execa("npm", args, { cwd, reject: false });
+      const { stdout } = await run("npm", args, { cwd });
       const data = parse(GlobalListOutputSchema, JSON.parse(stdout));
       return Object.entries(data.dependencies ?? {}).map(([name, info]) => ({
         name,
@@ -246,7 +246,7 @@ async function listGlobalPackages(
     if (manager === "pnpm") {
       const args = ["list", "-g", "--json"];
       onLine?.(`$ pnpm ${args.join(" ")}`);
-      const { stdout } = await execa("pnpm", args, { cwd, reject: false });
+      const { stdout } = await run("pnpm", args, { cwd });
       const raw: unknown = JSON.parse(stdout);
       const deps: Record<string, { version?: string }> = Array.isArray(raw)
         ? (parse(GlobalListOutputArraySchema, raw)[0]?.dependencies ?? {})
@@ -259,7 +259,7 @@ async function listGlobalPackages(
     if (manager === "yarn") {
       const args = ["global", "list", "--depth=0", "--json"];
       onLine?.(`$ yarn ${args.join(" ")}`);
-      const { stdout } = await execa("yarn", args, { cwd, reject: false });
+      const { stdout } = await run("yarn", args, { cwd });
       const pkgs: Array<{ name: string; current: string }> = [];
       for (const line of stdout.trim().split("\n")) {
         try {
@@ -327,26 +327,21 @@ async function getGlobalOutdatedPackages(
   let exitCode = 0;
 
   try {
-    const proc = execa(manager, args, { cwd, reject: false });
-
-    if (onLine) {
-      const forwardWarnings = (chunk: Buffer) => {
-        const lines = chunk.toString().split("\n");
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed && /^\s*(WARN|ERR!|npm warn|npm error)/i.test(trimmed)) {
-            onLine(trimmed);
+    const forwardWarnings = onLine
+      ? (chunk: string) => {
+          for (const line of chunk.split("\n")) {
+            const trimmed = line.trim();
+            if (trimmed && /^\s*(WARN|ERR!|npm warn|npm error)/i.test(trimmed)) {
+              onLine(trimmed);
+            }
           }
         }
-      };
-      proc.stderr?.on("data", forwardWarnings);
-      proc.stdout?.on("data", forwardWarnings);
-    }
+      : undefined;
 
-    const result = await proc;
+    const result = await run(manager, args, { cwd, onData: forwardWarnings });
     stdout = result.stdout;
     stderr = result.stderr;
-    exitCode = result.exitCode!;
+    exitCode = result.exitCode;
   } catch (err: any) {
     return { ok: false, error: `Could not run ${manager}: ${err.message ?? err}` };
   }

@@ -3,9 +3,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// getOutdatedPackages (via registry) imports execa — never spawn it in tests.
-vi.mock("execa", () => ({
-  execa: vi.fn<() => Promise<{ stdout: string; stderr: string; exitCode: number }>>(async () => ({
+// getOutdatedPackages (via registry) spawns via lib/run — never spawn in tests.
+vi.mock("../src/lib/run", () => ({
+  run: vi.fn<() => Promise<{ stdout: string; stderr: string; exitCode: number }>>(async () => ({
     stdout: "",
     stderr: "",
     exitCode: 0,
@@ -142,7 +142,7 @@ describe("getOutdatedPackages (local mode)", () => {
 });
 
 describe("global mode command streaming", () => {
-  // The top-level execa mock resolves to empty stdout for every call, so the
+  // The top-level run() mock resolves to empty stdout for every call, so the
   // managers report no packages — we only assert the streamed command lines.
   it.each([
     ["npm", "$ npm outdated --global --json"],

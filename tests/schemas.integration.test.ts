@@ -1,5 +1,5 @@
-import { execa } from "execa";
 import { describe, expect, it } from "vitest";
+import { run } from "../src/lib/run";
 import {
   GitHubReleasesSchema,
   GlobalListOutputArraySchema,
@@ -11,7 +11,7 @@ import {
 import { fetchChangelog, fetchLatestVersion, fetchRepoUrl, fetchVersions, githubToken } from "../src/registry";
 
 /**
- * Real-world integration tests: NO mocking of `fetch()` or `execa()`.
+ * Real-world integration tests: NO mocking of `fetch()` or `run()`.
  *
  * These hit the live npm registry, the GitHub API, and real package-manager
  * subprocesses to prove the valibot schemas actually match the shapes those
@@ -160,7 +160,7 @@ describe("package-manager CLI output matches its schema (live subprocess)", () =
       // `ctx.skip()` throws before the value is ever read.
       let stdout = "";
       try {
-        ({ stdout } = await execa("npm", ["ls", "-g", "--depth=0", "--json"], { reject: false }));
+        ({ stdout } = await run("npm", ["ls", "-g", "--depth=0", "--json"]));
       } catch {
         ctx.skip("npm not available");
       }
@@ -174,7 +174,7 @@ describe("package-manager CLI output matches its schema (live subprocess)", () =
     async (ctx) => {
       let stdout = "";
       try {
-        ({ stdout } = await execa("pnpm", ["ls", "-g", "--json"], { reject: false }));
+        ({ stdout } = await run("pnpm", ["ls", "-g", "--json"]));
       } catch {
         ctx.skip("pnpm not available");
       }
@@ -191,8 +191,8 @@ describe("package-manager CLI output matches its schema (live subprocess)", () =
     async (ctx) => {
       let stdout = "";
       try {
-        // `npm outdated` exits 1 when packages are outdated; reject:false keeps stdout.
-        ({ stdout } = await execa("npm", ["outdated", "-g", "--json"], { reject: false }));
+        // `npm outdated` exits 1 when packages are outdated; run() keeps stdout.
+        ({ stdout } = await run("npm", ["outdated", "-g", "--json"]));
       } catch {
         ctx.skip("npm not available");
       }

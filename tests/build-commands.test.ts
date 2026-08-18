@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildUpdateCommands } from "../src/executor";
+import { buildUpdateCommands } from "../src/build-commands";
 import type { OutdatedPackage } from "../src/types";
 
 function pkg(overrides: Partial<OutdatedPackage> & { name: string }): OutdatedPackage {
