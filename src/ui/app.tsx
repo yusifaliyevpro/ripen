@@ -5,6 +5,7 @@ import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../co
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
 import { useSelfUpdate, usePackages, useTerminalOutput } from "../hooks";
 import { copyToClipboard } from "../lib/utils";
+import { prewarmGitHubToken } from "../registry";
 import type { ProjectInfo, RipenConfig, Screen } from "../types";
 import { ChangelogPanel } from "./changelog-panel";
 import { PackageList } from "./package-list";
@@ -108,6 +109,8 @@ export function App({ project, global, showAll, version, installManager, onCopie
         } else {
           setPackages(result.packages);
           setScreen("list");
+          // Warm the `gh` token once a changelog is reachable, off the scan path.
+          prewarmGitHubToken();
         }
       })
       .catch((err) => {

@@ -1,5 +1,5 @@
 import { Box, Text, useInput, useWindowSize } from "ink";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   buildDisplayRows,
   filterCollapsed,
@@ -69,12 +69,12 @@ export function PackageList({
   const [collapsedScopes, setCollapsedScopes] = useState<Set<string>>(new Set());
   const [initialized, setInitialized] = useState(false);
 
-  useEffect(() => {
-    if (!initialized && allScopeKeys.size > 0) {
-      setCollapsedScopes(new Set(allScopeKeys));
-      setInitialized(true);
-    }
-  }, [allScopeKeys, initialized]);
+  // Seed collapsed scopes during render (React's "adjusting state" pattern) so
+  // there is no cascading effect render on the first frame.
+  if (!initialized && allScopeKeys.size > 0) {
+    setCollapsedScopes(new Set(allScopeKeys));
+    setInitialized(true);
+  }
 
   // Use allScopeKeys on first render to avoid a flash of expanded scopes
   const effectiveCollapsed = !initialized && allScopeKeys.size > 0 ? allScopeKeys : collapsedScopes;
@@ -108,12 +108,11 @@ export function PackageList({
   }
   if (offsetsChanged) setScrollOffsets(offsets);
 
-  // Clamp focusedIndex when visibleRows shrinks (e.g., after collapse)
-  useEffect(() => {
-    if (focusedIndex >= visibleRows.length) {
-      setFocusedIndex(Math.max(0, visibleRows.length - 1));
-    }
-  }, [visibleRows.length, focusedIndex]);
+  // Clamp focusedIndex when visibleRows shrinks (e.g., after collapse). Done
+  // during render so the corrected index is used in the same pass.
+  if (focusedIndex >= visibleRows.length) {
+    setFocusedIndex(Math.max(0, visibleRows.length - 1));
+  }
 
   const toggleCollapse = (scopeKey: string) => {
     // On first interaction, seed from effectiveCollapsed so the toggle is correct
