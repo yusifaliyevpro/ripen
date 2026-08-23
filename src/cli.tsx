@@ -3,7 +3,6 @@ import { render } from "ink";
 import { version as RIPEN_VERSION } from "../package.json";
 import { getProjectInfo, hasPackageJson, detectGlobalInstallManager } from "./detector";
 import { colors } from "./lib/colors";
-import { prewarmGitHubToken } from "./registry";
 import { App } from "./ui/app";
 
 const args = process.argv.slice(2);
@@ -48,11 +47,6 @@ if (!isGlobal && !hasPackageJson(cwd)) {
 }
 
 const project = getProjectInfo(cwd);
-
-// Warm the `gh auth token` cache now (fire-and-forget) so the token is ready
-// by the time the user opens a changelog, instead of paying the `gh` spawn
-// latency on first view.
-prewarmGitHubToken();
 
 const installManager = detectGlobalInstallManager();
 
