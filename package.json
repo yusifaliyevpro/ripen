@@ -70,7 +70,7 @@
     "@rolldown/plugin-babel": "0.2.3",
     "@types/node": "24.13.3",
     "@types/react": "19.2.18",
-    "@vitejs/plugin-react": "6.1.0",
+    "@vitejs/plugin-react": "6.1.1",
     "greenly": "1.1.6",
     "ink": "7.1.1",
     "ink-scroll-view": "0.3.7",
