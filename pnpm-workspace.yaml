@@ -1,6 +1,8 @@
 saveExact: true
-minimumReleaseAge: 1440
+engineStrict: true
 ignoreWorkspaceRootCheck: true
+minimumReleaseAge: 1440
+minimumReleaseAgeExcludePrune: true
 trustPolicy: "no-downgrade"
 allowBuilds:
   esbuild: true
