@@ -62,10 +62,8 @@ export function incrementFrequency(packageNames: string[]): void {
 }
 
 // --- Self-update cache ---
-//
-// The latest ripen version seen on npm, written by a fire-and-forget check on
-// the previous run. Reading it is synchronous, so startup never waits on the
-// network to decide whether to show the self-update prompt.
+// Latest ripen version seen on npm, written by a fire-and-forget check on the previous run;
+// read synchronously so startup never blocks on the network to decide the self-update prompt.
 
 const UPDATE_CACHE_PATH = join(CONFIG_DIR, "update-check.json");
 

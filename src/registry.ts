@@ -33,17 +33,8 @@ export function prewarmGitHubToken(): void {
 }
 
 /**
- * List versions for the picker.
- *
- * Pre-releases are noisy (`next` has hundreds of canaries), so they are hidden
- * unless they carry a dist-tag — *or* they belong to the same channel as
- * `currentVersion`. Someone sitting on `16.3.0-preview.5` needs to see every
- * `preview.*` to move within that channel.
- *
- * For major-pinned packages (see {@link MAJOR_PINNED_PACKAGES}, e.g.
- * `@types/node`) every version of the currently-installed major is listed, but
- * other majors are collapsed to just their latest release — so a `24.x` user
- * scrolls their whole line yet still sees one `26.x`, one `25.x`, etc.
+ * List versions for the picker. Pre-releases are hidden unless tagged or in `currentVersion`'s channel.
+ * Major-pinned packages (see {@link MAJOR_PINNED_PACKAGES}) list every version of the current major but only the latest of others.
  */
 export async function fetchVersions(packageName: string, currentVersion = ""): Promise<RegistryVersion[]> {
   try {
@@ -160,14 +151,8 @@ export async function fetchChangelog(
 }
 
 /**
- * Best-effort "latest version on npm" lookup for the self-update check. Runs
- * fire-and-forget in the background, so it hits the small `/latest` version
- * manifest with a short timeout, and resolves to null on any failure.
- *
- * NOTE: the abbreviated-metadata accept header
- * (`application/vnd.npm.install-v1+json`) is only valid on the full packument
- * route — sending it to `/{pkg}/latest` makes the registry answer 406, so the
- * `/latest` request must use the default accept.
+ * Best-effort "latest version on npm" for the self-update check; hits `/latest` with a short timeout, null on failure.
+ * Must use the default accept header — the abbreviated-metadata one (`application/vnd.npm.install-v1+json`) 406s on `/latest`.
  */
 export async function fetchLatestVersion(packageName: string, timeoutMs = 3000): Promise<string | null> {
   try {
@@ -211,10 +196,7 @@ export async function fetchPublishedAt(packageName: string, version: string): Pr
   }
 }
 
-/**
- * Extract "owner/repo" from npm registry package data.
- * Handles both string and object repository fields.
- */
+/** Extract "owner/repo" from npm package data (string or object repository field). */
 function extractGitHubRepo(data: { repository?: NpmRepository }): string | null {
   const repoUrl: string = typeof data.repository === "string" ? data.repository : (data.repository?.url ?? "");
   const match = repoUrl.match(/github\.com[/:]([^/]+\/[^/]+)/);

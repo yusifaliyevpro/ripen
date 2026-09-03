@@ -15,14 +15,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
 
   const scopes = config.groupScopes;
 
-  // Build flat list of focusable rows:
-  // Row 0: frequencySort toggle
-  // Row 1: separateDevDeps toggle
-  // Row 2: groupByScope toggle
-  // Row 3: groupsOnTop toggle
-  // Row 4: sfwFirewall toggle
-  // Row 5: list-header
-  // Row 6+: each scope item
+  // Flat list of focusable rows: the toggles, then the list-header, then one row per scope.
   const rows: {
     type:
       | "toggle-frequency"
@@ -132,8 +125,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
 
   const listHeaderFocused = currentRow?.type === "list-header";
 
-  // Fill the terminal to a stable height (matching the list and other views) so the footer
-  // stays pinned one line above the bottom no matter how many options or scopes there are.
+  // Fill the terminal to a stable height (like the other views) so the footer stays pinned near the bottom.
   const { rows: terminalRows } = useWindowSize();
   const minHeight = Math.max(1, terminalRows - 2);
 

@@ -30,12 +30,7 @@ type DepEntry = {
   type: "dependencies" | "devDependencies";
 };
 
-/**
- * Extract dependency entries from `package.json`. Prefers the pre-parsed object
- * (read once during detection) and only touches disk when it is absent — which
- * also preserves the "Could not read package.json" error path for direct
- * callers that pass nothing.
- */
+/** Dependency entries from `package.json`; uses the pre-parsed object and only reads disk when absent. */
 function readPackageJsonDeps(cwd: string, preParsed?: PackageJson | null): DepEntry[] {
   let pkg: PackageJson;
   if (preParsed) {
@@ -64,11 +59,7 @@ function readPackageJsonDeps(cwd: string, preParsed?: PackageJson | null): DepEn
 
 type RegistryInfo = { version: string; publishedAt: string } | null;
 
-/**
- * A package to check, plus the pre-release channel it should be checked
- * against. `pinMajor` restricts the comparison to a single major (used for
- * `@types/node`-style packages — see {@link MAJOR_PINNED_PACKAGES}).
- */
+/** A package to check; `channel` is its pre-release channel, `pinMajor` restricts to one major (see {@link MAJOR_PINNED_PACKAGES}). */
 type Target = { name: string; channel?: string; pinMajor?: number };
 
 /** Highest stable version whose major equals `major`, or null if none exist. */
@@ -83,12 +74,8 @@ function latestVersionInMajor(data: NpmPackument, major: number): string | null 
 }
 
 /**
- * Resolve the version a dependency should be compared against.
- *
- * Normally that is the `latest` dist-tag, but a dependency pinned to a
- * pre-release channel ("16.3.0-preview.5") must be compared against that
- * channel's own dist-tag — otherwise it is measured against a *lower* stable
- * version and never reports as outdated.
+ * Version to compare a dependency against: the `latest` dist-tag, or — for one pinned to a
+ * pre-release channel — that channel's own tag, else it's measured against a lower stable and never reports outdated.
  */
 async function fetchRegistryInfoWithRetry(
   packageName: string,
@@ -98,8 +85,7 @@ async function fetchRegistryInfoWithRetry(
   for (let attempt = 0; attempt < 3; attempt++) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15_000);
-    // `clearTimeout` lives in `finally` so a failed request no longer leaks a
-    // 15s timer that keeps the event loop (and the CLI) alive after it errors.
+    // clearTimeout in `finally` so a failed request doesn't leak a 15s timer that keeps the CLI alive.
     try {
       const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`, {
         signal: controller.signal,
@@ -141,9 +127,7 @@ async function fetchAllLatest(
     while (index < targets.length) {
       const i = index++;
       const target = targets[i];
-      // Which package is being checked goes to the output box; the overall
-      // completed/total count is reported via onProgress (shown in the header),
-      // so a shared counter here can't print the same number for every worker.
+      // Per-package line to the output box; overall count via onProgress (header).
       onLine?.(`Checking ${target.name}...`);
       results.set(target.name, await fetchRegistryInfoWithRetry(target.name, target.channel, target.pinMajor));
       completed++;
@@ -235,10 +219,7 @@ async function hydratePublishDates(packages: OutdatedPackage[]): Promise<void> {
   }
 }
 
-/**
- * List all globally installed packages for a manager.
- * Returns name + currently installed version.
- */
+/** All globally installed packages for a manager: name + installed version. */
 async function listGlobalPackages(
   manager: PackageManager,
   cwd: string,
@@ -393,10 +374,7 @@ async function getGlobalOutdatedPackages(
   return { ok: true, packages };
 }
 
-/**
- * Extract the first top-level JSON object from a string that may contain
- * non-JSON lines (e.g. pnpm WARN messages) before or after the JSON.
- */
+/** First top-level JSON object in a string that may have non-JSON lines around it (e.g. pnpm WARN). */
 export function extractJson(raw: string): string | null {
   const start = raw.indexOf("{");
   if (start === -1) return null;
@@ -440,19 +418,13 @@ export function parseNpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPa
 
 const ALL_MANAGERS: PackageManager[] = ["npm", "pnpm", "yarn"];
 
-/**
- * Check all available package managers for global packages in parallel.
- * Each returned package is tagged with its owning manager.
- * showAll=true lists every installed package, not just outdated ones.
- */
+/** Check all managers for global packages in parallel, tagging each by manager; showAll lists every installed package. */
 export async function getAllGlobalOutdated(
   cwd: string,
   onLine?: (line: string) => void,
   showAll = false,
 ): Promise<FetchResult> {
-  // Probe and query each manager independently so an installed manager's command
-  // streams into the output box as soon as its own `--version` probe resolves,
-  // instead of blocking on the slowest probe across all managers.
+  // Probe + query each manager independently so its output streams without blocking on the slowest.
   const results = await Promise.all(
     ALL_MANAGERS.map(async (manager) => {
       if (!isManagerInstalled(manager)) return null;

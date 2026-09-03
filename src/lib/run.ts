@@ -8,29 +8,14 @@ export interface RunResult {
 
 export interface RunOptions {
   cwd?: string;
-  /**
-   * Called with each raw stdout/stderr chunk as it arrives, for live output
-   * forwarding. Attached to the underlying child process so it runs alongside
-   * nano-spawn's own buffering — the final {@link RunResult} stays populated.
-   */
+  /** Live-forward each raw stdout/stderr chunk, alongside nano-spawn's buffering (result stays populated). */
   onData?: (chunk: string) => void;
 }
 
 /**
- * Thin wrapper over `nano-spawn` (execa's officially recommended small
- * alternative — same author, zero dependencies, ~13× cheaper to import than
- * execa). nano-spawn keeps execa's cross-platform command resolution, including
- * Windows `.cmd`/`.bat` shims and `PATHEXT`, which raw `node:child_process`
- * lacks — that is why we use it rather than hand-rolling a shell spawn.
- *
- * The wrapper only re-adds the `execa(..., { reject: false })` behaviour ripen
- * relied on: a non-zero exit code resolves normally with `{ stdout, stderr,
- * exitCode }` instead of throwing (nano-spawn rejects). Genuine spawn failures
- * (missing binary → no exit code, or signal termination) still throw, which
- * every call site already guards with try/catch.
- *
- * `stdout`/`stderr` have their trailing newline stripped by nano-spawn, matching
- * execa. Streamed `onData` chunks are raw.
+ * `nano-spawn` wrapper that re-adds execa's `reject: false`: a non-zero exit resolves
+ * with `{ stdout, stderr, exitCode }`; only genuine spawn failures (ENOENT, signals) throw.
+ * (nano-spawn is used for its cross-platform resolution — Windows `.cmd`/`.bat` shims, PATHEXT.)
  */
 export async function run(cmd: string, args: string[], opts: RunOptions = {}): Promise<RunResult> {
   const subprocess = spawn(cmd, args, { cwd: opts.cwd });

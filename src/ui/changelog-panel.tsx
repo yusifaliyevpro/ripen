@@ -92,14 +92,10 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
 
   const targetVer = pkg.targetVersion ?? pkg.latest;
 
-  // Reserve rows for the surrounding chrome so the scrollable body fits the terminal:
-  //   header (3 lines + 1 top margin + 1 bottom margin) + release navigator (1 line + 1
-  //   margin, only when >1 entry) + footer (divider + hints, 2 lines + 1 margin) + 1 safety row.
+  // Reserve rows for the chrome so the body fits: header 5 + navigator 2 (when >1 entry) + footer 3 + 1 safety.
   const navigatorHeight = entries.length > 1 ? 2 : 0;
   const chromeHeight = 5 + navigatorHeight + 3 + 1;
-  // Size the body from the window, not the content, so the header/navigator/footer
-  // stay put. Sizing to the content collapses the box for short releases, which
-  // shifts the whole layout up and down as you navigate between releases.
+  // Size the body from the window, not the content, so the chrome stays put across releases of differing length.
   const bodyHeight = Math.max(3, rows - chromeHeight);
 
   return (

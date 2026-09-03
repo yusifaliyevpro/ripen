@@ -1,10 +1,4 @@
-/**
- * Tiny ANSI color helper for the plain stdout writes that happen outside Ink
- * (the post-exit messages in cli.tsx). ripen only runs in an interactive
- * terminal, so colors are always applied.
- *
- * Inside the Ink TUI, use `<Text color="…">` instead — Ink handles those.
- */
+/** ANSI color helper for plain stdout writes outside Ink (post-exit messages); inside the TUI use `<Text color>`. */
 function wrap(open: number, close: number) {
   return (text: string): string => `\x1b[${open}m${text}\x1b[${close}m`;
 }

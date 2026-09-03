@@ -69,8 +69,7 @@ export function PackageList({
   const [collapsedScopes, setCollapsedScopes] = useState<Set<string>>(new Set());
   const [initialized, setInitialized] = useState(false);
 
-  // Seed collapsed scopes during render (React's "adjusting state" pattern) so
-  // there is no cascading effect render on the first frame.
+  // Seed collapsed scopes during render (React's "adjusting state" pattern) — no first-frame effect.
   if (!initialized && allScopeKeys.size > 0) {
     setCollapsedScopes(new Set(allScopeKeys));
     setInitialized(true);
@@ -86,10 +85,7 @@ export function PackageList({
   const { rows: terminalRows } = useWindowSize();
   const maxVisible = useMemo(() => computeMaxPerGroup(terminalRows, groups.length), [terminalRows, groups.length]);
 
-  // Per-group scroll offsets. Held in state and adjusted during render (React's
-  // "storing information from previous renders" pattern) so the visible window
-  // shifts exactly when the focused row would scroll out of view — without
-  // reading or mutating a ref during render.
+  // Per-group scroll offsets, adjusted during render so the window shifts only when the focused row scrolls out of view.
   const [scrollOffsets, setScrollOffsets] = useState<Record<string, number>>({});
 
   const offsets: Record<string, number> = { ...scrollOffsets };
@@ -108,8 +104,7 @@ export function PackageList({
   }
   if (offsetsChanged) setScrollOffsets(offsets);
 
-  // Clamp focusedIndex when visibleRows shrinks (e.g., after collapse). Done
-  // during render so the corrected index is used in the same pass.
+  // Clamp focusedIndex during render when visibleRows shrinks (e.g. after collapse).
   if (focusedIndex >= visibleRows.length) {
     setFocusedIndex(Math.max(0, visibleRows.length - 1));
   }
@@ -185,11 +180,8 @@ export function PackageList({
   const selectedCount = packages.filter((p) => p.selected).length;
   const outdatedCount = packages.filter((p) => p.current !== p.latest).length;
 
-  // Fill the terminal to a stable height so the header stays pinned to the top and the
-  // footer to the bottom regardless of how many packages there are — otherwise a short
-  // list floats and the chrome shifts as the count changes. `terminalRows - 2` accounts
-  // for the App's padding of 2 and leaves a single blank line at the bottom, matching the
-  // version picker and changelog views. computeMaxPerGroup fills items to this same budget.
+  // Fill the terminal to a stable height so header/footer stay pinned as the count changes.
+  // `terminalRows - 2` accounts for the App's padding of 2 (matches the picker/changelog budget).
   const minHeight = Math.max(1, terminalRows - 2);
 
   return (
