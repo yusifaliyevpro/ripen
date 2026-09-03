@@ -10,24 +10,7 @@ import {
 } from "../src/lib/schemas";
 import { fetchChangelog, fetchLatestVersion, fetchRepoUrl, fetchVersions, githubToken } from "../src/registry";
 
-/**
- * Real-world integration tests: NO mocking of `fetch()` or `run()`.
- *
- * These hit the live npm registry, the GitHub API, and real package-manager
- * subprocesses to prove the valibot schemas actually match the shapes those
- * services emit today — the thing the unit tests (with fabricated payloads)
- * cannot guarantee. Validation uses vitest's built-in `expect.schemaMatching`,
- * which accepts any Standard Schema v1 validator (valibot qualifies).
- *
- * They are best-effort: when the network is unreachable, an endpoint is down,
- * GitHub's unauthenticated rate limit is exhausted, or a package manager is not
- * installed, the affected test **skips** instead of failing. A test only fails
- * when a real response is fetched but does NOT satisfy its schema — i.e. a
- * genuine drift between our schema and reality, which is exactly what we want
- * to catch. This keeps `pnpm check` deterministic offline/in CI while still
- * verifying real data whenever the machine is online.
- */
-
+// Real-world integration tests: NO mocking of `fetch()` or `run()`.
 const NETWORK_TIMEOUT = 30_000;
 
 /** Fetch JSON, or skip the test when the endpoint is unreachable / not ok. */
@@ -46,7 +29,7 @@ async function fetchJsonOrSkip(
   return res.json();
 }
 
-describe("npm registry responses match their schemas (live)", () => {
+describe.concurrent("npm registry responses match their schemas (live)", () => {
   it(
     "full packument (GET /:package) validates against NpmPackumentSchema",
     async (ctx) => {
@@ -75,7 +58,7 @@ describe("npm registry responses match their schemas (live)", () => {
   );
 });
 
-describe("GitHub releases responses match GitHubReleasesSchema (live)", () => {
+describe.concurrent("GitHub releases responses match GitHubReleasesSchema (live)", () => {
   it(
     "the public /releases endpoint validates",
     async (ctx) => {
@@ -96,7 +79,7 @@ describe("GitHub releases responses match GitHubReleasesSchema (live)", () => {
   );
 });
 
-describe("registry.ts functions work end-to-end against live data", () => {
+describe.concurrent("registry.ts functions work end-to-end against live data", () => {
   it(
     "fetchLatestVersion returns a real semver string",
     async (ctx) => {
@@ -152,7 +135,7 @@ describe("registry.ts functions work end-to-end against live data", () => {
   );
 });
 
-describe("package-manager CLI output matches its schema (live subprocess)", () => {
+describe.concurrent("package-manager CLI output matches its schema (live subprocess)", () => {
   it(
     "real `npm ls -g --json` validates against GlobalListOutputSchema",
     async (ctx) => {

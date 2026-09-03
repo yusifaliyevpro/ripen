@@ -6,7 +6,7 @@ import { run } from "../src/lib/run";
 // `-e` program directly without worrying about cmd.exe metacharacters.
 const node = "node";
 
-describe("run", () => {
+describe.concurrent("run", () => {
   it("captures stdout and a zero exit code", async () => {
     const { stdout, exitCode } = await run(node, ["-e", "process.stdout.write('hello')"]);
     expect(stdout).toBe("hello");
