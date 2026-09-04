@@ -86,7 +86,11 @@
     "vitest": "5.0.0"
   },
   "devEngines": {
-    "node": ">=22.18.0"
+    "runtime": {
+      "name": "node",
+      "version": ">=24.11.0",
+      "onFail": "warn"
+    }
   },
   "engines": {
     "node": ">=22.18.0"
