@@ -89,7 +89,6 @@ describe("copyToClipboard", () => {
 
   afterEach(() => {
     setPlatform(original);
-    vi.clearAllMocks();
   });
 
   it("pipes text to clip on Windows", () => {

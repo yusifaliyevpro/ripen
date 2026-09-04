@@ -30,7 +30,6 @@ function Probe({ current, mgr }: { current: string; mgr: PackageManager }) {
 const tick = () => new Promise((r) => setTimeout(r, 40));
 
 beforeEach(() => {
-  vi.clearAllMocks();
   loadCachedLatestVersion.mockReturnValue(null);
   fetchLatestVersion.mockResolvedValue(null);
 });
