@@ -403,7 +403,7 @@ export function parsePnpmOutdated(data: Record<string, OutdatedInfo>): OutdatedP
 }
 
 export function parseNpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPackage[] {
-  if (data === null || typeof data !== "object") return [];
+  if (data === null || typeof data !== "object" || Array.isArray(data)) return [];
   return Object.entries(data).map(([name, info]) => ({
     name,
     current: info.current ?? "N/A",

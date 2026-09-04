@@ -65,6 +65,15 @@ describe("parseNpmOutdated", () => {
     const [row] = parseNpmOutdated({ react: { latest: "19.0.0" } });
     expect(row.dependent).toBe("");
   });
+
+  it("returns [] for a non-object payload", () => {
+    // Mirrors parsePnpmOutdated: npm can emit `null`/an array when nothing is
+    // outdated, and an array must not be walked as a record of packages — a
+    // non-empty array would otherwise yield bogus rows keyed by numeric indices.
+    expect(parseNpmOutdated(JSON.parse("null"))).toEqual([]);
+    expect(parseNpmOutdated(JSON.parse("[]"))).toEqual([]);
+    expect(parseNpmOutdated(JSON.parse('["foo"]'))).toEqual([]);
+  });
 });
 
 describe("parseYarnOutdated", () => {

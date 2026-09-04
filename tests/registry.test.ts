@@ -9,7 +9,7 @@ vi.mock("../src/lib/run", () => ({
   })),
 }));
 
-const { fetchChangelog, fetchLatestVersion, fetchRepoUrl, fetchVersions, isNewerVersion } =
+const { fetchChangelog, fetchLatestVersion, fetchPublishedAt, fetchRepoUrl, fetchVersions, isNewerVersion } =
   await import("../src/registry");
 
 const originalFetch = globalThis.fetch;
@@ -148,6 +148,18 @@ describe("fetchVersions", () => {
     mockFetch(() => json({}, 404));
     expect(await fetchVersions("some-pkg")).toEqual([]);
   });
+
+  it("lists every version of the installed major but only the latest of other majors (@types/node)", async () => {
+    mockFetch(() =>
+      json({
+        "dist-tags": { latest: "26.1.0" },
+        versions: { "22.5.0": {}, "24.0.0": {}, "24.5.0": {}, "26.0.0": {}, "26.1.0": {} },
+        time: {},
+      }),
+    );
+    const names = (await fetchVersions("@types/node", "24.0.0")).map((v) => v.version);
+    expect(names).toEqual(["26.1.0", "24.5.0", "24.0.0", "22.5.0"]);
+  });
 });
 
 describe("fetchRepoUrl", () => {
@@ -211,6 +223,33 @@ describe("fetchChangelog", () => {
     expect(await fetchChangelog("pkg", "1.0.0", "2.0.0")).toEqual({ entries: [] });
   });
 
+  it("for an up-to-date package (fromVersion='') shows same-major history up to the current version", async () => {
+    mockFetch((url) => {
+      if (url.includes("registry.npmjs.org")) return json(withRepo);
+      return json([
+        { tag_name: "v2.2.0", body: "too new", html_url: "u22", draft: false, prerelease: false },
+        { tag_name: "v2.1.0", body: "current", html_url: "u21", draft: false, prerelease: false },
+        { tag_name: "v2.0.0", body: "older", html_url: "u20", draft: false, prerelease: false },
+        { tag_name: "v1.5.0", body: "other major", html_url: "u15", draft: false, prerelease: false },
+      ]);
+    });
+    const { entries } = await fetchChangelog("pkg", "", "2.1.0");
+    expect(entries.map((e) => e.version)).toEqual(["v2.0.0", "v2.1.0"]);
+  });
+
+  it("falls back to the newest release when the range matches nothing", async () => {
+    mockFetch((url) => {
+      if (url.includes("registry.npmjs.org")) return json(withRepo);
+      return json([
+        { tag_name: "v1.2.0", body: "newest", html_url: "u12", draft: false, prerelease: false },
+        { tag_name: "v1.1.0", body: "older", html_url: "u11", draft: false, prerelease: false },
+      ]);
+    });
+    const { entries } = await fetchChangelog("pkg", "5.0.0", "6.0.0");
+    expect(entries).toHaveLength(1);
+    expect(entries[0].version).toBe("v1.2.0");
+  });
+
   it("falls back to no entries when GitHub returns a schema-invalid release list", async () => {
     // The releases payload is not the expected array-of-releases shape (here the
     // required fields are missing / mistyped). valibot rejects it, and the
@@ -233,5 +272,49 @@ describe("schema validation of registry responses", () => {
   it("fetchLatestVersion returns null when `version` is not a string", async () => {
     mockFetch(() => json({ version: 42 }));
     expect(await fetchLatestVersion("pkg")).toBeNull();
+  });
+});
+
+describe("fetchPublishedAt", () => {
+  const packument = {
+    "dist-tags": { latest: "2.0.0" },
+    versions: { "1.0.0": {}, "2.0.0": {} },
+    time: { "1.0.0": "2024-01-01T00:00:00.000Z", "2.0.0": "2025-01-01T00:00:00.000Z" },
+  };
+
+  it("returns the publish timestamp for the requested version", async () => {
+    mockFetch(() => json(packument));
+    expect(await fetchPublishedAt("pkg", "2.0.0")).toBe("2025-01-01T00:00:00.000Z");
+  });
+
+  it("returns '' when the version has no recorded time", async () => {
+    mockFetch(() => json(packument));
+    expect(await fetchPublishedAt("pkg", "9.9.9")).toBe("");
+  });
+
+  it("returns '' on a failed request", async () => {
+    mockFetch(() => json({}, 404));
+    expect(await fetchPublishedAt("pkg", "2.0.0")).toBe("");
+  });
+});
+
+describe("githubToken", () => {
+  it("spawns `gh auth token` once and caches the result", async () => {
+    vi.resetModules();
+    const runSpy = vi.fn<() => Promise<{ stdout: string; stderr: string; exitCode: number }>>(async () => ({
+      stdout: "gho_abc\n",
+      stderr: "",
+      exitCode: 0,
+    }));
+    vi.doMock("../src/lib/run", () => ({ run: runSpy }));
+    try {
+      const reg = await import("../src/registry");
+      expect(await reg.githubToken()).toBe("gho_abc");
+      expect(await reg.githubToken()).toBe("gho_abc");
+      expect(runSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.doUnmock("../src/lib/run");
+      vi.resetModules();
+    }
   });
 });
