@@ -67,7 +67,7 @@
     "lint:fix": "oxlint --fix"
   },
   "devDependencies": {
-    "@rolldown/plugin-babel": "0.2.3",
+    "@rolldown/plugin-babel": "0.2.4",
     "@types/node": "24.13.3",
     "@types/react": "19.2.18",
     "@vitejs/plugin-react": "6.1.1",
@@ -76,8 +76,8 @@
     "ink-scroll-view": "0.3.7",
     "ink-testing-library": "4.0.0",
     "nano-spawn": "2.1.0",
-    "oxfmt": "0.66.0",
-    "oxlint": "1.81.0",
+    "oxfmt": "0.67.0",
+    "oxlint": "1.82.0",
     "oxlint-tsgolint": "7.0.2001",
     "react": "19.2.8",
     "tsdown": "0.23.0",
