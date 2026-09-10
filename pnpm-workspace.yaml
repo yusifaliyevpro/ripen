@@ -1,16 +1,17 @@
 saveExact: true
 engineStrict: true
+ignoreWorkspaceRootCheck: true
 minimumReleaseAge: 1440
 minimumReleaseAgeExcludePrune: true
 trustPolicy: "no-downgrade"
 trustPolicyExcludePrune: true
+packages:
+  - "."
+  - "docs"
 allowBuilds:
   esbuild: true
   sharp: true
   unrs-resolver: true
-packages:
-  - "."
-  - "docs"
 minimumReleaseAgeExclude:
   - "@vitest/mocker@5.0.0"
   - "@vitest/spy@5.0.0"

@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
   "keywords": [
     "bun",
@@ -73,7 +73,7 @@
     "@vitejs/plugin-react": "6.1.1",
     "greenly": "1.1.6",
     "ink": "7.1.1",
-    "ink-scroll-view": "0.3.7",
+    "ink-scroll-view": "0.4.0",
     "ink-testing-library": "4.0.0",
     "nano-spawn": "2.1.0",
     "oxfmt": "0.67.0",
@@ -82,7 +82,7 @@
     "react": "19.2.8",
     "tsdown": "0.23.0",
     "typescript": "7.0.2",
-    "valibot": "1.4.2",
+    "valibot": "1.5.0",
     "vitest": "5.0.0"
   },
   "devEngines": {

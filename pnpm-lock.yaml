@@ -128,8 +128,8 @@ importers:
         specifier: 7.1.1
         version: 7.1.1(@types/react@19.2.18)(react-devtools-core@7.0.1)(react@19.2.8)
       ink-scroll-view:
-        specifier: 0.3.7
-        version: 0.3.7(ink@7.1.1(@types/react@19.2.18)(react-devtools-core@7.0.1)(react@19.2.8))(react@19.2.8)
+        specifier: 0.4.0
+        version: 0.4.0(ink@7.1.1(@types/react@19.2.18)(react-devtools-core@7.0.1)(react@19.2.8))(react@19.2.8)
       ink-testing-library:
         specifier: 4.0.0
         version: 4.0.0(@types/react@19.2.18)
@@ -155,8 +155,8 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
       valibot:
-        specifier: 1.4.2
-        version: 1.4.2(typescript@7.0.2)
+        specifier: 1.5.0
+        version: 1.5.0(typescript@7.0.2)
       vitest:
         specifier: 5.0.0
         version: 5.0.0(@types/node@24.13.3)(vite@8.2.0(@types/node@24.13.3)(jiti@2.7.0))
@@ -1685,11 +1685,11 @@ packages:
     resolution: {integrity: sha512-m6FAo/spmsW2Ab2fU35JTYwtOKa2yAwXSwgjSv1TJzh4Mh7mC3lzAOVLBprb72XsTrgkEIsl7YrFNAiDiRhIGg==}
     engines: {node: '>=12'}
 
-  ink-scroll-view@0.3.7:
-    resolution: {integrity: sha512-lUBLxSbVry/+UtJhuvRu6wumP43+ScVp69J7e+hmYwz1kTkahWfkVwWOu7Mn1DMPb8AU8bnsmEsr6kvSJvnaRw==}
+  ink-scroll-view@0.4.0:
+    resolution: {integrity: sha512-MRUurhUNzQkZzA2D2q8hPb+JzOiD67x14WKlcoqmBLTukrUeKOp+5NOq8gKNubRG5v8r01sMGw5yyryCp1EGug==}
     peerDependencies:
-      ink: ^5 || ^6 || ^7
-      react: ^18 || ^19
+      ink: ^7
+      react: '>=19.2.0'
 
   ink-testing-library@4.0.0:
     resolution: {integrity: sha512-yF92kj3pmBvk7oKbSq5vEALO//o7Z9Ck/OaLNlkzXNeYdwfpxMQkSowGTFUCS5MSu9bWfSZMewGpp7bFc66D7Q==}
@@ -2513,8 +2513,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  valibot@1.4.2:
-    resolution: {integrity: sha512-gjdCvJ6d3RyHAneqxMYMW9QMCwYMb3jpOO0IyHZV1bnRHFBHrX3VkIILt5XYR0WhwHiH7Mty8ovuPZ/O3gamrg==}
+  valibot@1.5.0:
+    resolution: {integrity: sha512-nil6AkP2TChWL43Z5uJ6GTxX01CUA+g8LWUM+N/rB9NBbkUMaUsi9PUNzlUPgoKASgmx9f7eGOYpJ04/fSa6FQ==}
     peerDependencies:
       typescript: '>=5'
     peerDependenciesMeta:
@@ -3703,7 +3703,7 @@ snapshots:
 
   indent-string@5.0.0: {}
 
-  ink-scroll-view@0.3.7(ink@7.1.1(@types/react@19.2.18)(react-devtools-core@7.0.1)(react@19.2.8))(react@19.2.8):
+  ink-scroll-view@0.4.0(ink@7.1.1(@types/react@19.2.18)(react-devtools-core@7.0.1)(react@19.2.8))(react@19.2.8):
     dependencies:
       ink: 7.1.1(@types/react@19.2.18)(react-devtools-core@7.0.1)(react@19.2.8)
       react: 19.2.8
@@ -4845,7 +4845,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  valibot@1.4.2(typescript@7.0.2):
+  valibot@1.5.0(typescript@7.0.2):
     optionalDependencies:
       typescript: 7.0.2
 
