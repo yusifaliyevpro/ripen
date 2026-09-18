@@ -3,12 +3,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ChangelogResult, OutdatedPackage } from "../../src/types";
 
 // Mock the network + browser boundaries so the panel is fully deterministic.
-const fetchChangelog = vi.fn<() => Promise<ChangelogResult>>();
+const fetchChangelog = vi.fn<(name: string, from: string, to: string) => Promise<ChangelogResult>>();
 const fetchRepoUrl = vi.fn<() => Promise<string>>();
 const openInBrowser = vi.fn<(url: string) => void>();
 
 vi.mock("../../src/registry", () => ({
-  fetchChangelog: () => fetchChangelog(),
+  fetchChangelog: (name: string, from: string, to: string) => fetchChangelog(name, from, to),
   fetchRepoUrl: () => fetchRepoUrl(),
 }));
 vi.mock("../../src/lib/utils", () => ({ openInBrowser: (url: string) => openInBrowser(url) }));
@@ -102,6 +102,38 @@ describe("ChangelogPanel — views", () => {
     const { lastFrame } = renderPanel();
     await vi.waitFor(() => expect(lastFrame()).toContain("(1/2)"));
     expect(lastFrame()).toContain("v1.0.5"); // starts on the oldest entry
+  });
+});
+
+describe("ChangelogPanel — version range", () => {
+  it("fetches current → latest even when a target newer than current (but older than latest) is chosen", async () => {
+    fetchChangelog.mockResolvedValue({ entries: [{ version: "v2.0.0", body: "notes", url: "" }] });
+    fetchRepoUrl.mockResolvedValue("https://github.com/o/r");
+    renderPanel({ current: "1.0.0", latest: "2.0.0", targetVersion: "1.5.0" });
+    await vi.waitFor(() => expect(fetchChangelog).toHaveBeenCalled());
+    // The changelog always spans current → latest, ignoring the chosen target.
+    expect(fetchChangelog).toHaveBeenCalledWith("ripencli", "1.0.0", "2.0.0");
+  });
+
+  it("shows the current → latest transition in the header for an in-between target", async () => {
+    fetchChangelog.mockResolvedValue({ entries: [{ version: "v2.0.0", body: "notes", url: "" }] });
+    fetchRepoUrl.mockResolvedValue("https://github.com/o/r");
+    const { lastFrame } = renderPanel({ current: "1.0.0", latest: "2.0.0", targetVersion: "1.5.0" });
+    await vi.waitFor(() => expect(lastFrame()).toContain("Changelog"));
+    const frame = lastFrame()!;
+    expect(frame).toContain("1.0.0");
+    expect(frame).toContain("2.0.0");
+    // The header must reflect latest, not the chosen in-between target.
+    expect(frame).not.toContain("1.5.0");
+  });
+
+  it("fetches current → latest when the chosen target is a downgrade (older than current)", async () => {
+    fetchChangelog.mockResolvedValue({ entries: [{ version: "v3.0.0", body: "notes", url: "" }] });
+    fetchRepoUrl.mockResolvedValue("https://github.com/o/r");
+    renderPanel({ current: "2.0.0", latest: "3.0.0", targetVersion: "1.5.0" });
+    await vi.waitFor(() => expect(fetchChangelog).toHaveBeenCalled());
+    // A downgrade target is not a meaningful changelog range — always span current → latest.
+    expect(fetchChangelog).toHaveBeenCalledWith("ripencli", "2.0.0", "3.0.0");
   });
 });
 
