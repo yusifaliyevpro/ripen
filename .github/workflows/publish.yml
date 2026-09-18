@@ -28,13 +28,10 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
-      - name: Typecheck
-        run: pnpm tsc --noEmit --incremental false
-
-      - name: Lint
-        run: pnpm lint
+      - name: Run checks
+        run: pnpm check
 
       - name: Check the version
         id: check
