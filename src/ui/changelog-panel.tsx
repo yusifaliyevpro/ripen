@@ -22,13 +22,10 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
   const scrollRef = useRef<ScrollViewRef>(null);
   const { columns, rows } = useWindowSize();
 
-  const isUpToDate = pkg.current === (pkg.targetVersion ?? pkg.latest);
+  const isUpToDate = pkg.current === pkg.latest;
 
   useEffect(() => {
-    Promise.all([
-      fetchChangelog(pkg.name, isUpToDate ? "" : pkg.current, pkg.targetVersion ?? pkg.latest),
-      fetchRepoUrl(pkg.name),
-    ])
+    Promise.all([fetchChangelog(pkg.name, isUpToDate ? "" : pkg.current, pkg.latest), fetchRepoUrl(pkg.name)])
       .then(([result, repo]) => {
         setEntries(result.entries);
         setRateLimited(result.rateLimited ?? false);
@@ -90,7 +87,7 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
     if (input === "o" && currentEntry?.url) triggerOpen(currentEntry.url);
   });
 
-  const targetVer = pkg.targetVersion ?? pkg.latest;
+  const targetVer = pkg.latest;
 
   // Reserve rows for the chrome so the body fits: header 5 + navigator 2 (when >1 entry) + footer 3 + 1 safety.
   const navigatorHeight = entries.length > 1 ? 2 : 0;
