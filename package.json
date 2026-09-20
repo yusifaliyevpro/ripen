@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@rolldown/plugin-babel": "0.2.4",
-    "@types/node": "24.13.5",
+    "@types/node": "24.13.6",
     "@types/react": "19.2.18",
     "@vitejs/plugin-react": "6.1.1",
     "greenly": "1.1.6",
@@ -78,7 +78,7 @@
     "nano-spawn": "2.1.0",
     "oxfmt": "0.68.0",
     "oxlint": "1.83.0",
-    "oxlint-tsgolint": "7.0.2001",
+    "oxlint-tsgolint": "7.0.2002",
     "react": "19.2.8",
     "tsdown": "0.23.0",
     "typescript": "7.0.2",
