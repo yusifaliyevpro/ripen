@@ -13,20 +13,42 @@ import { fetchChangelog, fetchLatestVersion, fetchRepoUrl, fetchVersions, github
 // Real-world integration tests: NO mocking of `fetch()` or `run()`.
 const NETWORK_TIMEOUT = 30_000;
 
+const NETWORK_ATTEMPTS = 3;
+
 /** Fetch JSON, or skip the test when the endpoint is unreachable / not ok. */
 async function fetchJsonOrSkip(
   ctx: { skip: (note?: string) => never },
   url: string,
   headers?: Record<string, string>,
 ): Promise<unknown> {
-  let res: Response;
-  try {
-    res = await fetch(url, headers ? { headers } : undefined);
-  } catch {
-    return ctx.skip("network unreachable");
+  let badStatus = 0;
+  for (let attempt = 0; attempt < NETWORK_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(url, headers ? { headers } : undefined);
+      if (!res.ok) {
+        badStatus = res.status;
+        break;
+      }
+      // Reading the body is inside the try on purpose: npm's CDN sometimes drops
+      // a multi-MB packument mid-stream, which throws from res.json(), not fetch().
+      return await res.json();
+    } catch {
+      // Retry — a dropped connection is transient, unlike a non-ok status.
+    }
   }
-  if (!res.ok) return ctx.skip(`unexpected ${res.status} from ${url}`);
-  return res.json();
+  return ctx.skip(badStatus ? `unexpected ${badStatus} from ${url}` : "network unreachable");
+}
+
+/**
+ * Retry a registry.ts call that swallows its own network errors and returns a
+ * fallback, so one dropped connection doesn't read as a real empty result.
+ */
+async function retryUntil<T>(fn: () => Promise<T>, isGood: (value: T) => boolean): Promise<T> {
+  let value = await fn();
+  for (let attempt = 1; attempt < NETWORK_ATTEMPTS && !isGood(value); attempt++) {
+    value = await fn();
+  }
+  return value;
 }
 
 describe.concurrent("npm registry responses match their schemas (live)", () => {
@@ -86,7 +108,10 @@ describe.concurrent("registry.ts functions work end-to-end against live data", (
       // Probe reachability first so a network failure skips rather than fails
       // (fetchLatestVersion swallows errors and returns null on its own).
       await fetchJsonOrSkip(ctx, "https://registry.npmjs.org/react/latest");
-      const version = await fetchLatestVersion("react");
+      const version = await retryUntil(
+        () => fetchLatestVersion("react"),
+        (v) => v !== null,
+      );
       expect(version).toMatch(/^\d+\.\d+\.\d+/);
     },
     NETWORK_TIMEOUT,
@@ -95,8 +120,14 @@ describe.concurrent("registry.ts functions work end-to-end against live data", (
   it(
     "fetchVersions returns a non-empty, well-formed version list",
     async (ctx) => {
-      await fetchJsonOrSkip(ctx, "https://registry.npmjs.org/react");
-      const versions = await fetchVersions("react");
+      // Probe the tiny /latest endpoint, not the 7MB packument fetchVersions
+      // itself pulls — reachability is all this needs, and the extra download
+      // only adds another chance for the CDN to drop a connection.
+      await fetchJsonOrSkip(ctx, "https://registry.npmjs.org/react/latest");
+      const versions = await retryUntil(
+        () => fetchVersions("react"),
+        (list) => list.length > 0,
+      );
       expect(versions.length).toBeGreaterThan(0);
       for (const entry of versions) {
         expect(typeof entry.version).toBe("string");
@@ -110,7 +141,10 @@ describe.concurrent("registry.ts functions work end-to-end against live data", (
     "fetchRepoUrl resolves react to a well-formed GitHub URL",
     async (ctx) => {
       await fetchJsonOrSkip(ctx, "https://registry.npmjs.org/react/latest");
-      const url = await fetchRepoUrl("react");
+      const url = await retryUntil(
+        () => fetchRepoUrl("react"),
+        (u) => u !== "",
+      );
       // Don't pin the owner/repo (npm metadata can change) — assert the shape,
       // which proves the manifest parsed and the repo was extracted.
       expect(url).toMatch(/^https:\/\/github\.com\/[^/]+\/[^/]+$/);
