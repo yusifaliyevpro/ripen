@@ -12,6 +12,9 @@ export function sortableName(name: string): string {
   return name.startsWith("@") ? name.slice(1) : name;
 }
 
+const nameSort = (a: { pkg: OutdatedPackage }, b: { pkg: OutdatedPackage }) =>
+  sortableName(a.pkg.name).localeCompare(sortableName(b.pkg.name));
+
 // ── Build display rows ───────────────────────────────────────────────
 
 export function buildDisplayRows(
@@ -31,9 +34,6 @@ export function buildDisplayRows(
     if (!grouped.has(type)) grouped.set(type, []);
     grouped.get(type)!.push({ pkg, index: i });
   });
-
-  const nameSort = (a: { pkg: OutdatedPackage }, b: { pkg: OutdatedPackage }) =>
-    sortableName(a.pkg.name).localeCompare(sortableName(b.pkg.name));
 
   const freqSort = (a: { pkg: OutdatedPackage }, b: { pkg: OutdatedPackage }) => {
     const fa = frequency[a.pkg.name] ?? 0;

@@ -72,15 +72,15 @@ describe("detectPackageManager", () => {
   });
 });
 
-describe("isManagerInstalled", () => {
-  // Lay down a fake binary under every name the OS might look for so the test
-  // is platform-agnostic (bare name on posix, .cmd/.exe on Windows via PATHEXT).
-  async function fakeBin(name: string): Promise<void> {
-    for (const file of [name, `${name}.cmd`, `${name}.exe`]) {
-      await writeFile(join(dir, file), "");
-    }
+// Lay down a fake binary under every name the OS might look for so the test
+// is platform-agnostic (bare name on posix, .cmd/.exe on Windows via PATHEXT).
+async function fakeBin(name: string): Promise<void> {
+  for (const file of [name, `${name}.cmd`, `${name}.exe`]) {
+    await writeFile(join(dir, file), "");
   }
+}
 
+describe("isManagerInstalled", () => {
   it("is true when the manager resolves on PATH", async () => {
     await fakeBin("pnpm");
     expect(isManagerInstalled("pnpm", { PATH: dir })).toBe(true);
