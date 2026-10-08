@@ -17,6 +17,11 @@ const { ChangelogPanel } = await import("../../src/ui/changelog-panel");
 
 const ESC = String.fromCharCode(27);
 const RIGHT = `${ESC}[C`;
+const UP = `${ESC}[A`;
+const DOWN = `${ESC}[B`;
+const PAGE_DOWN = `${ESC}[6~`;
+
+const longBody = (prefix: string) => Array.from({ length: 60 }, (_, i) => `${prefix} ${i} end`).join("\n");
 
 function renderPanel(pkg: Partial<OutdatedPackage> = {}) {
   const onClose = vi.fn<() => void>();
@@ -191,6 +196,56 @@ describe("ChangelogPanel — interaction", () => {
     const loadedHeight = lastFrame()!.split("\n").length;
 
     expect(loadedHeight).toBe(loadingHeight);
+  });
+
+  it("scrolls the release notes with the arrow keys", async () => {
+    fetchChangelog.mockResolvedValue({ entries: [{ version: "v1.1.0", body: longBody("row"), url: "" }] });
+    fetchRepoUrl.mockResolvedValue("https://github.com/o/r");
+    const { lastFrame, stdin } = renderPanel();
+    await vi.waitFor(() => expect(lastFrame()).toContain("row 0 end"));
+    expect(lastFrame()).not.toContain("row 59 end");
+
+    stdin.write(DOWN);
+    await vi.waitFor(() => expect(lastFrame()).not.toContain("row 0 end"));
+    expect(lastFrame()).toContain("row 1 end");
+
+    stdin.write(UP);
+    await vi.waitFor(() => expect(lastFrame()).toContain("row 0 end"));
+  });
+
+  it("clamps scrolling at the end of the notes", async () => {
+    fetchChangelog.mockResolvedValue({ entries: [{ version: "v1.1.0", body: longBody("row"), url: "" }] });
+    fetchRepoUrl.mockResolvedValue("https://github.com/o/r");
+    const { lastFrame, stdin } = renderPanel();
+    await vi.waitFor(() => expect(lastFrame()).toContain("row 0 end"));
+
+    for (let i = 0; i < 10; i++) {
+      stdin.write(PAGE_DOWN);
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    await vi.waitFor(() => expect(lastFrame()).toContain("row 59 end"));
+
+    // One step up must move off the last row immediately, i.e. the offset never overshot the end.
+    stdin.write(UP);
+    await vi.waitFor(() => expect(lastFrame()).not.toContain("row 59 end"));
+    expect(lastFrame()).toContain("row 58 end");
+  });
+
+  it("resets the scroll position when switching releases", async () => {
+    fetchChangelog.mockResolvedValue({
+      entries: [
+        { version: "v1.0.5", body: longBody("a"), url: "" },
+        { version: "v1.1.0", body: longBody("b"), url: "" },
+      ],
+    });
+    fetchRepoUrl.mockResolvedValue("https://github.com/o/r");
+    const { lastFrame, stdin } = renderPanel();
+    await vi.waitFor(() => expect(lastFrame()).toContain("a 0 end"));
+
+    stdin.write(DOWN);
+    await vi.waitFor(() => expect(lastFrame()).not.toContain("a 0 end"));
+    stdin.write(RIGHT);
+    await vi.waitFor(() => expect(lastFrame()).toContain("b 0 end"));
   });
 
   it("opens the current release in the browser on 'o'", async () => {

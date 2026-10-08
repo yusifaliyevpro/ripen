@@ -38,4 +38,4 @@ Open an issue at [github.com/yusifaliyevpro/ripen/issues](https://github.com/yus
 
 ## Runtime dependencies
 
-`ink`, `ink-scroll-view`, `react`, and `execa` are **never bundled** — they must be installed alongside the package. Do not add new runtime dependencies without discussion.
+`ink`, `react`, and `nano-spawn` live in `devDependencies` and are **bundled into `dist/cli.js`** by tsdown, so the published package has no runtime dependencies to install. Do not add new dependencies without discussion.

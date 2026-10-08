@@ -7,6 +7,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    // Frame assertions match plain text; greenly (and CI) may set FORCE_COLOR=1 on child processes.
+    env: { FORCE_COLOR: "0" },
     fsModuleCache: true,
     include: ["tests/**/*.test.{ts,tsx}"],
     slowTestThreshold: 10000,
