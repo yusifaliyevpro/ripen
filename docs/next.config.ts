@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   partialPrefetching: true,
   experimental: {
+    agentUpgrade: "latest",
     useOffline: true,
     useTypeScriptCli: true,
     turbopackRustReactCompiler: true,
