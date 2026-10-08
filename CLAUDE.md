@@ -62,7 +62,7 @@ Releases are fully automated — there is **no changelog file to maintain**.
 
 ## Architecture
 
-`ripen` is a CLI tool built with **Ink** (React for terminal UIs). Source lives in `src/`, bundled to `dist/cli.js` via tsdown (ESM, Node platform). Dependencies (`ink`, `ink-scroll-view`, `react`, `nano-spawn`) are **bundled into `dist/cli.js`** — they live in `devDependencies` and tsdown inlines them, so the published package ships a single self-contained file with no runtime `node_modules` to install.
+`ripen` is a CLI tool built with **Ink** (React for terminal UIs). Source lives in `src/`, bundled to `dist/cli.js` via tsdown (ESM, Node platform). Dependencies (`ink`, `react`, `nano-spawn`) are **bundled into `dist/cli.js`** — they live in `devDependencies` and tsdown inlines them, so the published package ships a single self-contained file with no runtime `node_modules` to install.
 
 ### Data flow
 

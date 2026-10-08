@@ -1,5 +1,4 @@
-import { Box, Text, useInput, useWindowSize } from "ink";
-import { ScrollView, type ScrollViewRef } from "ink-scroll-view";
+import { Box, Text, useBoxMetrics, useInput, useWindowSize, type DOMElement } from "ink";
 import { useRef, useEffect, useState } from "react";
 import { openInBrowser } from "../lib/utils";
 import { fetchChangelog, fetchRepoUrl } from "../registry";
@@ -19,8 +18,10 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
   const [loading, setLoading] = useState(true);
   const [opened, setOpened] = useState(false);
   const [activeEntry, setActiveEntry] = useState(0);
-  const scrollRef = useRef<ScrollViewRef>(null);
-  const { columns, rows } = useWindowSize();
+  const [requestedScrollTop, setRequestedScrollTop] = useState(0);
+  const contentRef = useRef<DOMElement>(null);
+  const { height: contentHeight, hasMeasured } = useBoxMetrics(contentRef);
+  const { rows } = useWindowSize();
 
   const isUpToDate = pkg.current === pkg.latest;
 
@@ -40,10 +41,6 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
     // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [pkg.name]);
 
-  useEffect(() => {
-    scrollRef.current?.remeasure();
-  }, [columns, rows]);
-
   const releasesPageUrl = repoUrl ? `${repoUrl}/releases` : "";
 
   const triggerOpen = (url: string) => {
@@ -54,14 +51,23 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
 
   const currentEntry = entries[activeEntry];
 
-  const clampedScrollBy = (delta: number) => {
-    const sv = scrollRef.current;
-    if (!sv) return;
-    const maxOffset = sv.getBottomOffset();
-    const current = sv.getScrollOffset();
-    const target = Math.max(0, Math.min(maxOffset, current + delta));
-    sv.scrollTo(target);
-  };
+  const targetVer = pkg.latest;
+
+  // Reserve rows for the chrome so the body fits: header 5 + navigator 2 (when >1 entry) + footer 3 + 1 safety.
+  const navigatorHeight = entries.length > 1 ? 2 : 0;
+  const chromeHeight = 5 + navigatorHeight + 3 + 1;
+  // Size the body from the window, not the content, so the chrome stays put across releases of differing length.
+  const bodyHeight = Math.max(3, rows - chromeHeight);
+
+  // Clamp on every render: the max shrinks when the notes get shorter or the terminal taller.
+  const maxScrollTop = Math.max(0, contentHeight - bodyHeight);
+  const scrollTop = Math.min(requestedScrollTop, maxScrollTop);
+  const scrollBy = (delta: number) =>
+    setRequestedScrollTop((prev) => {
+      const next = Math.max(0, Math.min(prev, maxScrollTop) + delta);
+      // Metrics land an effect after the notes first render; don't drop keys pressed before that.
+      return hasMeasured ? Math.min(maxScrollTop, next) : next;
+    });
 
   useInput((input, key) => {
     if (key.escape || input === "q" || input === "c") {
@@ -70,30 +76,22 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
     }
     // Left/Right: switch between releases
     if (key.leftArrow && entries.length > 1) {
-      scrollRef.current?.scrollTo(0);
+      setRequestedScrollTop(0);
       setActiveEntry((prev) => Math.max(0, prev - 1));
       return;
     }
     if (key.rightArrow && entries.length > 1) {
-      scrollRef.current?.scrollTo(0);
+      setRequestedScrollTop(0);
       setActiveEntry((prev) => Math.min(entries.length - 1, prev + 1));
       return;
     }
-    if (key.upArrow) clampedScrollBy(-1);
-    if (key.downArrow) clampedScrollBy(1);
-    if (key.pageUp) clampedScrollBy(-(scrollRef.current?.getViewportHeight() ?? 10));
-    if (key.pageDown) clampedScrollBy(scrollRef.current?.getViewportHeight() ?? 10);
+    if (key.upArrow) scrollBy(-1);
+    if (key.downArrow) scrollBy(1);
+    if (key.pageUp) scrollBy(-bodyHeight);
+    if (key.pageDown) scrollBy(bodyHeight);
     if (input === "r" && releasesPageUrl) triggerOpen(releasesPageUrl);
     if (input === "o" && currentEntry?.url) triggerOpen(currentEntry.url);
   });
-
-  const targetVer = pkg.latest;
-
-  // Reserve rows for the chrome so the body fits: header 5 + navigator 2 (when >1 entry) + footer 3 + 1 safety.
-  const navigatorHeight = entries.length > 1 ? 2 : 0;
-  const chromeHeight = 5 + navigatorHeight + 3 + 1;
-  // Size the body from the window, not the content, so the chrome stays put across releases of differing length.
-  const bodyHeight = Math.max(3, rows - chromeHeight);
 
   return (
     <Box flexDirection="column">
@@ -131,7 +129,7 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
 
       {/* Scrollable body — fixed height in every state (loading, error, notes) so
           the surrounding header/navigator/footer never shift as the panel loads. */}
-      <Box height={bodyHeight} flexDirection="column">
+      <Box height={bodyHeight} flexDirection="column" overflow="hidden" contentOffsetY={scrollTop}>
         {loading ? (
           <Text color="gray"> fetching release notes…</Text>
         ) : rateLimited ? (
@@ -162,13 +160,12 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
             )}
           </Box>
         ) : currentEntry ? (
-          <ScrollView ref={scrollRef}>
-            <Box flexDirection="column">
-              {currentEntry.body.split("\n").map((line, j) => (
-                <MarkdownLine key={j} line={line} repoUrl={repoUrl} />
-              ))}
-            </Box>
-          </ScrollView>
+          // flexShrink={0} keeps the notes at their natural height so they can overflow the viewport.
+          <Box ref={contentRef} flexDirection="column" flexShrink={0}>
+            {currentEntry.body.split("\n").map((line, j) => (
+              <MarkdownLine key={j} line={line} repoUrl={repoUrl} />
+            ))}
+          </Box>
         ) : null}
       </Box>
 
