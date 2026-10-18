@@ -23,7 +23,7 @@ There is no test suite. Use `pnpm dev` to manually test changes.
 
 ## Project structure
 
-Source lives in `src/`. The entry point is `src/cli.tsx`. See [`CLAUDE.md`](./CLAUDE.md) for a full architecture overview including the data flow, UI component table, and screen state machine.
+Source lives in `src/`. The entry point is `src/cli.tsx`. See [`AGENTS.md`](./AGENTS.md) for a full architecture overview including the data flow, UI component table, and screen state machine.
 
 ## Submitting a PR
 
