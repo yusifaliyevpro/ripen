@@ -221,6 +221,20 @@ describe("global mode command streaming", () => {
     expect(lines).not.toContain("$ yarn outdated --global --json");
   });
 
+  it("skips excluded managers", async () => {
+    const lines: string[] = [];
+    const result = await getAllGlobalOutdated(dir, (l) => lines.push(l), false, ["pnpm", "yarn"]);
+    expect(result.ok).toBe(true);
+    expect(lines).toEqual(["$ npm outdated --global --json"]);
+  });
+
+  it("skips excluded managers in showAll global mode", async () => {
+    const lines: string[] = [];
+    await getAllGlobalOutdated(dir, (l) => lines.push(l), true, ["npm"]);
+    expect(lines).not.toContain("$ npm list -g --depth=0 --json");
+    expect(lines).toContain("$ pnpm list -g --json");
+  });
+
   it("streams the list command in showAll global mode", async () => {
     const lines: string[] = [];
     const result = await getAllGlobalOutdated(dir, (l) => lines.push(l), true);

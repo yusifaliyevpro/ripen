@@ -1,4 +1,5 @@
 import * as v from "valibot";
+import { githubSlug, parseChangelogFile } from "./lib/changelog-file";
 import { run } from "./lib/run";
 import { GitHubReleasesSchema, NpmPackumentSchema, NpmVersionManifestSchema, type NpmRepository } from "./lib/schemas";
 import {
@@ -8,7 +9,7 @@ import {
   parseVersion,
   prereleaseChannel,
 } from "./lib/versions";
-import type { RegistryVersion, ChangelogResult } from "./types";
+import type { RegistryVersion, ChangelogProgress, ChangelogResult } from "./types";
 
 export { isNewerVersion } from "./lib/versions";
 
@@ -90,6 +91,7 @@ export async function fetchChangelog(
   packageName: string,
   fromVersion: string,
   toVersion: string,
+  onProgress?: (step: ChangelogProgress) => void,
 ): Promise<ChangelogResult> {
   try {
     const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/latest`);
@@ -98,6 +100,19 @@ export async function fetchChangelog(
 
     const repo = extractGitHubRepo(data);
     if (!repo) return { entries: [] };
+    const directory = typeof data.repository === "object" ? data.repository.directory : undefined;
+
+    const toMajor = parseVersion(toVersion)[0];
+    const inRange = (version: string) =>
+      // fromVersion="" = up-to-date case: show history for the same major version only
+      fromVersion === ""
+        ? parseVersion(version)[0] === toMajor && compareVersions(version, toVersion) <= 0
+        : compareVersions(version, fromVersion) > 0 && compareVersions(version, toVersion) <= 0;
+
+    const fromChangelogFile = (allowFullFile: boolean) => {
+      onProgress?.("changelog-file");
+      return fetchChangelogFile(repo, directory, inRange, allowFullFile);
+    };
 
     const token = await githubToken();
     const headers: Record<string, string> = { Accept: "application/vnd.github+json" };
@@ -105,6 +120,9 @@ export async function fetchChangelog(
 
     const ghRes = await fetch(`https://api.github.com/repos/${repo}/releases?per_page=30`, { headers });
     if (!ghRes.ok) {
+      // raw.githubusercontent.com isn't covered by the API rate limit, so the file may still load.
+      const fromFile = await fromChangelogFile(true);
+      if (fromFile) return fromFile;
       // 403/429 without a token means the unauthenticated rate limit is exhausted —
       // tell the UI so it can suggest logging in with `gh`.
       const rateLimited = (ghRes.status === 403 || ghRes.status === 429) && !token;
@@ -113,21 +131,19 @@ export async function fetchChangelog(
 
     const releases = v.parse(GitHubReleasesSchema, await ghRes.json());
 
-    const toMajor = parseVersion(toVersion)[0];
     const filtered = releases
-      .filter((r) => {
-        if (r.draft || r.prerelease) return false;
-        // fromVersion="" = up-to-date case: show history for the same major version only
-        if (fromVersion === "") {
-          return parseVersion(r.tag_name)[0] === toMajor && compareVersions(r.tag_name, toVersion) <= 0;
-        }
-        return compareVersions(r.tag_name, fromVersion) > 0 && compareVersions(r.tag_name, toVersion) <= 0;
-      })
+      .filter((r) => !r.draft && !r.prerelease && inRange(r.tag_name))
       .map((r) => ({
         version: r.tag_name,
         body: r.body?.trim() ?? "No release notes.",
         url: r.html_url,
       }));
+
+    if (filtered.length === 0) {
+      // Only show the whole file when the repo has no releases at all; otherwise the latest release is a better fallback.
+      const fromFile = await fromChangelogFile(releases.length === 0);
+      if (fromFile) return fromFile;
+    }
 
     // if nothing found with strict filter, return latest release as fallback
     if (filtered.length === 0 && releases.length > 0) {
@@ -148,6 +164,58 @@ export async function fetchChangelog(
   } catch {
     return { entries: [] };
   }
+}
+
+const CHANGELOG_FILE_NAMES = ["CHANGELOG.md", "changelog.md", "CHANGES.md", "HISTORY.md"];
+
+/**
+ * Read a changelog file from the repo's default branch, split per version when it follows a known format.
+ * Returns null when there's no file, or (unless `allowFullFile`) no section in range.
+ */
+async function fetchChangelogFile(
+  repo: string,
+  directory: string | undefined,
+  inRange: (version: string) => boolean,
+  allowFullFile: boolean,
+): Promise<ChangelogResult | null> {
+  const dir = directory?.replace(/^\.?\/+|\/+$/g, "");
+  const paths = [...(dir ? CHANGELOG_FILE_NAMES.map((name) => `${dir}/${name}`) : []), ...CHANGELOG_FILE_NAMES];
+
+  const texts = await Promise.all(
+    paths.map(async (path) => {
+      try {
+        const res = await fetch(`https://raw.githubusercontent.com/${repo}/HEAD/${path}`);
+        return res.ok ? await res.text() : null;
+      } catch {
+        return null;
+      }
+    }),
+  );
+  const index = texts.findIndex((text) => text !== null);
+  if (index === -1) return null;
+  const path = paths[index];
+  const text = texts[index]!;
+  const fileUrl = `https://github.com/${repo}/blob/HEAD/${path}`;
+
+  const sections = parseChangelogFile(text).filter((s) => inRange(s.version));
+  if (sections.length > 0) {
+    return {
+      entries: sections
+        .map((s) => ({
+          version: s.version,
+          body: s.body || "No release notes.",
+          url: `${fileUrl}#${githubSlug(s.heading)}`,
+        }))
+        .toSorted((a, b) => compareVersions(a.version, b.version)),
+      file: { name: path, url: fileUrl, structured: true },
+    };
+  }
+
+  if (!allowFullFile) return null;
+  return {
+    entries: [{ version: path, body: text.trim(), url: fileUrl }],
+    file: { name: path, url: fileUrl, structured: false },
+  };
 }
 
 /**

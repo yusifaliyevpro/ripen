@@ -6,6 +6,7 @@ import { Settings } from "../../src/ui/settings";
 
 const ESC = String.fromCharCode(27);
 const DOWN = `${ESC}[B`;
+const RIGHT = `${ESC}[C`;
 const tick = () => new Promise((r) => setTimeout(r, 40));
 
 function renderSettings(config: RipenConfig = DEFAULT_CONFIG) {
@@ -13,6 +14,15 @@ function renderSettings(config: RipenConfig = DEFAULT_CONFIG) {
   const onClose = vi.fn<() => void>();
   const result = render(<Settings config={config} onConfigChange={onConfigChange} onClose={onClose} />);
   return { ...result, onConfigChange, onClose };
+}
+
+// The global managers row sits right after the five toggles.
+async function focusManagersRow(stdin: { write: (s: string) => void }) {
+  await tick();
+  for (let i = 0; i < 5; i++) {
+    stdin.write(DOWN);
+    await tick();
+  }
 }
 
 afterEach(() => vi.restoreAllMocks());
@@ -70,5 +80,56 @@ describe("Settings", () => {
     await tick();
     stdin.write(ESC);
     await vi.waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  describe("global package managers", () => {
+    it("shows every global package manager as scanned by default", async () => {
+      const { lastFrame } = renderSettings();
+      await vi.waitFor(() => expect(lastFrame()).toContain("Global scan"));
+      expect(lastFrame()).toContain("[x] npm");
+      expect(lastFrame()).toContain("[x] pnpm");
+      expect(lastFrame()).toContain("[x] yarn");
+    });
+
+    it("excludes the picked manager on space", async () => {
+      const { stdin, onConfigChange } = renderSettings();
+      await focusManagersRow(stdin);
+      stdin.write(RIGHT);
+      await tick();
+      stdin.write(" ");
+      await vi.waitFor(() =>
+        expect(onConfigChange).toHaveBeenCalledWith(expect.objectContaining({ excludedGlobalManagers: ["pnpm"] })),
+      );
+    });
+
+    it("re-includes an excluded manager on space", async () => {
+      const { stdin, onConfigChange, lastFrame } = renderSettings({
+        ...DEFAULT_CONFIG,
+        excludedGlobalManagers: ["npm"],
+      });
+      await vi.waitFor(() => expect(lastFrame()).toContain("[ ] npm"));
+      await focusManagersRow(stdin);
+      stdin.write(" ");
+      await vi.waitFor(() =>
+        expect(onConfigChange).toHaveBeenCalledWith(expect.objectContaining({ excludedGlobalManagers: [] })),
+      );
+    });
+
+    it("refuses to exclude the last scanned manager", async () => {
+      const { stdin, onConfigChange } = renderSettings({ ...DEFAULT_CONFIG, excludedGlobalManagers: ["pnpm", "yarn"] });
+      await focusManagersRow(stdin);
+      stdin.write(" ");
+      await tick();
+      expect(onConfigChange).not.toHaveBeenCalled();
+    });
+
+    it("keeps the scope list focusable after the managers row", async () => {
+      const { stdin, lastFrame } = renderSettings({ ...DEFAULT_CONFIG, groupByScope: true, groupScopes: ["@a"] });
+      await focusManagersRow(stdin);
+      stdin.write(DOWN);
+      await tick();
+      stdin.write(DOWN);
+      await vi.waitFor(() => expect(lastFrame()).toContain("d to remove"));
+    });
   });
 });

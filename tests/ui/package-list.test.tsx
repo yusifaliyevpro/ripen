@@ -40,6 +40,28 @@ const tick = () => new Promise((r) => setTimeout(r, 40));
 afterEach(() => vi.restoreAllMocks());
 
 describe("PackageList rendering", () => {
+  it("shows which package manager owns each global package", async () => {
+    const { lastFrame } = renderList([
+      pkg("typescript", { type: "global", manager: "npm" }),
+      pkg("typescript", { type: "global", manager: "pnpm" }),
+      pkg("serve", { type: "global", manager: "yarn" }),
+    ]);
+    await vi.waitFor(() => expect(lastFrame()).toContain("serve"));
+    const lines = lastFrame()!.split("\n");
+    expect(lines.find((l) => l.includes("current"))).toContain("manager");
+    expect(lines.filter((l) => l.includes("typescript")).map((l) => l.match(/\b(npm|pnpm|yarn)\b/)?.[1])).toEqual([
+      "npm",
+      "pnpm",
+    ]);
+    expect(lines.find((l) => l.includes("serve"))).toMatch(/\byarn\b/);
+  });
+
+  it("has no manager column for project dependencies", async () => {
+    const { lastFrame } = renderList([pkg("react")]);
+    await vi.waitFor(() => expect(lastFrame()).toContain("react"));
+    expect(lastFrame()).not.toContain("manager");
+  });
+
   it("shows package names, the group label and the outdated count", async () => {
     const { lastFrame } = renderList([pkg("react"), pkg("zod")]);
     await vi.waitFor(() => expect(lastFrame()).toContain("react"));

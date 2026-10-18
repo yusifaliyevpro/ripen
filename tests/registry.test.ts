@@ -262,6 +262,106 @@ describe("fetchChangelog", () => {
   });
 });
 
+describe("fetchChangelog — CHANGELOG.md fallback", () => {
+  const withRepo = { version: "1.0.0", repository: { url: "https://github.com/owner/repo.git" } };
+  const changelog = [
+    "# Changelog",
+    "## [2.0.0] - 2024-02-01",
+    "- two",
+    "## [1.5.0] - 2024-01-01",
+    "- one-five",
+    "## [1.0.0] - 2023-01-01",
+    "- one",
+  ].join("\n");
+
+  function mockRepo(files: Record<string, string>, releases: Response = json([])) {
+    mockFetch((url) => {
+      if (url.includes("registry.npmjs.org")) return json(withRepo);
+      if (url.includes("api.github.com")) return releases;
+      const file = Object.keys(files).find(
+        (path) => url === `https://raw.githubusercontent.com/owner/repo/HEAD/${path}`,
+      );
+      return file ? new Response(files[file]) : new Response("404", { status: 404 });
+    });
+  }
+
+  it("parses a Keep a Changelog CHANGELOG.md when the repo has no GitHub releases", async () => {
+    mockRepo({ "CHANGELOG.md": changelog });
+    const progress: string[] = [];
+    const result = await fetchChangelog("pkg", "1.0.0", "2.0.0", (step) => progress.push(step));
+    expect(progress).toEqual(["changelog-file"]);
+    expect(result.entries.map((e) => e.version)).toEqual(["1.5.0", "2.0.0"]);
+    expect(result.entries[1].body).toBe("- two");
+    expect(result.entries[1].url).toBe("https://github.com/owner/repo/blob/HEAD/CHANGELOG.md#200---2024-02-01");
+    expect(result.file).toEqual({
+      name: "CHANGELOG.md",
+      url: "https://github.com/owner/repo/blob/HEAD/CHANGELOG.md",
+      structured: true,
+    });
+  });
+
+  it("shows the whole file as one page when it has no version headings", async () => {
+    mockRepo({ "CHANGELOG.md": "# Changelog\n\nSee our blog." });
+    const result = await fetchChangelog("pkg", "1.0.0", "2.0.0");
+    expect(result.entries).toEqual([
+      {
+        version: "CHANGELOG.md",
+        body: "# Changelog\n\nSee our blog.",
+        url: "https://github.com/owner/repo/blob/HEAD/CHANGELOG.md",
+      },
+    ]);
+    expect(result.file?.structured).toBe(false);
+  });
+
+  it("shows the whole file when no parsed section falls in the range", async () => {
+    mockRepo({ "CHANGELOG.md": changelog });
+    const result = await fetchChangelog("pkg", "5.0.0", "6.0.0");
+    expect(result.entries).toHaveLength(1);
+    expect(result.entries[0].body).toBe(changelog);
+    expect(result.file?.structured).toBe(false);
+  });
+
+  it("prefers the package's own CHANGELOG.md in a monorepo", async () => {
+    mockFetch((url) => {
+      if (url.includes("registry.npmjs.org"))
+        return json({ ...withRepo, repository: { ...withRepo.repository, directory: "packages/pkg" } });
+      if (url.includes("api.github.com")) return json([]);
+      if (url.endsWith("/HEAD/packages/pkg/CHANGELOG.md")) return new Response("## 2.0.0\n- pkg two");
+      if (url.endsWith("/HEAD/CHANGELOG.md")) return new Response("## 2.0.0\n- root two");
+      return new Response("404", { status: 404 });
+    });
+    const result = await fetchChangelog("pkg", "1.0.0", "2.0.0");
+    expect(result.entries.map((e) => e.body)).toEqual(["- pkg two"]);
+    expect(result.file?.name).toBe("packages/pkg/CHANGELOG.md");
+  });
+
+  it("uses CHANGELOG.md when GitHub rate-limits the releases API", async () => {
+    mockRepo({ "CHANGELOG.md": changelog }, new Response("rate limited", { status: 403 }));
+    const result = await fetchChangelog("pkg", "1.0.0", "2.0.0");
+    expect(result.entries.map((e) => e.version)).toEqual(["1.5.0", "2.0.0"]);
+    expect(result.rateLimited).toBeFalsy();
+  });
+
+  it("still reports rateLimited when there is no CHANGELOG.md either", async () => {
+    mockRepo({}, new Response("rate limited", { status: 403 }));
+    const result = await fetchChangelog("pkg", "1.0.0", "2.0.0");
+    expect(result).toEqual({ entries: [], rateLimited: true });
+  });
+
+  it("does not fetch CHANGELOG.md when GitHub releases cover the range", async () => {
+    mockRepo(
+      { "CHANGELOG.md": changelog },
+      json([{ tag_name: "v2.0.0", body: "release two", html_url: "u2", draft: false, prerelease: false }]),
+    );
+    const result = await fetchChangelog("pkg", "1.0.0", "2.0.0");
+    expect(result.entries.map((e) => e.body)).toEqual(["release two"]);
+    expect(result.file).toBeUndefined();
+    expect(vi.mocked(globalThis.fetch).mock.calls.some(([u]) => urlOf(u).includes("raw.githubusercontent"))).toBe(
+      false,
+    );
+  });
+});
+
 describe("schema validation of registry responses", () => {
   it("fetchVersions returns [] when the packument shape is invalid", async () => {
     // `versions` must be an object keyed by version; a string here is invalid.

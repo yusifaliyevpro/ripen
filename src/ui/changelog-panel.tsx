@@ -2,7 +2,7 @@ import { Box, Text, useBoxMetrics, useInput, useWindowSize, type DOMElement } fr
 import { useRef, useEffect, useState } from "react";
 import { openInBrowser } from "../lib/utils";
 import { fetchChangelog, fetchRepoUrl } from "../registry";
-import type { ChangelogEntry, OutdatedPackage } from "../types";
+import type { ChangelogEntry, ChangelogResult, OutdatedPackage } from "../types";
 import { MarkdownLine } from "./markdown-line";
 
 type Props = {
@@ -14,6 +14,8 @@ type Props = {
 export function ChangelogPanel({ pkg, onClose, onError }: Props) {
   const [entries, setEntries] = useState<ChangelogEntry[]>([]);
   const [rateLimited, setRateLimited] = useState(false);
+  const [file, setFile] = useState<ChangelogResult["file"]>();
+  const [tryingFile, setTryingFile] = useState(false);
   const [repoUrl, setRepoUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [opened, setOpened] = useState(false);
@@ -26,10 +28,14 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
   const isUpToDate = pkg.current === pkg.latest;
 
   useEffect(() => {
-    Promise.all([fetchChangelog(pkg.name, isUpToDate ? "" : pkg.current, pkg.latest), fetchRepoUrl(pkg.name)])
+    Promise.all([
+      fetchChangelog(pkg.name, isUpToDate ? "" : pkg.current, pkg.latest, () => setTryingFile(true)),
+      fetchRepoUrl(pkg.name),
+    ])
       .then(([result, repo]) => {
         setEntries(result.entries);
         setRateLimited(result.rateLimited ?? false);
+        setFile(result.file);
         // Up-to-date: start at latest (last entry). Outdated: start at oldest change (first entry).
         setActiveEntry(isUpToDate ? Math.max(0, result.entries.length - 1) : 0);
         setRepoUrl(repo);
@@ -41,7 +47,8 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
     // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [pkg.name]);
 
-  const releasesPageUrl = repoUrl ? `${repoUrl}/releases` : "";
+  // With a changelog file, `r` opens the file instead of the (empty) releases page.
+  const releasesPageUrl = file?.url ?? (repoUrl ? `${repoUrl}/releases` : "");
 
   const triggerOpen = (url: string) => {
     openInBrowser(url);
@@ -53,8 +60,9 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
 
   const targetVer = pkg.latest;
 
-  // Reserve rows for the chrome so the body fits: header 5 + navigator 2 (when >1 entry) + footer 3 + 1 safety.
-  const navigatorHeight = entries.length > 1 ? 2 : 0;
+  const showNavigator = !loading && (entries.length > 1 || file !== undefined);
+  // Reserve rows for the chrome so the body fits: header 5 + navigator 2 (when shown) + footer 3 + 1 safety.
+  const navigatorHeight = showNavigator ? 2 : 0;
   const chromeHeight = 5 + navigatorHeight + 3 + 1;
   // Size the body from the window, not the content, so the chrome stays put across releases of differing length.
   const bodyHeight = Math.max(3, rows - chromeHeight);
@@ -111,19 +119,31 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
       </Box>
 
       {/* Release navigator */}
-      {entries.length > 1 && !loading && (
+      {showNavigator && (
         <Box marginBottom={1} gap={1}>
-          <Text color="gray">
-            {"  "}
-            {activeEntry > 0 ? <Text color="white">←</Text> : <Text>←</Text>}{" "}
-            <Text color="cyanBright" bold>
-              {currentEntry?.version ?? ""}
-            </Text>{" "}
-            <Text>
-              ({activeEntry + 1}/{entries.length})
-            </Text>{" "}
-            {activeEntry < entries.length - 1 ? <Text color="white">→</Text> : <Text>→</Text>}
-          </Text>
+          {file && !file.structured ? (
+            <Text color="gray">
+              {"  "}
+              Showing full <Text color="cyanBright">{file.name}</Text>. Scroll to find your version.
+            </Text>
+          ) : (
+            <Text color="gray">
+              {"  "}
+              {entries.length > 1 && <>{activeEntry > 0 ? <Text color="white">←</Text> : <Text>←</Text>} </>}
+              <Text color="cyanBright" bold>
+                {currentEntry?.version ?? ""}
+              </Text>{" "}
+              {entries.length > 1 && (
+                <>
+                  <Text>
+                    ({activeEntry + 1}/{entries.length})
+                  </Text>{" "}
+                  {activeEntry < entries.length - 1 ? <Text color="white">→</Text> : <Text>→</Text>}{" "}
+                </>
+              )}
+              {file && <Text>from {file.name}</Text>}
+            </Text>
+          )}
         </Box>
       )}
 
@@ -131,7 +151,9 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
           the surrounding header/navigator/footer never shift as the panel loads. */}
       <Box height={bodyHeight} flexDirection="column" overflow="hidden" contentOffsetY={scrollTop}>
         {loading ? (
-          <Text color="gray"> fetching release notes…</Text>
+          <Text color="gray">
+            {tryingFile ? " no GitHub release notes, trying CHANGELOG.md…" : " fetching release notes…"}
+          </Text>
         ) : rateLimited ? (
           <Box flexDirection="column">
             <Text color="yellow"> GitHub rate limit reached (60 requests/hour for unauthenticated use).</Text>
@@ -178,7 +200,7 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
           </Text>
           {entries.length > 1 && (
             <Text color="gray">
-              <Text color="white">←→</Text> releases
+              <Text color="white">←→</Text> {file ? "versions" : "releases"}
             </Text>
           )}
           <Text color="gray">
@@ -186,12 +208,12 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
           </Text>
           {currentEntry?.url && (
             <Text color="gray">
-              <Text color="white">o</Text> open release
+              <Text color="white">o</Text> {file?.structured ? "open section" : file ? "open file" : "open release"}
             </Text>
           )}
-          {releasesPageUrl && (
+          {releasesPageUrl && !(file && !file.structured) && (
             <Text color="gray">
-              <Text color="white">r</Text> all releases
+              <Text color="white">r</Text> {file ? "full changelog" : "all releases"}
             </Text>
           )}
           <Text color="gray">

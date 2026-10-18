@@ -1,5 +1,7 @@
-name: PR Tests
+name: CI
 on:
+  push:
+    branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
@@ -12,7 +14,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: 11.x
+          version: 12.x
 
       - name: Setup Node.js
         uses: actions/setup-node@v7

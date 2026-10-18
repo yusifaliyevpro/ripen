@@ -52,6 +52,10 @@ describe("loadConfig", () => {
     expect(loadConfig()).toEqual({ ...DEFAULT_CONFIG, frequencySort: true });
   });
 
+  it("scans every global package manager by default", () => {
+    expect(loadConfig().excludedGlobalManagers).toEqual([]);
+  });
+
   it("falls back to defaults on malformed JSON", () => {
     saveConfig(DEFAULT_CONFIG);
     const [path] = [...files.keys()];

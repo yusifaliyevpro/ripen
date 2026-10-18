@@ -8,6 +8,7 @@ const CONFIG: RipenConfig = {
   frequencySort: false,
   separateDevDeps: true,
   sfwFirewall: false,
+  excludedGlobalManagers: [],
 };
 
 // Mock every IO boundary so <App> mounts and stays on the loading screen (the fetch never
