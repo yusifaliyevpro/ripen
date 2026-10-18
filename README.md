@@ -10,7 +10,7 @@
 [![unpacked size](https://img.shields.io/npm/unpacked-size/ripencli?color=3fb950)](https://www.npmjs.com/package/ripencli)
 [![node](https://img.shields.io/node/v/ripencli?color=3fb950)](https://www.npmjs.com/package/ripencli)
 [![Socket Badge](https://badge.socket.dev/npm/package/ripencli/1.4.0)](https://socket.dev/npm/package/ripencli)
-[![PR Checks](https://github.com/yusifaliyevpro/ripen/actions/workflows/pr.yml/badge.svg)](https://github.com/yusifaliyevpro/ripen/actions/workflows/pr.yml)
+[![CI](https://github.com/yusifaliyevpro/ripen/actions/workflows/ci.yml/badge.svg)](https://github.com/yusifaliyevpro/ripen/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/ripencli?color=3fb950)](https://github.com/yusifaliyevpro/ripen/blob/main/LICENSE)
 
 ![ripen banner](https://raw.githubusercontent.com/yusifaliyevpro/ripen/main/docs/public/og.svg)
