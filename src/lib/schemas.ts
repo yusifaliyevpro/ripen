@@ -1,7 +1,10 @@
 import * as v from "valibot";
 
 /** A package's `repository` field as it appears in npm metadata. */
-export const NpmRepositorySchema = v.union([v.string(), v.object({ url: v.optional(v.string()) })]);
+export const NpmRepositorySchema = v.union([
+  v.string(),
+  v.object({ url: v.optional(v.string()), directory: v.optional(v.string()) }),
+]);
 
 /**
  * A single published version's manifest (e.g. the `/:package/latest` endpoint).

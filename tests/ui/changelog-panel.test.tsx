@@ -3,12 +3,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ChangelogResult, OutdatedPackage } from "../../src/types";
 
 // Mock the network + browser boundaries so the panel is fully deterministic.
-const fetchChangelog = vi.fn<(name: string, from: string, to: string) => Promise<ChangelogResult>>();
+type OnProgress = (step: "changelog-file") => void;
+const fetchChangelog =
+  vi.fn<(name: string, from: string, to: string, onProgress?: OnProgress) => Promise<ChangelogResult>>();
 const fetchRepoUrl = vi.fn<() => Promise<string>>();
 const openInBrowser = vi.fn<(url: string) => void>();
 
 vi.mock("../../src/registry", () => ({
-  fetchChangelog: (name: string, from: string, to: string) => fetchChangelog(name, from, to),
+  fetchChangelog: (name: string, from: string, to: string, onProgress?: OnProgress) =>
+    fetchChangelog(name, from, to, onProgress),
   fetchRepoUrl: () => fetchRepoUrl(),
 }));
 vi.mock("../../src/lib/utils", () => ({ openInBrowser: (url: string) => openInBrowser(url) }));
@@ -117,7 +120,7 @@ describe("ChangelogPanel — version range", () => {
     renderPanel({ current: "1.0.0", latest: "2.0.0", targetVersion: "1.5.0" });
     await vi.waitFor(() => expect(fetchChangelog).toHaveBeenCalled());
     // The changelog always spans current → latest, ignoring the chosen target.
-    expect(fetchChangelog).toHaveBeenCalledWith("ripencli", "1.0.0", "2.0.0");
+    expect(fetchChangelog).toHaveBeenCalledWith("ripencli", "1.0.0", "2.0.0", expect.any(Function));
   });
 
   it("shows the current → latest transition in the header for an in-between target", async () => {
@@ -138,7 +141,7 @@ describe("ChangelogPanel — version range", () => {
     renderPanel({ current: "2.0.0", latest: "3.0.0", targetVersion: "1.5.0" });
     await vi.waitFor(() => expect(fetchChangelog).toHaveBeenCalled());
     // A downgrade target is not a meaningful changelog range — always span current → latest.
-    expect(fetchChangelog).toHaveBeenCalledWith("ripencli", "2.0.0", "3.0.0");
+    expect(fetchChangelog).toHaveBeenCalledWith("ripencli", "2.0.0", "3.0.0", expect.any(Function));
   });
 });
 
@@ -275,5 +278,50 @@ describe("ChangelogPanel — interaction", () => {
     await vi.waitFor(() => expect(lastFrame()).toContain("Changelog"));
     stdin.write(ESC);
     await vi.waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+});
+
+describe("ChangelogPanel — CHANGELOG.md fallback", () => {
+  const fileUrl = "https://github.com/o/r/blob/HEAD/CHANGELOG.md";
+
+  it("says it is trying CHANGELOG.md once GitHub releases come up empty", async () => {
+    fetchChangelog.mockImplementation((_n, _f, _t, onProgress) => {
+      onProgress?.("changelog-file");
+      return new Promise(() => {});
+    });
+    fetchRepoUrl.mockResolvedValue("https://github.com/o/r");
+    const { lastFrame } = renderPanel();
+    await vi.waitFor(() => expect(lastFrame()).toContain("trying CHANGELOG.md"));
+  });
+
+  it("navigates parsed CHANGELOG.md sections like releases and labels the source", async () => {
+    fetchChangelog.mockResolvedValue({
+      entries: [
+        { version: "1.0.5", body: "old", url: `${fileUrl}#105` },
+        { version: "1.1.0", body: "new", url: `${fileUrl}#110` },
+      ],
+      file: { name: "CHANGELOG.md", url: fileUrl, structured: true },
+    });
+    fetchRepoUrl.mockResolvedValue("https://github.com/o/r");
+    const { lastFrame, stdin } = renderPanel();
+    await vi.waitFor(() => expect(lastFrame()).toContain("(1/2)"));
+    expect(lastFrame()).toContain("from CHANGELOG.md");
+    expect(lastFrame()).toContain("open section");
+    stdin.write("r");
+    await vi.waitFor(() => expect(openInBrowser).toHaveBeenCalledWith(fileUrl));
+  });
+
+  it("shows an unstructured CHANGELOG.md as a single scrollable page", async () => {
+    fetchChangelog.mockResolvedValue({
+      entries: [{ version: "CHANGELOG.md", body: longBody("line"), url: fileUrl }],
+      file: { name: "CHANGELOG.md", url: fileUrl, structured: false },
+    });
+    fetchRepoUrl.mockResolvedValue("https://github.com/o/r");
+    const { lastFrame, stdin } = renderPanel();
+    await vi.waitFor(() => expect(lastFrame()).toContain("line 0 end"));
+    expect(lastFrame()).toContain("full CHANGELOG.md");
+    expect(lastFrame()).not.toContain("releases");
+    stdin.write(DOWN);
+    await vi.waitFor(() => expect(lastFrame()).toContain("line 1 end"));
   });
 });

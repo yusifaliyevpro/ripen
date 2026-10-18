@@ -76,7 +76,17 @@ export type ChangelogResult = {
   entries: ChangelogEntry[];
   /** True when GitHub rate-limited the request with no auth token — the UI suggests logging into `gh`. */
   rateLimited?: boolean;
+  /** Set when the notes came from a changelog file in the repo instead of GitHub Releases. */
+  file?: {
+    /** Repo-relative path, e.g. `CHANGELOG.md` or `packages/foo/CHANGELOG.md`. */
+    name: string;
+    url: string;
+    /** False when the file couldn't be split by version, so `entries` holds the whole file as one page. */
+    structured: boolean;
+  };
 };
+
+export type ChangelogProgress = "changelog-file";
 
 // ── External JSON shapes (npm registry, GitHub API, CLI output) ───────
 // Validated at runtime with valibot, types inferred from those schemas (see `lib/schemas.ts`); re-exported for a single import site.
