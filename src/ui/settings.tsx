@@ -1,5 +1,6 @@
 import { Box, Text, useInput, useWindowSize } from "ink";
 import { useState } from "react";
+import { GLOBAL_MANAGERS } from "../fetcher";
 import type { RipenConfig } from "../types";
 import { SettingsToggle } from "./settings-toggle";
 
@@ -12,10 +13,11 @@ type Props = {
 export function Settings({ config, onConfigChange, onClose }: Props) {
   const [inputMode, setInputMode] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [managerCursor, setManagerCursor] = useState(0);
 
   const scopes = config.groupScopes;
 
-  // Flat list of focusable rows: the toggles, then the list-header, then one row per scope.
+  // Flat list of focusable rows: the toggles, the global managers row, the list-header, then one row per scope.
   const rows: {
     type:
       | "toggle-frequency"
@@ -23,6 +25,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
       | "toggle-groups-top"
       | "toggle-separate-dev"
       | "toggle-sfw"
+      | "global-managers"
       | "list-header"
       | "list-item";
     listItemIndex?: number;
@@ -32,6 +35,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
     { type: "toggle-group" },
     { type: "toggle-groups-top" },
     { type: "toggle-sfw" },
+    { type: "global-managers" },
     { type: "list-header" },
     ...scopes.map((_, i) => ({ type: "list-item" as const, listItemIndex: i })),
   ];
@@ -46,6 +50,17 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
       ...config,
       groupScopes: [...scopes, scope],
     });
+  };
+
+  const excluded = config.excludedGlobalManagers;
+  const toggleManager = (manager: (typeof GLOBAL_MANAGERS)[number]) => {
+    if (excluded.includes(manager)) {
+      onConfigChange({ ...config, excludedGlobalManagers: excluded.filter((m) => m !== manager) });
+      return;
+    }
+    // Excluding every manager would make `ripen -g` report "all up to date" without checking anything.
+    if (GLOBAL_MANAGERS.every((m) => m === manager || excluded.includes(m))) return;
+    onConfigChange({ ...config, excludedGlobalManagers: [...excluded, manager] });
   };
 
   const removeScope = (scope: string) => {
@@ -81,6 +96,10 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
 
     if (key.upArrow) setFlatCursor((c) => Math.max(0, c - 1));
     if (key.downArrow) setFlatCursor((c) => Math.min(rows.length - 1, c + 1));
+    if (currentRow?.type === "global-managers") {
+      if (key.leftArrow) setManagerCursor((c) => Math.max(0, c - 1));
+      if (key.rightArrow) setManagerCursor((c) => Math.min(GLOBAL_MANAGERS.length - 1, c + 1));
+    }
 
     if (input === " " || key.return) {
       if (currentRow?.type === "toggle-frequency") {
@@ -93,6 +112,8 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
         onConfigChange({ ...config, groupsOnTop: !config.groupsOnTop });
       } else if (currentRow?.type === "toggle-sfw") {
         onConfigChange({ ...config, sfwFirewall: !config.sfwFirewall });
+      } else if (currentRow?.type === "global-managers") {
+        toggleManager(GLOBAL_MANAGERS[managerCursor]);
       } else if (currentRow?.type === "list-header") {
         setInputMode(true);
         setInputValue("");
@@ -124,6 +145,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
   });
 
   const listHeaderFocused = currentRow?.type === "list-header";
+  const managersFocused = currentRow?.type === "global-managers";
 
   // Fill the terminal to a stable height (like the other views) so the footer stays pinned near the bottom.
   const { rows: terminalRows } = useWindowSize();
@@ -170,6 +192,30 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
         focused={currentRow?.type === "toggle-sfw"}
       />
 
+      {/* Global package managers: one row, ←→ picks a manager */}
+      <Box flexDirection="column">
+        <Box gap={1}>
+          <Text color="greenBright">{managersFocused ? ">" : " "}</Text>
+          <Text bold={managersFocused} color={managersFocused ? "whiteBright" : "white"}>
+            Global scan
+          </Text>
+          {GLOBAL_MANAGERS.map((manager, i) => {
+            const scanned = !excluded.includes(manager);
+            const picked = managersFocused && i === managerCursor;
+            return (
+              <Text key={manager} inverse={picked} color={scanned ? "greenBright" : "gray"}>
+                [{scanned ? "x" : " "}] {manager}
+              </Text>
+            );
+          })}
+        </Box>
+        <Box marginLeft={4}>
+          <Text color="gray">
+            Package managers checked by ripen -g{managersFocused ? " (←→ pick, space toggle)" : ""}
+          </Text>
+        </Box>
+      </Box>
+
       {/* List: groupScopes */}
       <Box flexDirection="column" marginBottom={1}>
         <Box flexDirection="column" marginBottom={0}>
@@ -194,7 +240,7 @@ export function Settings({ config, onConfigChange, onClose }: Props) {
 
         {/* Scope items */}
         {scopes.map((scope, i) => {
-          const itemFocused = flatCursor === 6 + i;
+          const itemFocused = currentRow?.type === "list-item" && currentRow.listItemIndex === i;
           return (
             <Box key={scope} marginLeft={4} gap={1}>
               <Text dimColor={!config.groupByScope} color="greenBright">

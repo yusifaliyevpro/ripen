@@ -10,6 +10,7 @@ export const DEFAULT_CONFIG: RipenConfig = {
   frequencySort: false,
   separateDevDeps: true,
   sfwFirewall: false,
+  excludedGlobalManagers: [],
 };
 
 const CONFIG_DIR = join(homedir(), ".config", "ripen");

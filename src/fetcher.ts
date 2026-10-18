@@ -416,18 +416,20 @@ export function parseNpmOutdated(data: Record<string, OutdatedInfo>): OutdatedPa
   }));
 }
 
-const ALL_MANAGERS: PackageManager[] = ["npm", "pnpm", "yarn"];
+/** Managers `ripen -g` knows how to query for global packages. */
+export const GLOBAL_MANAGERS: PackageManager[] = ["npm", "pnpm", "yarn"];
 
 /** Check all managers for global packages in parallel, tagging each by manager; showAll lists every installed package. */
 export async function getAllGlobalOutdated(
   cwd: string,
   onLine?: (line: string) => void,
   showAll = false,
+  excluded: PackageManager[] = [],
 ): Promise<FetchResult> {
   // Probe + query each manager independently so its output streams without blocking on the slowest.
   const results = await Promise.all(
-    ALL_MANAGERS.map(async (manager) => {
-      if (!isManagerInstalled(manager)) return null;
+    GLOBAL_MANAGERS.map(async (manager) => {
+      if (excluded.includes(manager) || !isManagerInstalled(manager)) return null;
       const result = showAll
         ? await getGlobalAllPackages(manager, cwd, onLine)
         : await getOutdatedPackages(manager, cwd, true, onLine);

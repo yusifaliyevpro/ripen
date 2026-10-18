@@ -55,6 +55,8 @@ export type RipenConfig = {
   separateDevDeps: boolean;
   /** Prepend "sfw" before every generated install command (default: false) */
   sfwFirewall: boolean;
+  /** Package managers skipped by `ripen -g` (default: none, every installed manager is scanned) */
+  excludedGlobalManagers: PackageManager[];
 };
 
 // ── Registry ─────────────────────────────────────────────────────────

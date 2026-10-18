@@ -86,7 +86,7 @@ export function App({ project, global, showAll, version, installManager, onCopie
     terminal.setTerminalCmd(global ? "" : "Checking npm registry…");
 
     const fetch = global
-      ? getAllGlobalOutdated(project.cwd, terminal.onLine, showAll)
+      ? getAllGlobalOutdated(project.cwd, terminal.onLine, showAll, config.excludedGlobalManagers)
       : getOutdatedPackages(
           project.manager,
           project.cwd,

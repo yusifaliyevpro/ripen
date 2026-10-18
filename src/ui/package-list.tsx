@@ -11,7 +11,9 @@ import {
 } from "../lib/build-rows";
 import { formatAge } from "../lib/utils";
 import { parseVersion } from "../lib/versions";
-import type { OutdatedPackage } from "../types";
+import type { OutdatedPackage, PackageManager } from "../types";
+
+const MANAGER_COLORS: Record<PackageManager, string> = { npm: "red", pnpm: "yellow", yarn: "blue", bun: "white" };
 
 type Props = {
   packages: OutdatedPackage[];
@@ -215,6 +217,7 @@ export function PackageList({
           collapsedScopes={collapsedScopes}
           scrollOffset={offsets[group.type] ?? 0}
           maxVisible={maxVisible}
+          showManager={group.type === "global" && group.allPackages.some((p) => p.manager)}
         />
       ))}
 
@@ -254,9 +257,17 @@ type PackageGroupBoxProps = {
   collapsedScopes: Set<string>;
   scrollOffset: number;
   maxVisible: number;
+  showManager: boolean;
 };
 
-function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, maxVisible }: PackageGroupBoxProps) {
+function PackageGroupBox({
+  group,
+  focusedIndex,
+  collapsedScopes,
+  scrollOffset,
+  maxVisible,
+  showManager,
+}: PackageGroupBoxProps) {
   const check = groupCheckbox(group.allPackages);
   const headerFocused = focusedIndex === group.headerVisibleIndex;
   const typeColor = TYPE_COLORS[group.type] ?? "white";
@@ -290,6 +301,11 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
           <Box width={28}>
             <Text color="gray">package</Text>
           </Box>
+          {showManager && (
+            <Box width={7}>
+              <Text color="gray">manager</Text>
+            </Box>
+          )}
           <Box width={14}>
             <Text color="gray">current</Text>
           </Box>
@@ -333,7 +349,8 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
           const isMajorBump = !isUpToDate && (parseVersion(pkg.latest)[0] ?? 0) > (parseVersion(pkg.current)[0] ?? 0);
 
           return (
-            <Box key={pkg.name} gap={2}>
+            // The same package can be installed globally by several managers.
+            <Box key={`${pkg.manager ?? ""}:${pkg.name}`} gap={2}>
               <Text color="greenBright">{isFocused ? "❯" : " "}</Text>
               {row.indented && <Text> </Text>}
               <Text color={pkg.selected ? "greenBright" : "gray"}>{pkg.selected ? "◉" : "○"}</Text>
@@ -345,6 +362,11 @@ function PackageGroupBox({ group, focusedIndex, collapsedScopes, scrollOffset, m
                   })()}
                 </Text>
               </Box>
+              {showManager && (
+                <Box width={7}>
+                  <Text color={pkg.manager ? MANAGER_COLORS[pkg.manager] : "gray"}>{pkg.manager ?? ""}</Text>
+                </Box>
+              )}
               <Box width={14}>
                 <Text color={isUpToDate ? "green" : "red"}>{pkg.current}</Text>
               </Box>
