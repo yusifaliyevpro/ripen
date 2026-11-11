@@ -12,3 +12,9 @@ allowBuilds:
   esbuild: true
   sharp: true
   unrs-resolver: true
+permissions:
+  tsdown:
+    skills: true
+skills:
+  dirs:
+    - .agents/skills
