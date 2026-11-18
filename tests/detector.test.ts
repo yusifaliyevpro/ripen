@@ -1,8 +1,16 @@
+import type * as NodeFs from "node:fs";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { delimiter, join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { detectPackageManager, getProjectInfo, hasPackageJson, isManagerInstalled } from "../src/detector";
+
+// Hide lockfiles above the temp dir (e.g. a stray ~/pnpm-workspace.yaml) so the walk-up is hermetic.
+vi.mock("node:fs", async (importOriginal) => {
+  const fs = await importOriginal<typeof NodeFs>();
+  const root = join(tmpdir(), "ripen-");
+  return { ...fs, existsSync: (p: string) => p.startsWith(root) && fs.existsSync(p) };
+});
 
 let dir: string;
 
