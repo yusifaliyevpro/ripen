@@ -1,6 +1,6 @@
 {
   "name": "ripencli",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Interactive dependency updater for npm, pnpm, yarn, and bun",
   "keywords": [
     "bun",
@@ -74,10 +74,10 @@
     "greenly": "1.2.0",
     "ink": "8.0.0",
     "ink-testing-library": "4.0.0",
-    "nano-spawn": "2.1.0",
-    "oxfmt": "0.78.0",
-    "oxlint": "1.93.0",
-    "oxlint-tsgolint": "7.0.2006",
+    "nano-spawn": "3.0.0",
+    "oxfmt": "0.79.0",
+    "oxlint": "1.94.0",
+    "oxlint-tsgolint": "7.0.2007",
     "react": "19.3.1",
     "tsdown": "0.23.7",
     "typescript": "7.0.2",

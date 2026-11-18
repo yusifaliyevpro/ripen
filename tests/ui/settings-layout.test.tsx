@@ -62,5 +62,6 @@ describe("Settings layout on a short terminal", () => {
     lines = lastFrame()!.split("\n");
     expect(lines).toHaveLength(12);
     expect(lines.at(-1)).toContain("esc back");
-  });
+    // 18 deliberate settles plus Ink renders can exceed the 5s default under a full parallel run.
+  }, 15_000);
 });
