@@ -29,7 +29,7 @@ function Probe({ initial }: { initial: OutdatedPackage[] }) {
 
   useEffect(() => {
     setPackages(initial);
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps, react/exhaustive-effect-dependencies
   }, []);
 
   useInput((input) => {

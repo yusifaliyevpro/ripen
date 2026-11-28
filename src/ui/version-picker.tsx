@@ -16,6 +16,7 @@ export function VersionPicker({ pkg, onSelect, onCancel, onError }: Props) {
   const [loading, setLoading] = useState(true);
   const [cursor, setCursor] = useState(0);
   const [scroll, setScroll] = useState(0);
+  const [now] = useState(() => Date.now());
   const { rows } = useWindowSize();
   // overhead: App padding(2) + title(1) + current(1) + marginTop(1) + sep(1) + marginBottom(1) + count(1) + marginTop(1) + sep(1) + controls(1) = 11
   const PAGE = Math.max(1, rows - 11);
@@ -34,7 +35,7 @@ export function VersionPicker({ pkg, onSelect, onCancel, onError }: Props) {
       .catch((err: unknown) => {
         onError(err instanceof Error ? err.message : String(err));
       });
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps, react/exhaustive-effect-dependencies
   }, [pkg.name]);
 
   useInput((input, key) => {
@@ -112,7 +113,7 @@ export function VersionPicker({ pkg, onSelect, onCancel, onError }: Props) {
               </Text>
             </Box>
             <Box width={6}>
-              <Text color={v.date && Date.now() - new Date(v.date).getTime() < 86_400_000 ? "yellow" : "gray"}>
+              <Text color={v.date && now - new Date(v.date).getTime() < 86_400_000 ? "yellow" : "gray"}>
                 {formatAge(v.date)}
               </Text>
             </Box>

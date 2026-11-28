@@ -44,7 +44,7 @@ export function ChangelogPanel({ pkg, onClose, onError }: Props) {
       .catch((err: unknown) => {
         onError(err instanceof Error ? err.message : String(err));
       });
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps, react/exhaustive-effect-dependencies
   }, [pkg.name]);
 
   // With a changelog file, `r` opens the file instead of the (empty) releases page.

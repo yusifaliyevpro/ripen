@@ -1,5 +1,5 @@
 import { Box, Text, useApp, useInput } from "ink";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { buildUpdateCommands } from "../build-commands";
 import { loadConfig, saveConfig, loadFrequency, incrementFrequency } from "../config";
 import { getOutdatedPackages, getAllGlobalOutdated } from "../fetcher";
@@ -63,7 +63,7 @@ export function App({ project, global, showAll, version, installManager, onCopie
     if (screen !== "empty") return;
     onEmpty?.();
     exit();
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps, react/exhaustive-effect-dependencies
   }, [screen]);
 
   const handleSelfUpdate = () => {
@@ -75,10 +75,10 @@ export function App({ project, global, showAll, version, installManager, onCopie
   };
 
   // ── Fetch outdated packages ────────────────────────────────────────
-  const [fetchStarted, setFetchStarted] = useState(false);
+  const fetchStarted = useRef(false);
   useEffect(() => {
-    if (screen !== "loading" || fetchStarted) return;
-    setFetchStarted(true);
+    if (screen !== "loading" || fetchStarted.current) return;
+    fetchStarted.current = true;
 
     terminal.setLoadingMsg("Checking for outdated packages…");
     // In global mode several managers run, so the real commands are streamed
@@ -116,7 +116,7 @@ export function App({ project, global, showAll, version, installManager, onCopie
       .catch((err) => {
         showError(err instanceof Error ? err.message : String(err));
       });
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps, react/exhaustive-effect-dependencies
   }, [screen]);
 
   // ── Callbacks ──────────────────────────────────────────────────────
